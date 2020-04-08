@@ -19,12 +19,16 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: Sequelize.NOW
     },
     userStatus: {
-      type: DataTypes.ENUM(['ORDERED', 'RECEIVED', 'NOT_DELIVERED', 'WRONG_DELIVERY']),
+      type: DataTypes.ENUM(['ORDERED', 'NOT_DELIVERED', 'WRONG_DELIVERY', 'COMPLETE', 'ERROR']),
       defaultValue: 'ORDERED'
     },
     restStatus: {
-      type: DataTypes.ENUM(['RECEIVED', 'BEING_MADE', 'IN_DELIVERY', 'DELIVERED']),
+      type: DataTypes.ENUM(['RECEIVED', 'PROCESSING', 'IN_DELIVERY', 'COMPLETE', 'ERROR']),
       defaultValue: 'RECEIVED'
+    },
+    payStatus: {
+      type: DataTypes.ENUM(['PENDING', 'COMPLETE', 'REFUNDED', 'ERROR']),
+      defaultValue: 'PENDING'  
     },
     quantity: {
       type: DataTypes.STRING,
@@ -34,14 +38,14 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       defaultValue: ''
     },
-    {
+    groupId: {
       type: DataTypes.UUID,
       allowNull: false
     }
   }, {
     associate: function(models) {
       Order.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
-      Order.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Order.belongsTo(models.meal, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Order.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });

@@ -36,7 +36,10 @@ module.exports = function(sequelize, DataTypes) {
     },
     phoneNumber: {
       type: DataTypes.STRING,
-      defaultValue: ''
+      defaultValue: '',
+      validate: {
+        isValid: validationWrapper("Phone Number")
+      },
     },
     email: {
       type: DataTypes.STRING,
