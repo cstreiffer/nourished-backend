@@ -42,8 +42,8 @@ var
   menu2 = {date: "2020-04-02 13:00:00", id: uuid()},
   menu3 = {date: "2020-04-03 13:00:00", id: uuid()},
   menu4 = {date: "2020-04-04 13:00:00", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50};
+  meal1 = {name: "Chicken 1", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50, finalized: false},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50, finalized: true};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -385,14 +385,85 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
       chai.request(app)
         .put('/api/user/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
-        .send({visible: true, name: "Chicken 2.0"})
+        .send({menuId: menu2.id, name: "Chicken 2.0", visible: true})
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Meal successfully updated');
-          res.body.meal.should.have.property('id');
-          res.body.meal.should.have.property('visible').equal(true);
-          res.body.meal.should.have.property('name').equal("Chicken 2.0");
+          res.body.meal.should.have.property('menuId').eql(menu2.id);
+          res.body.meal.should.have.property('visible').eql(false);
+          res.body.meal.should.have.property('name').eql("Chicken 2.0");
           res.should.have.status(200);
+          done();
+        });
+    });
+  });
+
+  it('User with "user" role should not be able to update to menu they dont own', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .put('/api/user/meals/' + meal.id)
+        .set('Authorization', restaurantJWT1)
+        .send({menuId: menu3.id, name: "Chicken 2.0", visible: true})
+        .end((err, res) => {
+          res.should.have.status(403);
+          res.body.should.have.property('message');
+          res.body.message.should.be.eql("User is not authorized");
+          done();
+        });
+    });
+  });
+
+  it('User with "user" role should not be able to update finalized menu', (done) => {
+    Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .put('/api/user/meals/' + meal.id)
+        .set('Authorization', restaurantJWT1)
+        .send({menuId: menu2.id, price: 10.50, visible: true, name: "Chicken 2.0"})
+        .end((err, res) => {
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Meal successfully updated');
+          res.body.meal.should.have.property('menuId').eql(menu1.id);
+          res.body.meal.should.have.property('visible').eql(true);
+          res.body.meal.should.have.property('name').eql("Chicken 2.0");
+          res.body.meal.should.have.property('price').eql(meal.price);
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+});
+
+describe('/PUT /api/meals/:mealId endpoint', () => {
+  
+  // Clear the database
+  beforeEach(function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){done();});
+  });
+
+  it('User with "user" role should be able to delete unfinalized meal', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .delete('/api/user/meals/' + meal.id)
+        .set('Authorization', restaurantJWT1)
+        .end((err, res) => {
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Meal successfully deleted');
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+
+  it('User with "user" role should not be able to delete finalized meal', (done) => {
+    Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .delete('/api/user/meals/' + meal.id)
+        .set('Authorization', restaurantJWT1)
+        .end((err, res) => {
+          res.should.have.status(400);
+          res.body.should.have.property('message');
+          res.body.message.should.be.eql("Cannot delete finalized meal");
           done();
         });
     });

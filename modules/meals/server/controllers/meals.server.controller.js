@@ -21,6 +21,10 @@ exports.create = function(req, res) {
   req.body.id = uuid();
   req.body.userId = req.user.id;
 
+  // Visibility checks
+  req.body.finalized = req.body.finalized || false;
+  req.body.visible = (req.body.visible && req.body.finalized) || false;
+
   // Separate endpoint to upload the meal image
   delete req.body.mealImageURL;
   
@@ -58,20 +62,31 @@ exports.read = function(req, res) {
  */
 exports.update = function(req, res) {
   delete req.body.id;
-  delete req.body.menuId;
   delete req.body.userId;
-  var meal = req.meal;
 
-  meal.update({
-    name: req.body.name,
-    description: req.body.description,
-    category: req.body.category,
-    // date: req.body.date,
-    // price: req.body.price,
-    visible: req.body.visible,
-    // minQuantity: req.body.minQuantity,
-    // maxQuantity: req.body.maxQuantity
-  }).then(function(meal) {
+  var meal = req.meal;
+  var updateBuilder = {};
+
+  // Unfinalized to update these values
+  if(!meal.finalized) {
+    updateBuilder.menuId = req.body.menuId;
+    updateBuilder.price = req.body.price;
+    updateBuilder.minQuantity = req.body.minQuantity;
+    updateBuilder.maxQuantity = req.body.maxQuantity;
+    updateBuilder.finalized = req.body.finalized || false;
+  }
+
+  // Finalized to update this value
+  if(meal.finalized) {
+    updateBuilder.visible = req.body.visible;
+  }
+
+  // Values okay to update
+  updateBuilder.name = req.body.name;
+  updateBuilder.description = req.body.description;
+  updateBuilder.category = req.body.category;
+
+  meal.update(updateBuilder).then(function(meal) {
     res.jsonp({meal: meal, message: "Meal successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
@@ -160,23 +175,29 @@ exports.changeMealPicture = function (req, res) {
 exports.delete = function(req, res) {
   var meal = req.meal;
 
-  // Try to delete the image
-  if (meal.mealImageURL) {
-    fs.unlink(meal.mealImageURL, function (unlinkError) {
-      if (unlinkError) {
-        console.log(unlinkError);
-      }
-    });       
-  }
+  if(!meal.finalized) {
+    // Try to delete the image
+    if (meal.mealImageURL) {
+      fs.unlink(meal.mealImageURL, function (unlinkError) {
+        if (unlinkError) {
+          console.log(unlinkError);
+        }
+      });       
+    }
 
-  // Delete the meal
-  meal.destroy().then(function() {
-    return res.jsonp({meal: meal, message: "Meal successfully deleted"});
-  }).catch(function(err) {
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
+    // Delete the meal
+    meal.destroy().then(function() {
+      return res.jsonp({meal: meal, message: "Meal successfully deleted"});
+    }).catch(function(err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
     });
-  });
+  } else {
+    return res.status(400).send({
+      message: "Cannot delete finalized meal"
+    });
+  }
 };
 
 var formatDate = function(query) {

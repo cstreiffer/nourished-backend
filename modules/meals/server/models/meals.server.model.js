@@ -62,7 +62,11 @@ module.exports = function(sequelize, DataTypes) {
     },
     visible: {
       type: DataTypes.BOOLEAN,
-      defaultValue: true
+      defaultValue: false
+    },
+    finalized: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     associate: function(models) {
