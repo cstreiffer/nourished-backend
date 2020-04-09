@@ -6,14 +6,22 @@ services:
       - ./pgdata:/var/lib/postgresql/data/
     environment:
       - POSTGRES_PASSWORD=password
+  redis:
+    image: redis:alpine
+    ports:
+      - 6379:6379
   backend:
+    depends_on:
+      - db
+      - redis
     build:
       context: .
       dockerfile: dev-dockerfile
     image: app-backend:dev
     command: ["./scripts/wait-for-it.sh", "db:5432", "--", "node", "server.js"]
     environment:
-      - DJANGO_SETTINGS_MODULE=myapp.settings
+      - NODE_ENV=development
+      - REDIS_HOST=redis
     volumes:
       - .:/app
     ports:
