@@ -24,12 +24,22 @@ module.exports = function(app) {
   app.route('/api/user/orders')
     .all(passport.authenticate('jwt', {session: false}))
     .all(ordersPolicy.isUserAllowed)
-    .get(orders.userList)
-    .all(ordersPolicy.isOrderAllowed)
-    .delete(orders.delete)
+    .get(orders.userList);
+
+  app.route('/api/user/orders')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isUserAllowed)
+    .all(ordersPolicy.isCreateOrderAllowed)
+    .all(ordersPolicy.isFormatAllowed)
+    .post(orders.create);
+
+  app.route('/api/user/orders')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isUserAllowed)
+    .all(ordersPolicy.isUserOrderAllowed)
+    .all(ordersPolicy.isUpdateOrderAllowed)
     .put(orders.update)
-    .all(ordersPolicy.isFormattedCorrectly)
-    .post(orders.create)
+    .delete(orders.delete);
 
   app.route('/api/user/orders/status')
     .all(passport.authenticate('jwt', {session: false}))

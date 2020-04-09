@@ -5,6 +5,7 @@ var
   config = require(path.resolve('./config/config')),
   acl = require('acl'),
   db = require(path.resolve('./config/lib/sequelize')).models,
+  Order = db.order,
   Meal = db.meal;
 
 /**
@@ -51,7 +52,10 @@ exports.invokeRolesPolicies = function() {
     roles: ['user'],
     allows: [{
       resources: '/api/user/orders',
-      permissions: ['get', 'post']
+      permissions: ['get', 'post', 'put']
+    }, {
+      resources: '/api/user/orders/status',
+      permissions: ['put']
     }]
   }]);
 };
@@ -73,7 +77,7 @@ var isMealFinalized = function(meal) {
  * Check If All Orders are Good
  */
 
-exports.isOrderAllowed = function(req, res, next) {
+exports.isCreateOrderAllowed = function(req, res, next) {
   if(req.body.orders) {
     var orderMeals = req.body.orders.map((order) => order.mealId);
     Meal.findAll({
@@ -81,7 +85,8 @@ exports.isOrderAllowed = function(req, res, next) {
         id: orderMeals
       },
       include: db.menu
-    }).then(meals => {
+    }).then((meals) => {
+      // console.log(meals);
       if(meals && meals.length === new Set(orderMeals).size) {
         var validation = meals.map((meal) => isMealFinalized(meal) && isTimeValid(meal));
         if(validation.every((v) => v)) {
@@ -101,7 +106,49 @@ exports.isOrderAllowed = function(req, res, next) {
   }
 };
 
-exports.isFormattedCorrectly = function(req, res, next) {
+exports.isUpdateOrderAllowed = function(req, res, next) {
+  if(req.orders) {
+    var validation = req.orders.map((order) => isMealFinalized(order.meal) && isTimeValid(order.meal));
+    if(validation.every((v) => v)) {
+      return next();
+    } else {
+      return res.status(400).json({message: "Invalid order"});
+    }
+  } else {
+    return res.status(400).json({message: 'Please include list of orders'});
+  }
+}
+
+exports.isUserOrderAllowed = function(req, res, next) {
+  if(req.body.orders) {
+    var orderIds = req.body.orders.map((order) => order.id);
+    Order.findAll({
+      where: {
+        id: orderIds
+      },
+      include: {model: db.meal, include: db.menu}
+    }).then((orders) => {
+      if(orders && orders.length === new Set(orderIds).size) {
+        var validation = orders.map((order) => order.userId === req.user.id);
+        if(validation.every((v) => v)) {
+          req.orders = orders;
+          return next();
+        } else {
+          return res.status(400).json({message: "Invalid user order"});
+        }
+      } else {
+        return res.status(400).json({message: "Invalid order IDs"});
+      }
+    }).catch((err) => {
+      console.log(err);
+      return res.status(400).json({message: "An error occurred"});
+    });
+  } else {
+    return res.status(400).json({message: 'Please include list of orders'});
+  }
+}
+
+exports.isFormatAllowed = function(req, res, next) {
   if(req.body.orders) {
     if(req.body.orders.every(order => order.hospitalId && order.mealId)) {
       next();

@@ -20,14 +20,17 @@ exports.create = function(req, res) {
 
   // For each, set same date, set same groupId, set individual id, set userId
   var orders = req.body.orders.map((order) => {
-    order.groupId = groupId;
-    order.userId = req.user.id;
-    order.date= date;
-    order.id = uuid();
-    return order;
+    var ret = {};
+    ret.groupId = groupId;
+    ret.userId = req.user.id;
+    ret.date= date;
+    ret.id = uuid();
+    ret.information = order.information;
+    ret.quantity = order.quantity;
+    return ret;
   });
-  
-  Order.bulkCreate(orders, {validate: true, returning: true}).then(function(orders) {
+
+  Order.bulkCreate(orders, {validate: true}).then(function() {
     if (!orders) {
       return res.send('/', {
         errors: 'Could not create the order'
@@ -81,16 +84,25 @@ exports.userList = function(req, res) {
  * Update an order
  */
 exports.update = function(req, res) {
-  var order = req.order;
+  // For each, set same date, set same groupId, set individual id, set userId
+  var updateOrders = {};
+  req.body.orders.map((order)=> updateOrders[order.id] = order);
 
-  order.update({
-    quantity: req.body.quantity,
-    information: req.body.information,
-    locationId: req.body.locationId,
-    userStatus: req.body.userStatus
-  }).then(function(menu) {
-    res.jsonp({order: order, message: "Order successfully updated"});
+  var orders = req.orders.map((order) => {
+    var order = order.toJSON();
+    var ord = updateOrders[order.id];
+    order.information = ord.information ? ord.information : order.information;
+    order.quantity = ord.quantity ? ord.quantity : order.quantity;
+    order.hospitalId = ord.hospitalId ? ord.hospitalId : order.hospitalId;
+    return order;
+  });
+
+  // console.log("Here are the orders", orders);
+
+  Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId", "userStatus"]}).then(function() {
+    res.jsonp({orders: orders, message: "Orders successfully updated"});
   }).catch(function(err) {
+    console.log(err);
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
@@ -100,24 +112,29 @@ exports.update = function(req, res) {
 /**
  * Update an order
  */
-exports.restStatusUpdate = function(req, res) {
-  var order = req.order;
-
-  order.update({
-    restStatus: req.body.restStatus,
-  }).then(function(menu) {
-    res.jsonp({order: order, message: "Order successfully updated"});
-  }).catch(function(err) {
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
-    });
-  });
+exports.userStatusUpdate = function(req, res) {
+  // Check to make sure either group or order ids specified
+  if((req.body.orderIds || req.body.groupId || req.body.mealId) && req.body.userStatus) {
+    var query = {userId: req.user.id}
+    if(req.body.orderIds) query.id = req.body.orderIds;
+    if(req.body.groupId) query.groupId = req.body.groupId;
+    if(req.body.mealId) query.mealId = req.body.mealId;
+    Order.update({userStatus: req.body.userStatus}, {
+      where: query
+    }).then(function(orders) {
+      res.jsonp({orders: orders, message: "Orders successfully updated"});
+    })
+  } else {
+     return res.status(400).send({
+      message: "Please include orderid/groupid/mealid/userstatus"
+    });  
+  }
 };
 
 /**
  * User status an order
  */
-exports.userStatusUpdate = function(req, res) {
+exports.restStatusUpdate = function(req, res) {
   var order = req.order;
 
   order.update({
