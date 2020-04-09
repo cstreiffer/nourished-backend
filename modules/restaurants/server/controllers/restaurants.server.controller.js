@@ -112,7 +112,7 @@ exports.list = function(req, res) {
 /**
  * List of user restaurants Restaurants
  */
-exports.userRestaurantList = function(req, res) {
+exports.userList = function(req, res) {
   var query = {userId : req.user.id};
   if(req.query.city) query.city = req.query.city;
   if(req.query.state) query.state = req.query.state;

@@ -15,40 +15,67 @@ const {Op} = require('sequelize');
  * Create a order
  */
 exports.create = function(req, res) {
-  delete req.body.id;
-  delete req.body.menuId;
+  var groupId = uuid();
+  var date = new Date().toISOString();
 
-  req.body.id = uuid();
-  req.body.userId = req.user.id;
-  req.body.menuId = req.menu.id;
-
-  if( !req.body.hospitalId || !req.body.userId || !req.body.menuId ) {
-      return res.status(400).send({
-        message: "Please format request properly with menu, hospital, and user."
+  // For each, set same date, set same groupId, set individual id, set userId
+  var orders = req.body.orders.map((order) => {
+    order.groupId = groupId;
+    order.userId = req.user.id;
+    order.date= date;
+    order.id = uuid();
+    return order;
+  });
+  
+  Order.bulkCreate(orders, {validate: true, returning: true}).then(function(orders) {
+    if (!orders) {
+      return res.send('/', {
+        errors: 'Could not create the order'
       });
-  } else {
-    Order.create(req.body).then(function(order) {
-      if (!order) {
-        return res.send('/', {
-          errors: 'Could not create the order'
-        });
-      } else {
-        return res.jsonp({order: order, message: "Order successfully created"});
-      }
-    }).catch(function(err) {
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
+    } else {
+      return res.jsonp({orders: orders, message: "Orders successfully created"});
+    }
+  }).catch(function(err) {
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
     });
-  }
+  });
 };
 
 /**
- * Show the current order
+ * List of Orders
  */
-exports.read = function(req, res) {
-  res.jsonp({order: req.order, message: "Order successfully found"});
+exports.userList = function(req, res) {
+  var query = {userId: req.user.id};
+  if(req.query.userStatus) query.userStatus = req.query.userStatus;
+  if(req.query.restStatus) query.restStatus = req.query.restStatus;
+  if(req.query.quantity) query.quantity = req.query.quantity;
+  if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
+  if(req.query.groupId) query.groupId = req.query.groupId;
+  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+
+  Order.findAll({
+    where: query,
+    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
+  }).then(function(orders) {
+    if (!orders) {
+      return res.status(404).send({
+        message: 'No orders found'
+      });
+    } else {
+      res.json({orders: orders, message: "Orders successfully found"});
+    }
+  }).catch(function(err) {
+    res.jsonp(err);
+  });
 };
+
+// /**
+//  * Show the current order
+//  */
+// exports.read = function(req, res) {
+//   res.jsonp({order: req.order, message: "Order successfully found"});
+// };
 
 /**
  * Update an order
@@ -73,7 +100,24 @@ exports.update = function(req, res) {
 /**
  * Update an order
  */
-exports.restaurantUpdate = function(req, res) {
+exports.restStatusUpdate = function(req, res) {
+  var order = req.order;
+
+  order.update({
+    restStatus: req.body.restStatus,
+  }).then(function(menu) {
+    res.jsonp({order: order, message: "Order successfully updated"});
+  }).catch(function(err) {
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
+    });
+  });
+};
+
+/**
+ * User status an order
+ */
+exports.userStatusUpdate = function(req, res) {
   var order = req.order;
 
   order.update({
@@ -110,63 +154,9 @@ var formatDate = function(query) {
 };
 
 /**
- * List of Orders
- */
-exports.list = function(req, res) {
-  var query = {restaurantId: req.restaurant.id};
-  if(req.query.userStatus) query.userStatus = req.query.userStatus;
-  if(req.query.restStatus) query.restStatus = req.query.restStatus;
-  if(req.query.quantity) query.quantity = req.query.quantity;
-  if(req.query.locationId) query.locationId = req.query.locationId;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
-
-  Order.findAll({
-    include: [db.menu, {model: db.location, include: [db.hospital]}]
-  }).then(function(orders) {
-    if (!orders) {
-      return res.status(404).send({
-        message: 'No orders found'
-      });
-    } else {
-      res.json({orders: orders, message: "Orders successfully found"});
-    }
-  }).catch(function(err) {
-    res.jsonp(err);
-  });
-};
-
-/**
- * List of Orders
- */
-exports.userOrderList = function(req, res) {
-  var query = {userId: req.user.id};
-  if(req.query.userStatus) query.userStatus = req.query.userStatus;
-  if(req.query.restStatus) query.restStatus = req.query.restStatus;
-  if(req.query.quantity) query.quantity = req.query.quantity;
-  if(req.query.locationId) query.locationId = req.query.locationId;
-  if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
-
-  Order.findAll({
-    where: query,
-    include: [db.menu, {model: db.location, include: [db.hospital]}]
-  }).then(function(orders) {
-    if (!orders) {
-      return res.status(404).send({
-        message: 'No orders found'
-      });
-    } else {
-      res.json({orders: orders, message: "Orders successfully found"});
-    }
-  }).catch(function(err) {
-    res.jsonp(err);
-  });
-};
-
-/**
  * List of restaurant orders
  */
-exports.restaurantOrderList = function(req, res) {
+exports.restList = function(req, res) {
   var q1 = {restaurantId: req.restaurant.id};
   if(req.query.menuId) q1.menuId = req.query.menuId;
 
@@ -189,7 +179,7 @@ exports.restaurantOrderList = function(req, res) {
       q2.menuId = menus.map((v) => v.id);
       Order.findAll({
         where: q2,
-        include: [db.menu, {model: db.location, include: [db.hospital]}]
+        include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
       }).then(function(orders) {
         if (!orders) {
           return res.status(404).send({
@@ -212,17 +202,11 @@ exports.restaurantOrderList = function(req, res) {
  */
 exports.orderByID = function(req, res, next, id) {
 
-  // if ((id % 1 === 0) === false) { //check if it's integer
-  //   return res.status(404).send({
-  //     message: 'Order is invalid'
-  //   });
-  // }
-
   Order.findOne({
     where: {
       id: id
     },
-    include: [{model: db.menu, include: [db.restaurant]}, {model: db.location, include: [db.hospital]}]
+    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
   }).then(function(order) {
     if (!order) {
       return res.status(404).send({

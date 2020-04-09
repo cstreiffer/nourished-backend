@@ -24,8 +24,8 @@ var
 var 
   userCredentials = {email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'},
   restaurantCredentials = {email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'restaurant'},
-  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"201 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()};
+  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()},
+  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"201 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -146,6 +146,8 @@ describe('/GET api/hospitals endpoint', () => {
         res.body.hospital.should.have.property('zip');
         res.body.hospital.should.have.property('city');
         res.body.hospital.should.have.property('state');
+        res.body.hospital.should.have.property('dropoffInfo');
+        res.body.hospital.should.have.property('dropoffLocation');
         done();
       })
   })

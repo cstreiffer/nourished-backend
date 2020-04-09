@@ -3,7 +3,9 @@
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),
-  acl = require('acl');
+  acl = require('acl'),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Restaurant = db.restaurant;
 
 /**
  * Module dependencies.
@@ -34,61 +36,58 @@ acl = new acl(new acl.memoryBackend());
  */
 exports.invokeRolesPolicies = function() {
   acl.allow([{
-    roles: ['admin'],
-    allows: [{
-      resources: '/api/menus',
-      permissions: []
-    }, {
-      resources: '/api/menus/:menuId',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId/menus',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId/menus/:menuId',
-      permissions: []
-    }]
-  }, {
     roles: ['restaurant'],
     allows: [{
-      resources: '/api/menus',
-      permissions: ['get']
+      resources: '/api/rest/menus',
+      permissions: ['post', 'get']
     }, {
-      resources: '/api/menus/:menuId',
-      permissions: ['get']
-    }, {
-      resources: '/api/restaurants/:restaurantId/menus',
-      permissions: ['get']
-    }]
-  }, {
-    roles: ['user'],
-    allows: [{
-      resources: '/api/menus',
-      permissions: ['get']
-    }, {
-      resources: '/api/menus/:menuId',
-      permissions: ['get']
-    }, {
-      resources: '/api/restaurants/:restaurantId/menus',
-      permissions: ['get']
+      resources: '/api/rest/menus:menuId',
+      permissions: []
     }]
   }]);
 };
 
 /**
- * Check If Menu Policy Allows 
+ * Check if Restaurant belongs to User
+ */
+exports.isValidRestaurant = function(req, res, next) {
+  console.log("Checking the validity of the restaurant!");
+  if(req.body.restaurantId) {
+    Restaurant.findOne({
+      where: {
+        id: req.body.restaurantId,
+        userId: req.user.id
+      }
+    }).then((restaurant) => {
+      if(restaurant) {
+        req.restaurant = restaurant;
+        return next();
+      } else {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+      }
+    }).catch((err) => {
+        return res.status(500).json({
+          message: 'Unexpected authorization error'
+        });
+    });
+  } else {
+    return next();
+  }
+}
+
+/**
+ * Check If Meal Policy Allows 
  */
 exports.isAllowed = function(req, res, next) {
   var roles = (req.user) ? req.user.roles : ['guest'];
 
-  // If menu is being processed and the current user created it then allow any manipulation
-  // Need to make sure user owns the restaurant and restaurant owns the menu
-  if (req.user && req.restaurant && (req.user.id === req.restaurant.userId)) {
-    if (!req.menu || (req.menu && (req.menu.restaurantId === req.restaurant.id))) {
+  // If meal is being processed and the current user created it then allow any manipulation
+  // Need to make sure user owns the restaurant and restaurant owns the meal
+  if (req.user && req.menu && (req.user.id === req.menu.userId)) {
       return next();
-    }
   } else {
-
     // Check for user roles
     acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {
       if (err) {

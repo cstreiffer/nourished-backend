@@ -71,7 +71,7 @@ before((done) => {
 	  })
 })
 
-describe('/POST api/restaurants endpoint', () => {
+describe('/POST api/rest/restaurants endpoint', () => {
   
   // Clear the database
   before(function(done) {
@@ -82,7 +82,7 @@ describe('/POST api/restaurants endpoint', () => {
 
   it('User with "restaurant" role should create restaurant', (done) => {
     chai.request(app)
-      .post('/api/restaurants')
+      .post('/api/rest/restaurants')
       .set('Authorization', restaurantJWT1)
       .send(restaurant)
       .end((err, res) => {
@@ -102,7 +102,7 @@ describe('/POST api/restaurants endpoint', () => {
 
   it('User with "restaurant" role should create restaurant', (done) => {
     chai.request(app)
-      .post('/api/restaurants')
+      .post('/api/rest/restaurants')
       .set('Authorization', restaurantJWT2)
       .send(restaurant)
       .end((err, res) => {
@@ -122,7 +122,7 @@ describe('/POST api/restaurants endpoint', () => {
 
   it('User with "user" role should not create restaurant', (done) => {
     chai.request(app)
-      .post('/api/restaurants')
+      .post('/api/rest/restaurants')
       .set('Authorization', userJWT)
       .send(restaurant)
       .end((err, res) => {
@@ -177,7 +177,7 @@ describe('/GET api/restaurants endpoint', () => {
   })
 });
 
-describe('/PUT api/restaurants/:restaurantId endpoint', () => {
+describe('/PUT api/rest/restaurants/:restaurantId endpoint', () => {
 
   beforeEach(function(done) {
     Restaurant.destroy({where: {}})
@@ -187,7 +187,7 @@ describe('/PUT api/restaurants/:restaurantId endpoint', () => {
   it('User who owns "restaurant" should be able to update', (done) => {
   	Restaurant.create(_.merge(restaurant, {id: uuid(), userId : restaurantId1})).then((restaurant) => {
 	    chai.request(app)
-	      .put('/api/restaurants/' + restaurant.id)
+	      .put('/api/rest/restaurants/' + restaurant.id)
 	      .set('Authorization', restaurantJWT1)
 	      .send({name : "Goldie 2!!"})
 	      .end((err, res) => {
@@ -203,7 +203,7 @@ describe('/PUT api/restaurants/:restaurantId endpoint', () => {
   it('User who does NOT own "restaurant" should NOT be able to update', (done) => {
   	Restaurant.create(_.merge(restaurant, {id: uuid(), userId : restaurantId1})).then((restaurant) => {
 	    chai.request(app)
-	      .put('/api/restaurants/' + restaurant.id)
+	      .put('/api/rest/restaurants/' + restaurant.id)
 	      .set('Authorization', restaurantJWT2)
 	      .send({name : "Goldie 2!!"})
 	      .end((err, res) => {
@@ -245,7 +245,7 @@ describe('/GET api/restaurants/:restaurantId endpoint', () => {
   })
 });
 
-describe('/DELETE api/restaurants/:restaurantId endpoint', () => {
+describe('/DELETE api/rest/restaurants/:restaurantId endpoint', () => {
 
   beforeEach(function(done) {
     Restaurant.destroy({where: {}})
@@ -255,7 +255,7 @@ describe('/DELETE api/restaurants/:restaurantId endpoint', () => {
   it('User who does NOT own "restaurant" should NOT be able to delete', (done) => {
   	Restaurant.create(_.merge(restaurant, {id: uuid(), userId : restaurantId1})).then((restaurant) => {
 	    chai.request(app)
-	      .delete('/api/restaurants/' + restaurant.id)
+	      .delete('/api/rest/restaurants/' + restaurant.id)
 	      .set('Authorization', restaurantJWT2)
 	      .end((err, res) => {
 	      	res.should.have.status(403);
@@ -269,7 +269,7 @@ describe('/DELETE api/restaurants/:restaurantId endpoint', () => {
   it('User who does own "restaurant" should be able to delete', (done) => {
   	Restaurant.create(_.merge(restaurant, {id: uuid(), userId : restaurantId1})).then((restaurant) => {
 	    chai.request(app)
-	      .delete('/api/restaurants/' + restaurant.id)
+	      .delete('/api/rest/restaurants/' + restaurant.id)
 	      .set('Authorization', restaurantJWT1)
 	      .end((err, res) => {
 	      	res.should.have.status(200);
@@ -283,7 +283,7 @@ describe('/DELETE api/restaurants/:restaurantId endpoint', () => {
 });
 
 
-describe('/GET api/user/restaurants endpoint', () => {
+describe('/GET api/rest/restaurants endpoint', () => {
   
   before(function(done) {
   	var restaurant1 = {...restaurant, ...{id: uuid(), userId : restaurantId1}};
@@ -299,7 +299,7 @@ describe('/GET api/user/restaurants endpoint', () => {
 
   it('User should be aple to fetch from their own restaurants', (done) => {
     chai.request(app)
-      .get('/api/user/restaurants/')
+      .get('/api/rest/restaurants/')
       .set('Authorization', restaurantJWT1)
       .end((err, res) => {
       	res.should.have.status(200);
@@ -311,7 +311,7 @@ describe('/GET api/user/restaurants endpoint', () => {
 
   it('User with role "user" should not be able to access endpoint.', (done) => {
     chai.request(app)
-      .get('/api/user/restaurants/')
+      .get('/api/rest/restaurants/')
       .set('Authorization', userJWT)
       .end((err, res) => {
       	res.should.have.status(403);

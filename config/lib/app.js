@@ -31,6 +31,9 @@ module.exports.start = function start(callback) {
       console.log(chalk.green('Environment:\t\t') + process.env.NODE_ENV);
       console.log(chalk.green('Port:\t\t\t') + config.port);
       console.log(chalk.green('Database:\t\t') + config.db.name);
+      console.log(chalk.green('REDIS_HOST:\t\t') + process.env.REDIS_HOST);
+      console.log(chalk.green('config.redis.host:\t\t') + config.redis.host);
+
       if (config.secure && config.secure.ssl === true) {
         console.log(chalk.green('SSL:\t\t\tON'));
       }

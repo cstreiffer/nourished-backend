@@ -1,0 +1,32 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:10.1-alpine
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_PASSWORD=password
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:alpine
+    #    command: ["redis-server", "--bind", "redis", "--port", "6379"]
+    ports:
+      - "6379:6379"
+  backend:
+    build:
+      context: .
+      dockerfile: dev-dockerfile
+    image: app-backend:dev
+    command: ["./scripts/wait-for-it.sh", "db:5432", "--", "node", "server.js"]
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - DB_HOST=db
+    volumes:
+      - .:/usr/src/nourished-backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis

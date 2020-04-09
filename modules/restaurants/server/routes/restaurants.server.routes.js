@@ -21,26 +21,31 @@ var path = require('path'),
 
 module.exports = function(app) {
 
+  // USER ROUTES -------------------------------------
   // Articles collection routes
   app.route('/api/restaurants')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.list) // Good
-    .post(restaurants.create); // Good
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(restaurantsPolicy.isAllowed)
+    .get(restaurants.list); // Good
 
   // Single restaurant routes
   app.route('/api/restaurants/:restaurantId')
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(restaurantsPolicy.isAllowed)
+    .get(restaurants.read); // Good
+
+  // RESTAURANT ROUTES ---------------------------------- 
+  app.route('/api/rest/restaurants')
     .all(passport.authenticate('jwt', {session: false}))
     .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.read) // Good
+    .get(restaurants.userList) // Good
+    .post(restaurants.create); // Good
+
+  app.route('/api/rest/restaurants/:restaurantId')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(restaurantsPolicy.isAllowed)
     .put(restaurants.update) // Good
     .delete(restaurants.delete); // Good
-
-  // User 
-  app.route('/api/user/restaurants')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.userRestaurantList); // Good
 
   // Finish by binding the restaurant middleware
   app.param('restaurantId', restaurants.restaurantByID);

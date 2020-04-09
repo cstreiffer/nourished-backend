@@ -19,44 +19,34 @@ var path = require('path'),
 
 module.exports = function(app) {
 
+  // USER ROUTES --------------------------------------------
   // Articles collection routes
-  app.route('/api/orders')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isUserAllowed)
-    .all(ordersPolicy.isTimeAllowed)
-    .post(orders.create);
-
-  // Single order routes
-  app.route('/api/orders/:orderId')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isUserAllowed)
-    .get(orders.read) // User
-    .all(ordersPolicy.isTimeAllowed)
-    .put(orders.update) // User 
-    .delete(orders.delete); // User delete
-
-  // User orders 
   app.route('/api/user/orders')
     .all(passport.authenticate('jwt', {session: false}))
     .all(ordersPolicy.isUserAllowed)
-    .get(orders.userOrderList); // User only get orders
+    .get(orders.userList)
+    .all(ordersPolicy.isOrderAllowed)
+    .delete(orders.delete)
+    .put(orders.update)
+    .all(ordersPolicy.isFormattedCorrectly)
+    .post(orders.create)
 
-  // // Restaurant Orders
-  // app.route('/api/restaurants/:restaurantId/orders/')
-  //   .all(ordersPolicy.isAllowed)
-  //   .get(orders.restaurantOrderList); // Restaurant/admin only
-
-  // Restaurant Menu Orders
-  app.route('/api/restaurants/:restaurantId/orders/')
+  app.route('/api/user/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestaurantAllowed)
-    .get(orders.restaurantOrderList); // Restaurant/admin
+    .all(ordersPolicy.isUserAllowed)
+    .put(orders.userStatusUpdate);
 
-  // Restaurant Menu Orders
-  app.route('/api/restaurants/:restaurantId/orders/:orderId')
+  // RESTAURANT ROUTES --------------------------------------
+  app.route('/api/rest/orders')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestaurantAllowed)
-    .put(orders.restaurantUpdate); // Restaurant update of order
+    .all(ordersPolicy.isRestAllowed)
+    .get(orders.restList); // User only get orders
+
+  // Single order routes
+  app.route('/api/rest/orders/status')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isRestAllowed)
+    .put(orders.restStatusUpdate);
 
   // Finish by binding the order middleware
   app.param('orderId', orders.orderByID);

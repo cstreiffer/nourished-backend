@@ -3,7 +3,9 @@
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),
-  acl = require('acl');
+  acl = require('acl'),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Menu = db.menu;
 
 /**
  * Module dependencies.
@@ -34,52 +36,36 @@ acl = new acl(new acl.memoryBackend());
  */
 exports.invokeRolesPolicies = function() {
   acl.allow([{
-    roles: ['admin'],
-    allows: [{
-      resources: '/api/restaurants',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId',
-      permissions: []
-    }]
-  }, {
     roles: ['restaurant'],
-    allows: [{
-      resources: '/api/restaurants',
-      permissions: ['get']
-    }, {
-      resources: '/api/restaurants/:restaurantId',
-      permissions: ['get']
-    }, {
-      resources: '/api/rest/restaurants',
-      permissions: ['get', 'post']
+    allows: [ {
+      resources: '/api/rest/meals',
+      permissions: ['post', 'get']
     }]
   }, {
     roles: ['user'],
     allows: [{
-      resources: '/api/restaurants',
+      resources: '/api/meals',
       permissions: ['get']
     }, {
-      resources: '/api/restaurants/:restaurantId',
+      resources: '/api/meals/:mealId',
       permissions: ['get']
     }]
   }]);
 };
 
 /**
- * Check if Restaurant belongs to User
+ * Check if Meal belongs to User
  */
-exports.isValidRestaurant = function(req, res, next) {
-  console.log("Checking the validity of the restaurant!");
-  if(req.body.restaurantId) {
-    Restaurant.findOne({
+exports.isValidMenu = function(req, res, next) {
+  if(req.body.menuId) {
+    Menu.findOne({
       where: {
-        id: req.body.restaurantId,
+        id: req.body.menuId,
         userId: req.user.id
       }
-    }).then((restaurant) => {
-      if(restaurant) {
-        req.restaurant = restaurant;
+    }).then((menu) => {
+      if(menu) {
+        req.menu = menu;
         return next();
       } else {
         return res.status(403).json({
@@ -97,23 +83,22 @@ exports.isValidRestaurant = function(req, res, next) {
 }
 
 /**
- * Check If Restaurant Policy Allows
+ * Check If Meal Policy Allows 
  */
 exports.isAllowed = function(req, res, next) {
   var roles = (req.user) ? req.user.roles : ['guest'];
 
-  // If restaurant is being processed and the current user created it then allow any manipulation
-  if (req.restaurant && req.user && req.restaurant.userId === req.user.id) {
-    return next();
+  // If meal is being processed and the current user created it then allow any manipulation
+  // Need to make sure user owns the restaurant and restaurant owns the meal
+  if (req.user && req.meal && (req.user.id === req.meal.userId)) {
+      return next();
   } else {
 
     // Check for user roles
     acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {
       if (err) {
         // An authorization error occurred.
-        return res.status(500).json({
-          message: 'Unexpected authorization error'
-        });
+        return res.status(500).send('Unexpected authorization error');
       } else {
         if (isAllowed) {
           // Access granted! Invoke next middleware
