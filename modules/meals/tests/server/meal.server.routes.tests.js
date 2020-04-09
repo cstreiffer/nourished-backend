@@ -10,6 +10,7 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
   Menu = db.menu,
+  Meal = db.meal,
   Restaurant = db.restaurant,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
@@ -37,7 +38,12 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu = {name: "Chicken", description: "Its Chicken", date: "2020-03-31 13:00:00", category: "Meat", price: 7.50};
+  menu1 = {date: "2020-04-01 13:00:00", id: uuid()},
+  menu2 = {date: "2020-04-02 13:00:00", id: uuid()},
+  menu3 = {date: "2020-04-03 13:00:00", id: uuid()},
+  menu4 = {date: "2020-04-04 13:00:00", id: uuid()},
+  meal1 = {name: "Chicken 1", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -89,11 +95,22 @@ before((done) => {
 });
 
 before((done) =>{
-  var r1 = {...restaurant1, ...{userId: restaurantId1}};
-  var r2 = {...restaurant2, ...{userId: restaurantId1}};
-  var r3 = {...restaurant3, ...{userId: restaurantId2}};
-  var r4 = {...restaurant4, ...{userId: restaurantId2}};
+  var r1 = {...restaurant1, userId: restaurantId1};
+  var r2 = {...restaurant2, userId: restaurantId1};
+  var r3 = {...restaurant3, userId: restaurantId2};
+  var r4 = {...restaurant4, userId: restaurantId2};
   Restaurant.bulkCreate([r1, r2, r3, r4])
+    .then(() => {
+      done();
+    });
+});
+
+before((done) => {
+  var m1 = {...menu1, restaurantId: restaurant1.id, userId: restaurantId1};
+  var m2 = {...menu2, restaurantId: restaurant1.id, userId: restaurantId1};
+  var m3 = {...menu3, restaurantId: restaurant2.id, userId: restaurantId2};
+  var m4 = {...menu4, restaurantId: restaurant2.id, userId: restaurantId2};
+  Menu.bulkCreate([m1, m2, m3, m4])
     .then(() => {
       done();
     });
@@ -103,87 +120,195 @@ describe('/GET /api/menus endpoint', () => {
   
   // Clear the database
   before(function(done) {
-    var menu1 = {...menu, restaurantId: restaurant1.id, id: uuid(), visible: false, date: "2020-04-04 06:30:00"};
-    var menu2 = {...menu, restaurantId: restaurant1.id, id: uuid(), category: "Vegan", date: "2020-04-05 06:30:00"};
-    var menu3 = {...menu, restaurantId: restaurant2.id, id: uuid(), date: "2020-06-05 06:30:00"};
-    var menu4 = {...menu, restaurantId: restaurant2.id, id: uuid(), price: 5.00};
+    var ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1};
+    var ml2 = {...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1};
+    var ml3 = {...meal1, menuId: menu2.id, id: uuid(), userId: restaurantId1};
+    var ml4 = {...meal2, menuId: menu2.id, id: uuid(), userId: restaurantId1};
+    var ml5 = {...meal1, menuId: menu3.id, id: uuid(), userId: restaurantId2};
+    var ml6 = {...meal2, menuId: menu3.id, id: uuid(), userId: restaurantId2};
+    var ml7 = {...meal1, menuId: menu4.id, id: uuid(), userId: restaurantId2};
+    var ml8 = {...meal2, menuId: menu4.id, id: uuid(), userId: restaurantId2};
 
-    Menu.destroy({where: {}})
+     Meal.destroy({where: {}})
     	.then(function(){
-        Menu.bulkCreate([menu1, menu2, menu3, menu4], {returning: true}).then(function(menus) {
+        Meal.bulkCreate([ml1, ml2, ml3, ml4, ml5, ml6, ml7, ml8]).then(()=> {
           done()
         })
       })
   });
 
-  it('User with "user" role should get all menus', (done) => {
+  it('User with "user" role should get all meals', (done) => {
     chai.request(app)
-      .get('/api/menus')
-      .set('Authorization', userJWT1)
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-05 06:20:00"})
+      .get('/api/meals')
+      // .set('Authorization', userJWT1)
+      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-02 06:20:00"})
       .end((err, res) => {
-       res.body.menus.should.be.a('array');
-       res.body.menus.length.should.be.eql(1);
-       res.body.should.have.property('message').eql('Menus successfully found');
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
       });
   });
 
-  it('User with "restaurant" role should get all menus', (done) => {
+  it('User with "user" role should get all meals', (done) => {
     chai.request(app)
-      .get('/api/menus')
-      .set('Authorization', restaurantJWT1)
+      .get('/api/meals')
+      // .set('Authorization', userJWT1)
+      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-03 06:20:00", restaurantId: restaurant1.id})
       .end((err, res) => {
-       res.body.menus.should.be.a('array');
-       res.body.menus.length.should.be.eql(4);
-       res.body.should.have.property('message').eql('Menus successfully found');
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(4);
+       res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
-     done();
+       done();
+      });
+  });
+
+  it('User with "user" role should get all meals', (done) => {
+    chai.request(app)
+      .get('/api/meals')
+      // .set('Authorization', userJWT1)
+      .query({menuId: menu1.id})
+      .end((err, res) => {
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Meals successfully found');
+       res.should.have.status(200);
+       done();
       });
   });
 });
 
-describe('/GET /api/restaurants/:restaurantId/menus endpoint', () => {
+describe('/GET /api/meals/:mealId endpoint', () => {
+  
+  // Clear the database
+  beforeEach(function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){done();});
+  });
+
+  it('User with "user" role should get single meal ', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .get('/api/meals/' + meal.id)
+        // .set('Authorization', userJWT1)
+        .end((err, res) => {
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Meal successfully found');
+          res.body.meal.should.have.property('id');
+          res.body.meal.should.have.property('name');
+          res.body.meal.should.have.property('description');
+          res.body.meal.should.have.property('category');
+          res.body.meal.should.have.property('imageURL');
+          res.body.meal.should.have.property('price');
+          res.body.meal.should.have.property('minQuantity');
+          res.body.meal.should.have.property('maxQuantity');
+          res.body.meal.should.have.property('visible');
+          res.body.meal.should.have.property('menuId');
+          res.body.meal.should.have.property('menuId');
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+});
+
+describe('/GET /api/meals/:mealId endpoint', () => {
+  
+  // Clear the database
+  beforeEach(function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){done();});
+  });
+
+  it('User with "user" role should get single meal ', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .get('/api/meals/' + meal.id)
+        // .set('Authorization', userJWT1)
+        .end((err, res) => {
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Meal successfully found');
+          res.body.meal.should.have.property('id');
+          res.body.meal.should.have.property('name');
+          res.body.meal.should.have.property('description');
+          res.body.meal.should.have.property('category');
+          res.body.meal.should.have.property('imageURL');
+          res.body.meal.should.have.property('price');
+          res.body.meal.should.have.property('minQuantity');
+          res.body.meal.should.have.property('maxQuantity');
+          res.body.meal.should.have.property('visible');
+          res.body.meal.should.have.property('menuId');
+          res.body.meal.should.have.property('menuId');
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+});
+
+
+describe('/GET /api/user/meals endpoint', () => {
   
   // Clear the database
   before(function(done) {
-    var menu1 = {...menu, restaurantId: restaurant1.id, id: uuid(), visible: false};
-    var menu2 = {...menu, restaurantId: restaurant1.id, id: uuid(), category: "Vegan"};
-    var menu3 = {...menu, restaurantId: restaurant2.id, id: uuid(), date: "2020-04-05 06:30:00"};
-    var menu4 = {...menu, restaurantId: restaurant2.id, id: uuid(), price: 5.00};
+    var ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1};
+    var ml2 = {...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1};
+    var ml3 = {...meal1, menuId: menu2.id, id: uuid(), userId: restaurantId1};
+    var ml4 = {...meal2, menuId: menu2.id, id: uuid(), userId: restaurantId1};
+    var ml5 = {...meal1, menuId: menu3.id, id: uuid(), userId: restaurantId2};
+    var ml6 = {...meal2, menuId: menu3.id, id: uuid(), userId: restaurantId2};
+    var ml7 = {...meal1, menuId: menu4.id, id: uuid(), userId: restaurantId2};
+    var ml8 = {...meal2, menuId: menu4.id, id: uuid(), userId: restaurantId2};
 
-    Menu.destroy({where: {}})
+     Meal.destroy({where: {}})
       .then(function(){
-        Menu.bulkCreate([menu1, menu2, menu3, menu4], {returning: true}).then(function(menus) {
+        Meal.bulkCreate([ml1, ml2, ml3, ml4, ml5, ml6, ml7, ml8]).then(()=> {
           done()
-        });
-      });
+        })
+      })
   });
 
-  it('User with "user" role should get all menus associated with restaurant1', (done) => {
+  it('User with "user" role should get all meals', (done) => {
     chai.request(app)
-      .get('/api/restaurants/' + restaurant1.id + '/menus')
-      .set('Authorization', userJWT1)
-      .end((err, res) => {
-        res.body.menus.should.be.a('array');
-        res.body.menus.length.should.be.eql(2);
-        res.body.should.have.property('message').eql('Menus successfully found');
-        res.should.have.status(200);
-        done();
-      });
-  });
-
-  it('User with "restaurant" role should get all menus associated with rest', (done) => {
-    chai.request(app)
-      .get('/api/restaurants/' + restaurant1.id + '/menus')
+      .get('/api/user/meals')
       .set('Authorization', restaurantJWT1)
+      .query()
       .end((err, res) => {
-        res.body.menus.should.be.a('array');
-        res.body.menus.length.should.be.eql(2);
-        res.body.should.have.property('message').eql('Menus successfully found');
-        res.should.have.status(200);
-        done();
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(4);
+       res.body.should.have.property('message').eql('Meals successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+
+  it('User with "user" role should get all meals', (done) => {
+    chai.request(app)
+      .get('/api/user/meals')
+      .set('Authorization', restaurantJWT1)
+      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-03 06:20:00", restaurantId: restaurant1.id})
+      .end((err, res) => {
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(4);
+       res.body.should.have.property('message').eql('Meals successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+
+  it('User with "user" role should get all meals', (done) => {
+    chai.request(app)
+      .get('/api/user/meals')
+      .set('Authorization', restaurantJWT1)
+      .query({menuId: menu1.id})
+      .end((err, res) => {
+       res.body.meals.should.be.a('array');
+       res.body.meals.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Meals successfully found');
+       res.should.have.status(200);
+       done();
       });
   });
 });
@@ -192,41 +317,39 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
   
   // Clear the database
   before(function(done) {
-    Menu.destroy({where: {}})
+    Meal.destroy({where: {}})
     	.then(function(){done()})
   });
 
-  //  id | name | description | date | category | menuImageURL | price | minQuantity | maxQuantity | visible | createdAt | updatedAt | restaurantId 
-
-  it('User with "restaurant" role should be able to create menu for associated restaurant', (done) => {
+  it('User with "restaurant" role should be able to create meal', (done) => {
     chai.request(app)
-      .post('/api/restaurants/' + restaurant1.id + '/menus')
+      .post('/api/user/meals')
       .set('Authorization', restaurantJWT1)
-      .send(menu)
+      .send({...meal1, menuId: menu1.id})
       .end((err, res) => {
-    	  res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Menu successfully created');
-        res.body.menu.should.have.property('id');
-        res.body.menu.should.have.property('name');
-        res.body.menu.should.have.property('description');
-        res.body.menu.should.have.property('date');
-        res.body.menu.should.have.property('category');
-        res.body.menu.should.have.property('menuImageURL');
-        res.body.menu.should.have.property('price');
-        res.body.menu.should.have.property('minQuantity');
-        res.body.menu.should.have.property('maxQuantity');
-        res.body.menu.should.have.property('visible');
-        res.body.menu.should.have.property('restaurantId');
+        res.body.should.have.property('message').eql('Meal successfully created');
+        res.body.meal.should.have.property('id');
+        res.body.meal.should.have.property('name');
+        res.body.meal.should.have.property('description');
+        res.body.meal.should.have.property('category');
+        res.body.meal.should.have.property('imageURL');
+        res.body.meal.should.have.property('price');
+        res.body.meal.should.have.property('minQuantity');
+        res.body.meal.should.have.property('maxQuantity');
+        res.body.meal.should.have.property('visible');
+        res.body.meal.should.have.property('menuId');
+        res.body.meal.should.have.property('menuId');
+        res.should.have.status(200);
         done();
       });
   });
 
-  it('User with "restaurant" role should NOT be able to create menu for NON-associated restaurant', (done) => {
+  it('User with "restaurant" role should be able to create meal', (done) => {
     chai.request(app)
-      .post('/api/restaurants/' + restaurant1.id + '/menus')
+      .post('/api/user/meals')
       .set('Authorization', restaurantJWT2)
-      .send(menu)
+      .send({...meal1, menuId: menu1.id})
       .end((err, res) => {
         res.should.have.status(403);
         res.body.should.have.property('message');
@@ -235,11 +358,11 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
       });
   });
 
-  it('User with "user" role should NOT be able to access endpoint', (done) => {
+    it('User with "restaurant" role should be able to create meal', (done) => {
     chai.request(app)
-      .post('/api/restaurants/' + restaurant1.id + '/menus')
+      .post('/api/user/meals')
       .set('Authorization', userJWT1)
-      .send(menu)
+      .send({...meal1, menuId: menu1.id})
       .end((err, res) => {
         res.should.have.status(403);
         res.body.should.have.property('message');
@@ -249,137 +372,164 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
   });
 });
 
-describe('/PUT api/restaurants/:restaurantId/menus endpoint', () => {
+describe('/PUT /api/meals/:mealId endpoint', () => {
   
   // Clear the database
-  before(function(done) {
-    Menu.destroy({where: {}})
-      .then(function(){done()})
+  beforeEach(function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){done();});
   });
 
-  it('User with "restaurant" role should be able to update menu for associated restaurant', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
+  it('User with "user" role should get single meal ', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
       chai.request(app)
-        .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+        .put('/api/user/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
-        .send({name: "Chicken 2!!", date: "2020-06-05 18:30:00"})
+        .send({visible: true, name: "Chicken 2.0"})
         .end((err, res) => {
-          res.should.have.status(200);
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Menu successfully updated');
-          res.body.menu.should.have.property('name').eql('Chicken 2!!');
+          res.body.should.have.property('message').eql('Meal successfully updated');
+          res.body.meal.should.have.property('id');
+          res.body.meal.should.have.property('visible').equal(true);
+          res.body.meal.should.have.property('name').equal("Chicken 2.0");
+          res.should.have.status(200);
           done();
         });
-      });
-  });
-
-  it('User with "restaurant" role should NOT be able to update menu for NON-associated restaurant', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-      chai.request(app)
-        .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-        .set('Authorization', restaurantJWT2)
-        .send({name: "Chicken 2!!"})
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
-  });
-
-  it('User with "restaurant" role should NOT be able to update NON-associated menu for associated restaurant', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-      chai.request(app)
-        .put('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
-        .set('Authorization', restaurantJWT2)
-        .send({name: "Chicken 2!!"})
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
-  });
-
-  it('User with "user" role should NOT be able to access endpoint', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-      chai.request(app)
-        .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-        .set('Authorization', userJWT1)
-        .send({name: "Chicken 2!!"})
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
+    });
   });
 });
 
-describe('/DELETE api/restaurants/:restaurantId/menus endpoint', () => {
+// describe('/PUT api/restaurants/:restaurantId/menus endpoint', () => {
   
-  // Clear the database
-  before(function(done) {
-    Menu.destroy({where: {}})
-      .then(function(){done()})
-  });
+//   // Clear the database
+//   before(function(done) {
+//     Menu.destroy({where: {}})
+//       .then(function(){done()})
+//   });
 
-  it('User with "restaurant" role should be able to delete menu for associated restaurant', (done) => {
-    Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-      chai.request(app)
-        .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-        .set('Authorization', restaurantJWT1)
-        .end((err, res) => {
-             res.should.have.status(200);
-             res.body.should.have.property('message');
-             res.body.message.should.be.eql("Menu successfully deleted");
-             done();
-          });
-      });
-  });
+//   it('User with "restaurant" role should be able to update menu for associated restaurant', (done) => {
+//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
+//       chai.request(app)
+//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT1)
+//         .send({name: "Chicken 2!!", date: "2020-06-05 18:30:00"})
+//         .end((err, res) => {
+//           res.should.have.status(200);
+//           res.body.should.be.a('object');
+//           res.body.should.have.property('message').eql('Menu successfully updated');
+//           res.body.menu.should.have.property('name').eql('Chicken 2!!');
+//           done();
+//         });
+//       });
+//   });
 
-  it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
-    Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-      chai.request(app)
-        .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-        .set('Authorization', restaurantJWT2)
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
-  });
+//   it('User with "restaurant" role should NOT be able to update menu for NON-associated restaurant', (done) => {
+//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
+//       chai.request(app)
+//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT2)
+//         .send({name: "Chicken 2!!"})
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
 
-  it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
-    Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-      chai.request(app)
-        .delete('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
-        .set('Authorization', restaurantJWT2)
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
-  });
+//   it('User with "restaurant" role should NOT be able to update NON-associated menu for associated restaurant', (done) => {
+//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
+//       chai.request(app)
+//         .put('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT2)
+//         .send({name: "Chicken 2!!"})
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
 
-  it('User with "user" role should be NOT be able to access delete endpoint', (done) => {
-    Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-      chai.request(app)
-        .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-        .set('Authorization', userJWT1)
-        .end((err, res) => {
-            res.should.have.status(403);
-            res.body.should.have.property('message');
-            res.body.message.should.be.eql("User is not authorized");
-            done();
-          });
-      });
-  });
-});
+//   it('User with "user" role should NOT be able to access endpoint', (done) => {
+//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
+//       chai.request(app)
+//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', userJWT1)
+//         .send({name: "Chicken 2!!"})
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
+// });
+
+// describe('/DELETE api/restaurants/:restaurantId/menus endpoint', () => {
+  
+//   // Clear the database
+//   before(function(done) {
+//     Menu.destroy({where: {}})
+//       .then(function(){done()})
+//   });
+
+//   it('User with "restaurant" role should be able to delete menu for associated restaurant', (done) => {
+//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
+//       chai.request(app)
+//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT1)
+//         .end((err, res) => {
+//              res.should.have.status(200);
+//              res.body.should.have.property('message');
+//              res.body.message.should.be.eql("Menu successfully deleted");
+//              done();
+//           });
+//       });
+//   });
+
+//   it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
+//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
+//       chai.request(app)
+//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT2)
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
+
+//   it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
+//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
+//       chai.request(app)
+//         .delete('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
+//         .set('Authorization', restaurantJWT2)
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
+
+//   it('User with "user" role should be NOT be able to access delete endpoint', (done) => {
+//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
+//       chai.request(app)
+//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
+//         .set('Authorization', userJWT1)
+//         .end((err, res) => {
+//             res.should.have.status(403);
+//             res.body.should.have.property('message');
+//             res.body.message.should.be.eql("User is not authorized");
+//             done();
+//           });
+//       });
+//   });
+// });

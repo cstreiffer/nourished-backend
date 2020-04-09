@@ -19,36 +19,40 @@ var path = require('path'),
 
 module.exports = function(app) {
 
+  // USER ROUTES ---------------------------------------
   // Articles collection routes
   app.route('/api/meals')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(mealsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(mealsPolicy.isAllowed)
     .get(meals.list); // (Good)
 
   // Single meal routes
   app.route('/api/meals/:mealId')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(mealsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(mealsPolicy.isAllowed)
     .get(meals.read); // (Good)
     // .put(meals.update); // Admin update
     // .delete(meals.delete); // Admin delete
 
-  // Restaurant 
-  app.route('/api/restaurants/:restaurantId/meals')
+  // RESTAURANT ROUTES ---------------------------------------
+  app.route('/api/user/meals')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
-    .get(meals.restaurantMealList) // Restaurant/User get (Good)
+    .get(meals.userList) // Restaurant/User get (Good)
+    .all(mealsPolicy.isValidMenu)
     .post(meals.create); // Restaurant create (Good)
 
   // Restaurant 
-  app.route('/api/restaurants/:restaurantId/meals/:mealId')
+  app.route('/api/user/meals/:mealId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
-    .put(meals.update) // Restaurant update (Good)
-    .delete(meals.delete); // Restaurant delete (Good)
+    // .get(meals.read)
+    // .delete(meals.delete) // Restaurant delete (Good)
+    .all(mealsPolicy.isValidMenu)
+    .put(meals.update); // Restaurant update (Good)
 
   // Restaurant profile picture update
-  app.route('/api/restaurants/:restaurantId/meals/:mealId/picture')
+  app.route('/api/user/meals/:mealId/picture')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     .post(meals.changeMealPicture); // Restaurant update (Untested)

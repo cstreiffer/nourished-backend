@@ -3,7 +3,9 @@
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),
-  acl = require('acl');
+  acl = require('acl'),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Restaurant = db.restaurant;
 
 /**
  * Module dependencies.
@@ -36,14 +38,44 @@ exports.invokeRolesPolicies = function() {
   acl.allow([{
     roles: ['restaurant'],
     allows: [{
-      resources: '/api/restaurants/:restaurantId/meals',
-      permissions: []
+      resources: '/api/user/menus',
+      permissions: ['post', 'get']
     }, {
-      resources: '/api/restaurants/:restaurantId/meals/:mealId',
+      resources: '/api/user/menus:menuId',
       permissions: []
     }]
   }]);
 };
+
+/**
+ * Check if Restaurant belongs to User
+ */
+exports.isValidRestaurant = function(req, res, next) {
+  console.log("Checking the validity of the restaurant!");
+  if(req.body.restaurantId) {
+    Restaurant.findOne({
+      where: {
+        id: req.body.restaurantId,
+        userId: req.user.id
+      }
+    }).then((restaurant) => {
+      if(restaurant) {
+        req.restaurant = restaurant;
+        return next();
+      } else {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+      }
+    }).catch((err) => {
+        return res.status(500).json({
+          message: 'Unexpected authorization error'
+        });
+    });
+  } else {
+    return next();
+  }
+}
 
 /**
  * Check If Meal Policy Allows 
@@ -53,14 +85,8 @@ exports.isAllowed = function(req, res, next) {
 
   // If meal is being processed and the current user created it then allow any manipulation
   // Need to make sure user owns the restaurant and restaurant owns the meal
-  if (req.user && req.restaurant && (req.user.id === req.restaurant.userId)) {
-    if (!req.menu || (req.menu && (req.restaurant.id === req.menu.restaurantId))) {
+  if (req.user && req.menu && (req.user.id === req.menu.userId)) {
       return next();
-    } else {
-      return res.status(403).json({
-        message: 'User is not authorized'
-      });
-    }
   } else {
     // Check for user roles
     acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {

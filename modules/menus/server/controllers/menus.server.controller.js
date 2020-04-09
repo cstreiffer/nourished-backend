@@ -9,7 +9,6 @@ var path = require('path'),
   fs = require('fs'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  multer = require('multer'),
   Menu = db.menu;
 
 const {Op} = require('sequelize');
@@ -19,13 +18,14 @@ const {Op} = require('sequelize');
 exports.create = function(req, res) {
   delete req.body.id;
   req.body.id = uuid();
-  req.body.restaurantId = req.restaurant.id;
+  req.body.userId = req.user.id;
   
   if( !req.body.restaurantId) {
       return res.status(400).send({
         message: "Please include restaurant id"
       });
   } else {
+    req.body.restaurantId = req.restaurant.id;
     Menu.create(req.body).then(function(menu) {
       if (!menu) {
         return res.send('/', {
@@ -46,7 +46,6 @@ exports.create = function(req, res) {
  * Show the current menu
  */
 exports.read = function(req, res) {
-  console.log("EHUEUEHUEHEUH");
   res.jsonp({menu: req.menu, message: "Menu successfully found"});
 };
 
@@ -55,6 +54,7 @@ exports.read = function(req, res) {
  */
 exports.update = function(req, res) {
   delete req.body.id;
+  delete req.body.userId;
   delete req.body.restaurantId;
   var menu = req.menu;
 
@@ -94,8 +94,9 @@ var formatDate = function(query) {
 /**
  * List of restaurant menus
  */
-exports.list = function(req, res) {
-  var query = {restaurantId: req.restaurant.id};
+exports.userList = function(req, res) {
+  var query = {userId: req.user.id};
+  if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
   if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
 
   Menu.findAll({
@@ -122,7 +123,8 @@ exports.menuByID = function(req, res, next, id) {
   Menu.findOne({
     where: {
       id: id
-    }
+    }, 
+    include: [db.restaurant]
   }).then(function(menu) {
     if (!menu) {
       return res.status(404).send({

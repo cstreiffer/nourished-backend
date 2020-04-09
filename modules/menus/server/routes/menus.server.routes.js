@@ -11,19 +11,21 @@ var path = require('path'),
 module.exports = function(app) {
 
   // Restaurant 
-  app.route('/api/restaurants/:restaurantId/menus')
+  app.route('/api/user/menus')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
-    .get(menus.list) // Restaurant/User get (Good)
+    .get(menus.userList) // Restaurant/User get (Good)
+    .all(menusPolicy.isValidRestaurant)
     .post(menus.create); // Restaurant create (Good)
 
   // Restaurant 
-  app.route('/api/restaurants/:restaurantId/menus/:menuId')
+  app.route('/api/user/menus/:menuId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
-    .put(menus.update) // Restaurant update (Good)
     .delete(menus.delete) // Restaurant delete (Good)
-    .get(menus.read);
+    .get(menus.read)
+    .all(menusPolicy.isValidRestaurant)
+    .put(menus.update); // Restaurant update (Good)
 
   // Finish by binding the menu middleware
   app.param('menuId', menus.menuByID);

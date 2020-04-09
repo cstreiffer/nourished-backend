@@ -59,10 +59,14 @@ module.exports = function(sequelize, DataTypes) {
     maxQuantity: {
       type: DataTypes.INTEGER,
       defaultValue: 25
+    },
+    visible: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: true
     }
   }, {
     associate: function(models) {
-      Meal.belongsTo(models.restaurant, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Meal.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Meal.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });

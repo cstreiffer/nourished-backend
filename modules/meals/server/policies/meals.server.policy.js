@@ -3,7 +3,9 @@
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),
-  acl = require('acl');
+  acl = require('acl'),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Menu = db.menu;
 
 /**
  * Module dependencies.
@@ -34,31 +36,10 @@ acl = new acl(new acl.memoryBackend());
  */
 exports.invokeRolesPolicies = function() {
   acl.allow([{
-    roles: ['admin'],
-    allows: [{
-      resources: '/api/meals',
-      permissions: []
-    }, {
-      resources: '/api/meals/:mealId',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId/meals',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId/meals/:mealId',
-      permissions: []
-    }]
-  }, {
     roles: ['restaurant'],
-    allows: [{
-      resources: '/api/meals',
-      permissions: ['get']
-    }, {
-      resources: '/api/meals/:mealId',
-      permissions: ['get']
-    }, {
-      resources: '/api/restaurants/:restaurantId/meals',
-      permissions: ['get']
+    allows: [ {
+      resources: '/api/user/meals',
+      permissions: ['post', 'get']
     }]
   }, {
     roles: ['user'],
@@ -68,12 +49,38 @@ exports.invokeRolesPolicies = function() {
     }, {
       resources: '/api/meals/:mealId',
       permissions: ['get']
-    }, {
-      resources: '/api/restaurants/:restaurantId/meals',
-      permissions: ['get']
     }]
   }]);
 };
+
+/**
+ * Check if Meal belongs to User
+ */
+exports.isValidMenu = function(req, res, next) {
+  if(req.body.menuId) {
+    Menu.findOne({
+      where: {
+        id: req.body.menuId,
+        userId: req.user.id
+      }
+    }).then((menu) => {
+      if(menu) {
+        req.menu = menu;
+        return next();
+      } else {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+      }
+    }).catch((err) => {
+        return res.status(500).json({
+          message: 'Unexpected authorization error'
+        });
+    });
+  } else {
+    return next();
+  }
+}
 
 /**
  * Check If Meal Policy Allows 
@@ -83,10 +90,8 @@ exports.isAllowed = function(req, res, next) {
 
   // If meal is being processed and the current user created it then allow any manipulation
   // Need to make sure user owns the restaurant and restaurant owns the meal
-  if (req.user && req.restaurant && (req.user.id === req.restaurant.userId)) {
-    if (!req.meal || (req.meal && (req.meal.restaurantId === req.restaurant.id))) {
+  if (req.user && req.meal && (req.user.id === req.meal.userId)) {
       return next();
-    }
   } else {
 
     // Check for user roles

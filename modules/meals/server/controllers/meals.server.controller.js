@@ -19,16 +19,17 @@ const {Op} = require('sequelize');
 exports.create = function(req, res) {
   delete req.body.id;
   req.body.id = uuid();
-  req.body.restaurantId = req.restaurant.id;
+  req.body.userId = req.user.id;
 
   // Separate endpoint to upload the meal image
   delete req.body.mealImageURL;
   
-  if( !req.body.restaurantId) {
+  if(!req.body.menuId) {
       return res.status(400).send({
-        message: "Please include restaurant id"
+        message: "Please include menu id"
       });
   } else {
+    req.body.menuId = req.menu.id;
     Meal.create(req.body).then(function(meal) {
       if (!meal) {
         return res.send('/', {
@@ -57,18 +58,19 @@ exports.read = function(req, res) {
  */
 exports.update = function(req, res) {
   delete req.body.id;
-  delete req.body.restaurantId;
+  delete req.body.menuId;
+  delete req.body.userId;
   var meal = req.meal;
 
   meal.update({
     name: req.body.name,
     description: req.body.description,
     category: req.body.category,
-    date: req.body.date,
-    price: req.body.price,
+    // date: req.body.date,
+    // price: req.body.price,
     visible: req.body.visible,
-    minQuantity: req.body.minQuantity,
-    maxQuantity: req.body.maxQuantity
+    // minQuantity: req.body.minQuantity,
+    // maxQuantity: req.body.maxQuantity
   }).then(function(meal) {
     res.jsonp({meal: meal, message: "Meal successfully updated"});
   }).catch(function(err) {
@@ -188,15 +190,28 @@ var formatDate = function(query) {
  */
 exports.list = function(req, res) {
   var query = {};
+  if(req.query.menuId) query.menuId = req.query.menuId;
   if(req.query.category) query.category = req.query.category;
   if(req.query.price) query.price = req.query.price;
   if(req.query.name) query.name = req.query.name;
   if(req.query.visible) query.visible = req.query.visible;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+
+  var menuQuery = {};
+  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+
+  var restQuery = {};
+  if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
 
   Meal.findAll({
     where: query,
-    include: [db.restaurant]
+    include: {
+      model: db.menu, 
+      where: menuQuery, 
+      include: {
+        model: db.restaurant, 
+        where: restQuery
+      }
+    }
   }).then(function(meals) {
     if (!meals) {
       return res.status(404).send({
@@ -213,17 +228,30 @@ exports.list = function(req, res) {
 /**
  * List of restaurant meals
  */
-exports.restaurantMealList = function(req, res) {
-  var query = {restaurantId: req.restaurant.id};
+exports.userList = function(req, res) {
+  var query = {userId: req.user.id};
+  if(req.query.menuId) query.menuId = req.query.menuId;
   if(req.query.category) query.category = req.query.category;
   if(req.query.price) query.price = req.query.price;
   if(req.query.name) query.name = req.query.name;
   if(req.query.visible) query.visible = req.query.visible;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+
+  var menuQuery = {};
+  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+
+  var restQuery = {};
+  if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
 
   Meal.findAll({
     where: query,
-    include: [db.restaurant]
+    include: {
+      model: db.menu, 
+      where: menuQuery, 
+      include: {
+        model: db.restaurant, 
+        where: restQuery
+      }
+    }
   }).then(function(meals) {
     if (!meals) {
       return res.status(404).send({
@@ -242,18 +270,11 @@ exports.restaurantMealList = function(req, res) {
  */
 exports.mealByID = function(req, res, next, id) {
 
-  // if ((id % 1 === 0) === false) { //check if it's integer
-  //   return res.status(404).send({
-  //     message: 'Meal is invalid'
-  //   });
-  // }
   Meal.findOne({
     where: {
       id: id
     },
-    include: [{
-      model: db.restaurant
-    }]
+    include: {model: db.menu, include: db.restaurant}
   }).then(function(meal) {
     if (!meal) {
       return res.status(404).send({
