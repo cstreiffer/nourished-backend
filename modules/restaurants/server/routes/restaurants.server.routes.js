@@ -24,21 +24,21 @@ module.exports = function(app) {
   // USER ROUTES -------------------------------------
   // Articles collection routes
   app.route('/api/restaurants')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(restaurantsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(restaurantsPolicy.isAllowed)
     .get(restaurants.list); // Good
 
   // Single restaurant routes
   app.route('/api/restaurants/:restaurantId')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(restaurantsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(restaurantsPolicy.isAllowed)
     .get(restaurants.read); // Good
 
   // RESTAURANT ROUTES ---------------------------------- 
   app.route('/api/rest/restaurants')
     .all(passport.authenticate('jwt', {session: false}))
     .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.userRestaurantList) // Good
+    .get(restaurants.userList) // Good
     .post(restaurants.create); // Good
 
   app.route('/api/rest/restaurants/:restaurantId')

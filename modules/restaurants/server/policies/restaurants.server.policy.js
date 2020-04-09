@@ -67,6 +67,36 @@ exports.invokeRolesPolicies = function() {
 };
 
 /**
+ * Check if Restaurant belongs to User
+ */
+exports.isValidRestaurant = function(req, res, next) {
+  console.log("Checking the validity of the restaurant!");
+  if(req.body.restaurantId) {
+    Restaurant.findOne({
+      where: {
+        id: req.body.restaurantId,
+        userId: req.user.id
+      }
+    }).then((restaurant) => {
+      if(restaurant) {
+        req.restaurant = restaurant;
+        return next();
+      } else {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+      }
+    }).catch((err) => {
+        return res.status(500).json({
+          message: 'Unexpected authorization error'
+        });
+    });
+  } else {
+    return next();
+  }
+}
+
+/**
  * Check If Restaurant Policy Allows
  */
 exports.isAllowed = function(req, res, next) {

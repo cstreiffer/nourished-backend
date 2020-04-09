@@ -3,7 +3,9 @@
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),
-  acl = require('acl');
+  acl = require('acl'),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Meal = db.meal;
 
 /**
  * Module dependencies.
@@ -48,11 +50,8 @@ exports.invokeRolesPolicies = function() {
   }, {
     roles: ['user'],
     allows: [{
-      resources: '/api/menus/:menuId/orders',
-      permissions: ['post']
-    }, {
       resources: '/api/user/orders',
-      permissions: ['get']
+      permissions: ['get', 'post']
     }]
   }]);
 };
@@ -61,61 +60,93 @@ exports.invokeRolesPolicies = function() {
  * Check If Menu Policy Allows 
  */
 
-exports.isTimeAllowed = function(req, res, next) {
-  if(req.menu) {
-    var time = new Date(new Date().getTime() + config.orderTimeCutoff);
-    if(time < new Date(req.menu.date)) {
-      next();
-    } else {
-      return res.status(403).json({message: 'Orders can no longer be created/updated'});
-    }
+var isTimeValid = function(meal) {
+  var time = new Date(new Date().getTime() + config.orderTimeCutoff);
+  return time < new Date(meal.menu.date);
+};
+
+var isMealFinalized = function(meal) {
+  return meal.finalized;
+};
+
+/**
+ * Check If All Orders are Good
+ */
+
+exports.isOrderAllowed = function(req, res, next) {
+  if(req.body.orders) {
+    var orderMeals = req.body.orders.map((order) => order.mealId);
+    Meal.findAll({
+      where: {
+        id: orderMeals
+      },
+      include: db.menu
+    }).then(meals => {
+      if(meals && meals.length === new Set(orderMeals).size) {
+        var validation = meals.map((meal) => isMealFinalized(meal) && isTimeValid(meal));
+        if(validation.every((v) => v)) {
+          return next();
+        } else {
+          return res.status(400).json({message: "Invalid order"});
+        }
+      } else {
+        return res.status(400).json({message: "Invalid meal IDs"});
+      }
+    }).catch((err) => {
+      console.log(err);
+      return res.status(400).json({message: "An error occurred"});
+    });
   } else {
-    return res.status(500).send('Unexpected authorization error');
+    return res.status(400).json({message: 'Please include list of orders'});
   }
 };
 
- // USER, REST, MENU, ORDER
- // 1, 0, 0, 0
- // 1, 0, 0, 1
- // 1, 1, 1, 0
- // 1, 1, 1, 1
- 
+exports.isFormattedCorrectly = function(req, res, next) {
+  if(req.body.orders) {
+    if(req.body.orders.every(order => order.hospitalId && order.mealId)) {
+      next();
+    } else {
+      return res.status(400).json({message: 'Please include hospital and meal ids in every order'});
+    }
+  } else {
+    return res.status(400).json({message: 'Please include list of orders'});
+  }
+};
 
 // The USER/MENU/ORDER route (how users interact with )
 
 exports.isUserAllowed = function(req, res, next) {
   var roles = (req.user) ? req.user.roles : ['guest'];
-
-  if (req.user && req.menu && req.order && (req.user.id === req.order.userId) && (req.menu.id === req.order.menuId)) {
-    // User owns the order and the order matches the menu
-    next();
-  } else {
-    // Check roles
-    acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {
-      if (err) {
-        // An authorization error occurred.
-        return res.status(500).send('Unexpected authorization error');
+  // Check roles
+  acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {
+    if (err) {
+      // An authorization error occurred.
+      return res.status(500).send('Unexpected authorization error');
+    } else {
+      if (isAllowed) {
+        // Access granted! Invoke next middleware
+        return next();
       } else {
-        if (isAllowed) {
-          // Access granted! Invoke next middleware
-          return next();
-        } else {
-          return res.status(403).json({message: 'User is not authorized'});
-        }
+        return res.status(403).json({message: 'User is not authorized'});
       }
-    });
-  }
+    }
+  });
 };
 
-// The USER/RESTAURANT/ORDER route (how users interact with )
-exports.isRestaurantAllowed = function(req, res, next) {
-  if (req.user && req.restaurant && (req.user.id === req.restaurant.userId)) {
-    if (!req.order || (req.order && (req.restaurant.id === req.order.menu.restaurantId))) {
-      next();
+exports.isRestAllowed = function(req, res, next) {
+  var roles = (req.user) ? req.user.roles : ['guest'];
+  // Check roles
+  acl.areAnyRolesAllowed(roles, req.route.path, req.method.toLowerCase(), function(err, isAllowed) {
+    if (err) {
+      // An authorization error occurred.
+      return res.status(500).send('Unexpected authorization error');
     } else {
-      return res.status(403).json({message: 'User is not authorized'});
+      if (isAllowed) {
+        // Access granted! Invoke next middleware
+        return next();
+      } else {
+        return res.status(403).json({message: 'User is not authorized'});
+      }
     }
-  } else {
-    return res.status(403).json({message: 'User is not authorized'});
-  }
+  });
 };

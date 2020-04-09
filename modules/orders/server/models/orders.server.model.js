@@ -41,6 +41,10 @@ module.exports = function(sequelize, DataTypes) {
     groupId: {
       type: DataTypes.UUID,
       allowNull: false
+    },
+    deleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     associate: function(models) {
