@@ -52,6 +52,7 @@ exports.userList = function(req, res) {
   var query = {userId: req.user.id};
   if(req.query.userStatus) query.userStatus = req.query.userStatus;
   if(req.query.restStatus) query.restStatus = req.query.restStatus;
+  if(req.query.payStatus) query.payStatus = req.query.payStatus;
   if(req.query.quantity) query.quantity = req.query.quantity;
   if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
   if(req.query.groupId) query.groupId = req.query.groupId;
@@ -152,11 +153,15 @@ exports.restStatusUpdate = function(req, res) {
  * Delete an order
  */
 exports.delete = function(req, res) {
-  var order = req.order;
+  var orderIds = req.orders.map((order) => order.id);
 
-  // Delete the order
-  order.destroy().then(function() {
-    return res.jsonp({order: order, message: "Order successfully deleted"});
+  Order.update({deleted: true}, {
+    where: {
+      userId: req.user.id,
+      id: orderIds
+    }
+  }).then(function(orders) {
+    return res.jsonp({orders: req.orders, message: "Orders markerd as deleted"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -174,40 +179,35 @@ var formatDate = function(query) {
  * List of restaurant orders
  */
 exports.restList = function(req, res) {
-  var q1 = {restaurantId: req.restaurant.id};
-  if(req.query.menuId) q1.menuId = req.query.menuId;
+  var orderQuery = {};
+  if(req.query.mealId) orderQuery.mealId = req.query.mealId;
+  if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
+  if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
+  if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
 
-  var q2 = {};
-  if(req.query.userStatus) q2.userStatus = req.query.userStatus;
-  if(req.query.restStatus) q2.restStatus = req.query.restStatus;
-  if(req.query.quantity) q2.quantity = req.query.quantity;
-  if(req.query.locationId) q2.locationId = req.query.locationId;
-  if(req.query.startDate || req.query.endDate) q2.date = formatDate(req.query);
+  var mealQuery = {userId: req.user.id};
+  if(req.query.menuId) mealQuery.menuId = req.query.menuId;
 
-  Menu.findAll({
-    where: q1
-  }).then(function(menus) {
-    if (!menus) {
+  var menuQuery = {};
+  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+
+  Order.findAll({
+    where: orderQuery,
+    include: {
+      model: db.meal, 
+      where: mealQuery, 
+      include: {
+        model: db.menu, 
+        where: menuQuery
+      }
+    }
+  }).then(function(orders) {
+    if (!orders) {
       return res.status(404).send({
-        message: 'No menus associated with restaurant'
+        message: 'No orders found'
       });
     } else {
-      // Find all of the menu ids;
-      q2.menuId = menus.map((v) => v.id);
-      Order.findAll({
-        where: q2,
-        include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
-      }).then(function(orders) {
-        if (!orders) {
-          return res.status(404).send({
-            message: 'No orders found for restaurant'
-          });
-        } else {
-          res.json({orders: orders, message: "Orders successfully found"});
-        }
-      }).catch(function(err) {
-        res.jsonp(err);
-      });
+      res.jsonp({orders: orders, message: "Orders successfully found"});
     }
   }).catch(function(err) {
     res.jsonp(err);

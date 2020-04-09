@@ -37,22 +37,19 @@ acl = new acl(new acl.memoryBackend());
  */
 exports.invokeRolesPolicies = function() {
   acl.allow([{
-    roles: ['admin'],
+    roles: ['restaurant'],
     allows: [{
-      resources: '/api/orders',
-      permissions: []
+      resources: '/api/rest/orders',
+      permissions: ['get']
     }, {
-      resources: '/api/orders/:orderId',
-      permissions: []
-    }, {
-      resources: '/api/restaurants/:restaurantId/menus/:menuId/orders/',
-      permissions: []
+      resources: '/api/rest/orders/status',
+      permissions: ['put']
     }]
   }, {
     roles: ['user'],
     allows: [{
       resources: '/api/user/orders',
-      permissions: ['get', 'post', 'put']
+      permissions: ['get', 'post', 'put', 'delete']
     }, {
       resources: '/api/user/orders/status',
       permissions: ['put']
