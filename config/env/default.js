@@ -2,7 +2,7 @@
 
 module.exports = {
   app: {
-    title: 'SEAN.JS',
+    title: 'Nourished backend',
     description: 'Full-Stack Javascript with SequelizeJS, ExpressJS, AngularJS, and Node.js',
     keywords: 'sequelizejs, expressjs, angularjs, nodejs, postgresql, mysql, sqlite3, passport, redis, socket.io',
     googleAnalyticsTrackingID: process.env.GOOGLE_ANALYTICS_TRACKING_ID || '',
@@ -46,7 +46,7 @@ module.exports = {
     },
     verifyOptions : {
       expiresIn:  3 * 60 * 60 * 24,
-      algorithm: ["RS256"]      
+      algorithm: ["RS256"]
     },
     privateKey : 'config/jwttokens/jwt_rsa',
     publicKey : 'config/jwttokens/jwt_rsa.pub'

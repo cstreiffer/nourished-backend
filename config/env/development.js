@@ -20,7 +20,7 @@ module.exports = {
     sync: process.env.DB_SYNC || true //Synchronizing any model changes with database
   },
   redis: {
-    host: process.env.REDIS_HOST || process.env.REDIS_ADDR,
+    host: process.env.REDIS_HOST || "localhost",
     port: process.env.REDIS_PORT || 6379,
     database: process.env.REDIS_DATABASE || 0,
     password: process.env.REDIS_PASSWORD || "",
