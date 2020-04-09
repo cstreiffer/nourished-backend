@@ -11,7 +11,7 @@ var path = require('path'),
 module.exports = function(app) {
 
   // Restaurant 
-  app.route('/api/user/menus')
+  app.route('/api/rest/menus')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
     .get(menus.userList) // Restaurant/User get (Good)
@@ -19,7 +19,7 @@ module.exports = function(app) {
     .post(menus.create); // Restaurant create (Good)
 
   // Restaurant 
-  app.route('/api/user/menus/:menuId')
+  app.route('/api/rest/menus/:menuId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
     .delete(menus.delete) // Restaurant delete (Good)

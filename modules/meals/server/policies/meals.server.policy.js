@@ -38,7 +38,7 @@ exports.invokeRolesPolicies = function() {
   acl.allow([{
     roles: ['restaurant'],
     allows: [ {
-      resources: '/api/user/meals',
+      resources: '/api/rest/meals',
       permissions: ['post', 'get']
     }]
   }, {

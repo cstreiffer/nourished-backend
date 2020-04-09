@@ -46,13 +46,13 @@ exports.invokeRolesPolicies = function() {
     roles: ['restaurant'],
     allows: [{
       resources: '/api/restaurants',
-      permissions: ['get', 'post']
+      permissions: ['get']
     }, {
       resources: '/api/restaurants/:restaurantId',
       permissions: ['get']
     }, {
-      resources: '/api/user/restaurants',
-      permissions: ['get']
+      resources: '/api/rest/restaurants',
+      permissions: ['get', 'post']
     }]
   }, {
     roles: ['user'],

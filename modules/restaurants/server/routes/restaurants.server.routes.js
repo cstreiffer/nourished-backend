@@ -21,26 +21,31 @@ var path = require('path'),
 
 module.exports = function(app) {
 
+  // USER ROUTES -------------------------------------
   // Articles collection routes
   app.route('/api/restaurants')
     .all(passport.authenticate('jwt', {session: false}))
     .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.list) // Good
-    .post(restaurants.create); // Good
+    .get(restaurants.list); // Good
 
   // Single restaurant routes
   app.route('/api/restaurants/:restaurantId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.read) // Good
-    .put(restaurants.update) // Good
-    .delete(restaurants.delete); // Good
+    .get(restaurants.read); // Good
 
-  // User 
-  app.route('/api/user/restaurants')
+  // RESTAURANT ROUTES ---------------------------------- 
+  app.route('/api/rest/restaurants')
     .all(passport.authenticate('jwt', {session: false}))
     .all(restaurantsPolicy.isAllowed)
-    .get(restaurants.userRestaurantList); // Good
+    .get(restaurants.userRestaurantList) // Good
+    .post(restaurants.create); // Good
+
+  app.route('/api/rest/restaurants/:restaurantId')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(restaurantsPolicy.isAllowed)
+    .put(restaurants.update) // Good
+    .delete(restaurants.delete); // Good
 
   // Finish by binding the restaurant middleware
   app.param('restaurantId', restaurants.restaurantByID);

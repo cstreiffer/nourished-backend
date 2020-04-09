@@ -65,7 +65,7 @@ before((done) =>{
     .then(() => {done();});
 });
 
-describe('/GET /api/user/menus endpoint', () => {
+describe('/GET /api/rest/menus endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -82,7 +82,7 @@ describe('/GET /api/user/menus endpoint', () => {
 
   it('User with "restaurant" role should get their menus', (done) => {
     chai.request(app)
-      .get('/api/user/menus')
+      .get('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
       .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-05 06:20:00"})
       .end((err, res) => {
@@ -96,7 +96,7 @@ describe('/GET /api/user/menus endpoint', () => {
 
   it('User with "restaurant" role should not get their menus with wrong credentials', (done) => {
     chai.request(app)
-      .get('/api/user/menus')
+      .get('/api/rest/menus')
       .set('Authorization', restaurantJWT2)
       .send({restaurantId: restaurant1.id})
       .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-05 06:20:00"})
@@ -110,7 +110,7 @@ describe('/GET /api/user/menus endpoint', () => {
   });
 });
 
-describe('/POST /api/user/menus endpoint', () => {
+describe('/POST /api/rest/menus endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -120,7 +120,7 @@ describe('/POST /api/user/menus endpoint', () => {
 
   it('User with "restaurant" role should get their menus', (done) => {
     chai.request(app)
-      .post('/api/user/menus')
+      .post('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
       .send({...menu, restaurantId: restaurant1.id})
       .end((err, res) => {
@@ -146,7 +146,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should should be able to update their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .put('/api/user/menus/' + menu.id)
+        .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .send({date: "2020-04-05 13:30:30"})
         .end((err, res) => {
@@ -164,7 +164,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should should be able to user other restaurants ID for their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .put('/api/user/menus/' + menu.id)
+        .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .send({date: "2020-04-05 13:30:30", restaurantId: restaurant2.id})
         .end((err, res) => {
@@ -180,7 +180,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   it('User with "restaurant" role who does not own restaurant/menu should NOT be able to update', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .put('/api/user/menus/' + menu.id)
+        .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
         .send({date: "2020-04-05 13:30:30", id: restaurant1.id, restaurantId: restaurant2.id})
         .end((err, res) => {
@@ -193,7 +193,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   });
 });
 
-describe('/GET /api/user/menus/:menuId endpoint', () => {
+describe('/GET /api/rest/menus/:menuId endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -204,7 +204,7 @@ describe('/GET /api/user/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should should be able to get their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .get('/api/user/menus/' + menu.id)
+        .get('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .end((err, res) => {
           res.body.should.be.a('object');
@@ -221,7 +221,7 @@ describe('/GET /api/user/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should who doesnt own menu should NOT be able to get their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .get('/api/user/menus/' + menu.id)
+        .get('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
         .end((err, res) => {
           res.should.have.status(403);
@@ -233,7 +233,7 @@ describe('/GET /api/user/menus/:menuId endpoint', () => {
   });
 });
 
-describe('/DELETE /api/user/menus/:menuId endpoint', () => {
+describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -244,7 +244,7 @@ describe('/DELETE /api/user/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should should be able to delete their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .delete('/api/user/menus/' + menu.id)
+        .delete('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .end((err, res) => {
           res.body.should.be.a('object');
@@ -258,7 +258,7 @@ describe('/DELETE /api/user/menus/:menuId endpoint', () => {
   it('User with "restaurant" role should who doesnt own menu should NOT be able to delete their menu', (done) => {
     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
       chai.request(app)
-        .delete('/api/user/menus/' + menu.id)
+        .delete('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
         .end((err, res) => {
           res.should.have.status(403);

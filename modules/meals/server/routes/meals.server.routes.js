@@ -35,7 +35,7 @@ module.exports = function(app) {
     // .delete(meals.delete); // Admin delete
 
   // RESTAURANT ROUTES ---------------------------------------
-  app.route('/api/user/meals')
+  app.route('/api/rest/meals')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     .get(meals.userList) // Restaurant/User get (Good)
@@ -43,7 +43,7 @@ module.exports = function(app) {
     .post(meals.create); // Restaurant create (Good)
 
   // Restaurant 
-  app.route('/api/user/meals/:mealId')
+  app.route('/api/rest/meals/:mealId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     // .get(meals.read)
@@ -52,7 +52,7 @@ module.exports = function(app) {
     .put(meals.update); // Restaurant update (Good)
 
   // Restaurant profile picture update
-  app.route('/api/user/meals/:mealId/picture')
+  app.route('/api/rest/meals/:mealId/picture')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     .post(meals.changeMealPicture); // Restaurant update (Untested)
