@@ -49,13 +49,13 @@ module.exports = function(app) {
   // RESTAURANT ROUTES --------------------------------------
   app.route('/api/rest/orders')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestAllowed)
+    .all(ordersPolicy.isUserAllowed)
     .get(orders.restList); // User only get orders
 
   // Single order routes
   app.route('/api/rest/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestAllowed)
+    .all(ordersPolicy.isUserAllowed)
     .put(orders.restStatusUpdate);
 
   // Finish by binding the order middleware

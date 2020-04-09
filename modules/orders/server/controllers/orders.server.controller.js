@@ -136,17 +136,59 @@ exports.userStatusUpdate = function(req, res) {
  * User status an order
  */
 exports.restStatusUpdate = function(req, res) {
-  var order = req.order;
+  if((req.body.orderIds || req.body.menuId || req.body.mealIds) && req.body.restStatus) {
+    var orderQuery = {};
+    if(req.body.orderIds) orderQuery.id = req.body.orderIds;
+    if(req.body.mealIds) orderQuery.mealId = req.body.mealIds;
+    // if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
+    // if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
+    // if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
 
-  order.update({
-    restStatus: req.body.restStatus,
-  }).then(function(menu) {
-    res.jsonp({order: order, message: "Order successfully updated"});
-  }).catch(function(err) {
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
+    var mealQuery = {userId: req.user.id};
+    if(req.body.menuId) mealQuery.menuId = req.body.menuId;
+
+    var menuQuery = {};
+    // if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+
+    Order.findAll({
+      where: orderQuery,
+      include: {
+        model: db.meal, 
+        where: mealQuery, 
+        include: {
+          model: db.menu, 
+          where: menuQuery
+        }
+      }
+    }).then(function(orders) {
+      if (!orders) {
+        return res.status(404).send({
+          message: 'No orders found'
+        });
+      } else {
+        var orderIds = orders.map((order) => order.id);
+        Order.update({restStatus: req.body.restStatus}, {
+          where: {
+            id: orderIds
+          }
+        }).then(function() {
+          return res.jsonp({orders: orders, message: "Orders successfully updated"});
+        }).catch(function(err) {
+          return res.status(400).send({
+            message: errorHandler.getErrorMessage(err)
+          });
+        });
+      }
+    }).catch(function(err) {
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
     });
-  });
+  } else {
+     return res.status(400).send({
+      message: "Please include orderids/menuid/mealids/reststatus"
+    });   
+  }
 };
 
 /**
@@ -210,7 +252,9 @@ exports.restList = function(req, res) {
       res.jsonp({orders: orders, message: "Orders successfully found"});
     }
   }).catch(function(err) {
-    res.jsonp(err);
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
+    });
   });
 };
 

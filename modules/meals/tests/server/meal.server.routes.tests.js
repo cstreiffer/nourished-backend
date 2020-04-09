@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -470,137 +471,28 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
   });
 });
 
-// describe('/PUT api/restaurants/:restaurantId/menus endpoint', () => {
-  
-//   // Clear the database
-//   before(function(done) {
-//     Menu.destroy({where: {}})
-//       .then(function(){done()})
-//   });
 
-//   it('User with "restaurant" role should be able to update menu for associated restaurant', (done) => {
-//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-//       chai.request(app)
-//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT1)
-//         .send({name: "Chicken 2!!", date: "2020-06-05 18:30:00"})
-//         .end((err, res) => {
-//           res.should.have.status(200);
-//           res.body.should.be.a('object');
-//           res.body.should.have.property('message').eql('Menu successfully updated');
-//           res.body.menu.should.have.property('name').eql('Chicken 2!!');
-//           done();
-//         });
-//       });
-//   });
+after(function(done) {
+  Restaurant.destroy({where: {}})
+  .then(function(){done()})
+});
 
-//   it('User with "restaurant" role should NOT be able to update menu for NON-associated restaurant', (done) => {
-//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-//       chai.request(app)
-//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT2)
-//         .send({name: "Chicken 2!!"})
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
 
-//   it('User with "restaurant" role should NOT be able to update NON-associated menu for associated restaurant', (done) => {
-//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-//       chai.request(app)
-//         .put('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT2)
-//         .send({name: "Chicken 2!!"})
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
+after(function(done) {
+  Menu.destroy({where: {}})
+  .then(function(){done()})
+});
 
-//   it('User with "user" role should NOT be able to access endpoint', (done) => {
-//     Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id}).then( (menu) => {
-//       chai.request(app)
-//         .put('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', userJWT1)
-//         .send({name: "Chicken 2!!"})
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
-// });
+after(function(done) {
+  Meal.destroy({where: {}})
+  .then(function(){done()})
+});
 
-// describe('/DELETE api/restaurants/:restaurantId/menus endpoint', () => {
-  
-//   // Clear the database
-//   before(function(done) {
-//     Menu.destroy({where: {}})
-//       .then(function(){done()})
-//   });
-
-//   it('User with "restaurant" role should be able to delete menu for associated restaurant', (done) => {
-//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-//       chai.request(app)
-//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT1)
-//         .end((err, res) => {
-//              res.should.have.status(200);
-//              res.body.should.have.property('message');
-//              res.body.message.should.be.eql("Menu successfully deleted");
-//              done();
-//           });
-//       });
-//   });
-
-//   it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
-//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-//       chai.request(app)
-//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT2)
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
-
-//   it('User with "restaurant" role should be NOT be able to delete menu for NON-associated restaurant', (done) => {
-//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-//       chai.request(app)
-//         .delete('/api/restaurants/' + restaurant2.id + '/menus/' + menu.id)
-//         .set('Authorization', restaurantJWT2)
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
-
-//   it('User with "user" role should be NOT be able to access delete endpoint', (done) => {
-//     Menu.create({...menu, ...{id: uuid(), restaurantId : restaurant1.id}}).then( (menu) => {
-//       chai.request(app)
-//         .delete('/api/restaurants/' + restaurant1.id + '/menus/' + menu.id)
-//         .set('Authorization', userJWT1)
-//         .end((err, res) => {
-//             res.should.have.status(403);
-//             res.body.should.have.property('message');
-//             res.body.message.should.be.eql("User is not authorized");
-//             done();
-//           });
-//       });
-//   });
-// });
+after(function(done) {
+  stop();
+  done();
+});

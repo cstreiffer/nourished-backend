@@ -165,7 +165,7 @@ before((done) => {
     })
 });
 
-describe('/POST /api/menus/:menuId/orders endpoint', () => {
+describe('/POST /api/user/orders endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -551,8 +551,112 @@ describe('/GET /api/rest/orders endpoint', () => {
   });
 });
 
+describe('/PUT /api/rest/orders/status endpoint', () => {
+  // Clear the database
+  var orders;
+
+  beforeEach(function(done) {
+    Order.destroy({where: {}})
+      .then(function(){
+        orders = [
+          {...order, hospitalId: hospital1.id, mealId: ml1.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, mealId: ml2.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, mealId: ml5.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital2.id, mealId: ml6.id, userId: userId2, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital2.id, mealId: ml1.id, userId: userId2, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital2.id, mealId: ml2.id, userId: userId2, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital2.id, mealId: ml7.id, userId: userId2, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital2.id, mealId: ml8.id, userId: userId2, id: uuid(), groupId: userId2},
+        ];
+        Order.bulkCreate(orders).then(function() {
+          done();
+        });
+      });
+  });
+
+  it('User with "restaurant" role shoudl be able to update orders by menuId', (done) => {
+    chai.request(app)
+    .put('/api/rest/orders/status')
+    .set('Authorization', restaurantJWT1)
+    .send({restStatus: "COMPLETE", menuId: menu1.id})
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully updated');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(4);
+      done();
+    });
+  });
+
+  it('User with "restaurant" role should be able to update orders based on mealId', (done) => {
+    chai.request(app)
+    .put('/api/rest/orders/status')
+    .set('Authorization', restaurantJWT1)
+    .send({restStatus: "COMPLETE", mealIds: [ml1.id, ml2.id]})
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully updated');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(4);
+      done();
+    });
+  });
+
+  it('User with "restaurant" role should NOT be able to update orders not belonging to them by menuId', (done) => {
+    chai.request(app)
+    .put('/api/rest/orders/status')
+    .set('Authorization', restaurantJWT1)
+    .send({restStatus: "COMPLETE", menuId: menu3.id})
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully updated');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(0);
+      done();
+    });
+  });
+
+  it('User with "restaurant" role should be able to update orders based on orderId', (done) => {
+    chai.request(app)
+    .put('/api/rest/orders/status')
+    .set('Authorization', restaurantJWT1)
+    .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[1].id]})
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully updated');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(2);
+      done();
+    });
+  });
+
+  it('User with "restaurant" role should only be able to updat orders belonging to them', (done) => {
+    chai.request(app)
+    .put('/api/rest/orders/status')
+    .set('Authorization', restaurantJWT1)
+    .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[6].id]})
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully updated');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(1);
+      done();
+    });
+  });
+});
+
 after(function(done) {
   Order.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  Restaurant.destroy({where: {}})
   .then(function(){done()})
 });
 
@@ -576,14 +680,7 @@ after(function(done) {
   .then(function(){done()})
 });
 
-
 after(function(done) {
-  Order.destroy({where: {}})
-  .then(function(){done()})
-});
-
-after(function(done) {
-  console.log("Running this right here");
   stop();
   done();
 });

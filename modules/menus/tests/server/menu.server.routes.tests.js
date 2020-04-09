@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -268,4 +269,24 @@ describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
         });
     });
   });
+});
+
+after(function(done) {
+  Restaurant.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  Menu.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });

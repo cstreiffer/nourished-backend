@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -92,4 +93,14 @@ describe('/POST api/auth/signin endpoint', () => {
         });
       });
   });
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });

@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -292,9 +293,9 @@ describe('/GET api/rest/restaurants endpoint', () => {
     Restaurant.destroy({where: {}})
     	.then(function(){
     		Restaurant.bulkCreate([restaurant1, restaurant2]).then(function(res) {
-     			done()   			
-    		})
-    	})
+     			done();  			
+    		});
+    	});
   });
 
   it('User should be aple to fetch from their own restaurants', (done) => {
@@ -306,8 +307,8 @@ describe('/GET api/rest/restaurants endpoint', () => {
       	res.body.should.be.a('array');
       	res.body.length.should.be.eql(1);
 	    done();
-      })
-  })
+      });
+  });
 
   it('User with role "user" should not be able to access endpoint.', (done) => {
     chai.request(app)
@@ -318,7 +319,21 @@ describe('/GET api/rest/restaurants endpoint', () => {
       	res.body.should.have.property('message');
       	res.body.message.should.be.eql("User is not authorized");
 	    done();
-      })
-  })
+      });
+  });
+});
 
+after(function(done) {
+  Restaurant.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });

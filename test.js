@@ -19,7 +19,6 @@ var app = express.init(sequelize).listen(3000, () => {
 });
 
 function stop() {
-	console.log("What the heck>");
   	app.close();
 }
 

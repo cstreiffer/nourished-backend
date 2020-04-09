@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -170,4 +171,19 @@ describe('/GET api/hospitals endpoint', () => {
         done();
       })
   })
+});
+
+after(function(done) {
+  Hospital.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });
