@@ -1,0 +1,40 @@
+-- load this file:
+--   docker-compose run db psql -h db -U postgres -f /usr/src/nourished-backend/seeders/local_dev.psql nourished_dev
+
+-- users
+insert into users ("id", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('e205f838-57ea-4a60-9820-76574a31d24b', 'Alice','Abbott','215-555-1111', 'alice.abbott@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
+insert into public.users ("id", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('76bd12c8-4be3-4fef-9782-f69db274a872', 'Bernie','Baker','215-555-2222', 'bernie.baker@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
+
+-- restaurants
+insert into restaurants ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "createdAt", "updatedAt", "userId")
+values ('92d8b996-2db8-49f6-912f-e2bd28d225e3', 'Goldie', '215-555-3333', 'goldie@example.com', '1526 Sansom Street', '19102', 'Philadelphia', 'PA', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', 'e205f838-57ea-4a60-9820-76574a31d24b');
+insert into restaurants ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "createdAt", "updatedAt", "userId")
+values ('92d8b996-2db8-49f6-912f-e2bd28d225e4', 'Oyster House', '215-555-4444', 'oyster@example.com', '1516 Sansom Street', '19102', 'Philadelphia', 'PA', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', 'e205f838-57ea-4a60-9820-76574a31d24b');
+insert into restaurants ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "createdAt", "updatedAt", "userId")
+values ('92d8b996-2db8-49f6-912f-e2bd28d225e5', 'Dan Dan Rittenhouse', '215-555-5555', 'dandan@example.com', '126 S 16th St', '19102', 'Philadelphia', 'PA', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', 'e205f838-57ea-4a60-9820-76574a31d24b');
+insert into restaurants ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "createdAt", "updatedAt", "userId")
+values ('92d8b996-2db8-49f6-912f-e2bd28d225e6', 'Lukes Lobster', '215-555-6666', 'lukeslobster@example.com', '130 S 17th St', '19106', 'Philadelphia', 'PA', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', 'e205f838-57ea-4a60-9820-76574a31d24b');
+
+-- menus
+insert into menus ("id", "date", "createdAt", "updatedAt", "restaurantId", "userId")
+values ('a0d0c450-3ac1-4b4f-bd73-1b6950b3380a', '2020-04-15', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', '92d8b996-2db8-49f6-912f-e2bd28d225e3', 'e205f838-57ea-4a60-9820-76574a31d24b');
+
+insert into menus ("id", "date", "createdAt", "updatedAt", "restaurantId", "userId")
+values ('b9d43857-ef38-452d-9180-497613ff0f2b', '2020-04-15', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', '92d8b996-2db8-49f6-912f-e2bd28d225e4', '76bd12c8-4be3-4fef-9782-f69db274a872');
+
+insert into menus ("id", "date", "createdAt", "updatedAt", "restaurantId", "userId")
+values ('966ba51b-d199-4769-95da-445a997dc869', '2020-04-16', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', '92d8b996-2db8-49f6-912f-e2bd28d225e3', 'e205f838-57ea-4a60-9820-76574a31d24b');
+
+insert into menus ("id", "date", "createdAt", "updatedAt", "restaurantId", "userId")
+values ('38a9b56c-a88e-4dc5-bdc4-aa4822590088', '2020-04-17', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z', '92d8b996-2db8-49f6-912f-e2bd28d225e3', 'e205f838-57ea-4a60-9820-76574a31d24b');
+
+-- meals
+insert into meals ("id", "name", "description", "category", "imageURL", "price", "minQuantity", "maxQuantity", "visible", "finalized", "createdAt", "updatedAt", "userId", "menuId")
+values ('af6f2ccb-a746-40d3-b53e-9d2db992eed4', 'Falafel Sandwich', 'Falafal, veggies, sauce', 'vegetarian', 'https://example.com/image1.png', 5.00, 1, 10, true, false, '2020-04-10T00:00:00Z', '2020-04-10T00:00:00Z', 'e205f838-57ea-4a60-9820-76574a31d24b', 'a0d0c450-3ac1-4b4f-bd73-1b6950b3380a');
+
+-- hospitals
+insert into hospitals ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "dropoffLocation", "dropoffInfo", "createdAt", "updatedAt")
+values ('b8943fe1-eecd-4d1a-86dc-d408ca826490', 'Hospital of the University of Pennsylvania',  '215-555-7777', 'hotuop@example.com', '3400 Spruce St', '19104', 'Philadelphia', 'PA', 'Doors on Spruce street, ring bell', 'Ring the bell, when someone says leave by door, do so then step away', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z');
+
+insert into hospitals ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "dropoffLocation", "dropoffInfo", "createdAt", "updatedAt")
+values ('7a261b38-b1fe-432b-bd6c-8a76921e1bee', 'Penn Presbyterian Medical Center',  '215-555-8888', 'pennpresby@example.com', '51 N 39th St', '19104', 'Philadelphia', 'PA', 'Doors on Spruce street, ring bell', 'Ring the bell, when someone says leave by door, do so then step away', '2020-04-01T00:00:00Z', '2020-04-01T00:00:00Z');
