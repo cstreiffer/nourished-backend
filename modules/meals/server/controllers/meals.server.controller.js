@@ -106,14 +106,13 @@ exports.changeMealPicture = function (req, res) {
 
   // Filtering to upload only images
   upload.fileFilter = profileUploadFileFilter;
-
   if (meal) {
-    existingImageUrl = meal.mealImageURL;
+    existingImageUrl = meal.imageURL;
     uploadImage()
       .then(updateMeal)
       .then(deleteOldImage)
       .then(function () {
-        res.json(meal);
+        res.json({meal: meal, message: "Meal image successfully uploaded"});
       })
       .catch(function (err) {
         return res.status(422).send(err);
@@ -138,20 +137,19 @@ exports.changeMealPicture = function (req, res) {
 
   function updateMeal () {
     return new Promise(function (resolve, reject) {
-      meal.mealImageURL = config.uploads.profileUpload.dest + req.file.filename;
-      meal.save(function (err, themeal) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+      meal.imageURL = config.uploads.profileUpload.dest + req.file.filename;
+      // console.log(meal, config.uploads.profileUpload.dest + req.file.filename);
+      meal.save().then(function() {
+        resolve();
+      }).catch(function(err) {
+        reject(err);
       });
     });
   }
 
   function deleteOldImage () {
     return new Promise(function (resolve, reject) {
-      if (existingImageUrl !== Meal.schema.path('mealImageURL').defaultValue) {
+      if (existingImageUrl) {
         fs.unlink(existingImageUrl, function (unlinkError) {
           if (unlinkError) {
             console.log(unlinkError);
@@ -177,13 +175,13 @@ exports.delete = function(req, res) {
 
   if(!meal.finalized) {
     // Try to delete the image
-    if (meal.mealImageURL) {
-      fs.unlink(meal.mealImageURL, function (unlinkError) {
+    if (meal.imageURL) {
+      fs.unlink(meal.imageURL, function (unlinkError) {
         if (unlinkError) {
           console.log(unlinkError);
         }
       });       
-    }
+    };
 
     // Delete the meal
     meal.destroy().then(function() {
@@ -197,7 +195,7 @@ exports.delete = function(req, res) {
     return res.status(400).send({
       message: "Cannot delete finalized meal"
     });
-  }
+  };
 };
 
 var formatDate = function(query) {

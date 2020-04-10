@@ -15,7 +15,8 @@ var
   Restaurant = db.restaurant,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
-  should = chai.should();
+  should = chai.should(),
+  fs = require('fs');
 
 chai.use(chaiHttp);
 
@@ -434,7 +435,7 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
   });
 });
 
-describe('/PUT /api/meals/:mealId endpoint', () => {
+describe('/DELETE /api/meals/:mealId endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
@@ -468,6 +469,57 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
           done();
         });
     });
+  });
+});
+
+describe('/POST /api/meals/:mealId/picture endpoint', () => {
+  var mealUpd;
+  // Clear the database
+  before(function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){done();});
+  });
+
+  it('User with "restaurant" role should be able to add picture to menu', (done) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+      chai.request(app)
+        .post('/api/rest/meals/' + meal.id + '/picture')
+        .set('Authorization', restaurantJWT1)
+        .attach('newMealPicture', fs.readFileSync('public/testimage.png'), 'testimage.png')
+        .end((err, res) => {
+          mealUpd = res.body.meal; 
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Meal image successfully uploaded');
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+
+  it('User with "user" role should be able to change their image', (done) => {
+    chai.request(app)
+      .post('/api/rest/meals/' + mealUpd.id + '/picture')
+      .set('Authorization', restaurantJWT1)
+      .attach('newMealPicture', fs.readFileSync('public/testimage.png'), 'testimage.png')
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Meal image successfully uploaded');
+        res.should.have.status(200);
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to delete the meal', (done) => {
+    chai.request(app)
+      .delete('/api/rest/meals/' + mealUpd.id)
+      .set('Authorization', restaurantJWT1)
+      // .attach('newMealPicture', fs.readFileSync('public/testimage.png'), 'testimage.png')
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Meal successfully deleted');
+        res.should.have.status(200);
+        done();
+      });
   });
 });
 
