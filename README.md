@@ -52,6 +52,12 @@ List the tables:
        public | users       | table | postgres
       (6 rows)
 
+### Loading the database with example data for local development
+
+As a one time step, load the data.
+
+    docker-compose run db psql -h db -U postgres -f /usr/src/nourished-backend/seeders/local_dev.psql nourished_dev
+
 
 ## Running the server
 
@@ -60,3 +66,10 @@ Running the server should be a simple:
     docker-compose up
 
 In your browser, go to http://localhost:3000/api/restaurants
+
+
+# Tools
+
+## Sequelize
+
+Sequelize is used as an ORM to the database.  See https://sequelize.org/master/manual/

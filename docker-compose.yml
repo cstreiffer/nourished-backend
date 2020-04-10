@@ -4,6 +4,7 @@ services:
     image: postgres:10.1-alpine
     volumes:
       - ./pgdata:/var/lib/postgresql/data/
+      - .:/usr/src/nourished-backend
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
