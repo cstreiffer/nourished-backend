@@ -29,7 +29,6 @@ exports.forgot = function(req, res, next) {
     // Lookup user by email
     function(token, done) {
       if (req.body.email) {
-
         User.findOne({
           where: {
             email: req.body.email.toLowerCase()
@@ -43,8 +42,11 @@ exports.forgot = function(req, res, next) {
             user.resetPasswordToken = token;
             user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
             user.save().then(function(saved) {
-              var err = (!saved) ? true : false;
-              done(err, token, saved);
+              return done(null, token, saved);
+            }).catch(function(error) {
+              return res.status(400).send({
+                message: 'Error occured'
+              });
             });
           }
         }).catch(function(err) {
@@ -59,9 +61,9 @@ exports.forgot = function(req, res, next) {
       }
     },
     function(token, user, done) {
-      res.render(path.resolve('modules/users/server/templates/reset-password-email'), {
+      res.render(path.resolve('modules/users/server/templates/password-recovery'), {
         name: user.displayName,
-        appName: config.app.title,
+        emailAddress: config.mailer.from,
         url: 'http://' + req.headers.host + '/api/auth/reset/' + token
       }, function(err, emailHTML) {
         done(err, emailHTML, user);
@@ -73,7 +75,12 @@ exports.forgot = function(req, res, next) {
         to: user.email,
         from: config.mailer.from,
         subject: 'Password Reset',
-        html: emailHTML
+        html: emailHTML,
+        attachments: [{
+          filename: 'nourished_logo.png',
+          path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+          cid: 'nourishedlogo' //same cid value as in the html img src
+        }]
       };
       smtpTransport.sendMail(mailOptions, function(err) {
         if (!err) {
@@ -81,6 +88,7 @@ exports.forgot = function(req, res, next) {
             message: 'An email has been sent to the provided email with further instructions.'
           });
         } else {
+          console.log(err);
           return res.status(400).send({
             message: 'Failure sending email'
           });

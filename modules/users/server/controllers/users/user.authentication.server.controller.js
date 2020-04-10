@@ -32,9 +32,9 @@ exports.signup = function(req, res) {
   delete req.body.roles;
   delete req.body.id;
   req.body.id = uuid();
+  if (req.body.email) req.body.email = req.body.email.toLowerCase();
 
   var message = null;
-
   var user = User.build(req.body);
 
   user.salt = user.makeSalt();

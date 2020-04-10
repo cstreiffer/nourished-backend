@@ -56,7 +56,6 @@ exports.update = function(req, res, next) {
 
           user.firstName = userInfo.firstName;
           user.lastName = userInfo.lastName;
-          user.displayName = userInfo.firstName + ' ' + userInfo.lastName;
           user.phoneNumber = userInfo.phoneNumber;
           user.updatedAt = Date.now();
 
@@ -73,7 +72,6 @@ exports.update = function(req, res, next) {
               message: errorHandler.getErrorMessage(err)
             });
           });
-
         });
         done(null);
       }
@@ -85,67 +83,9 @@ exports.update = function(req, res, next) {
   }
 };
 
-// /**
-//  * Update profile picture
-//  */
-// exports.changeProfilePicture = function(req, res) {
-
-//   User.findOne({
-//     where: {
-//       id: req.user.id
-//     }
-//   }).then(function(user) {
-
-//     if (user) {
-//       if (!req.file) {
-//         return res.status(400).send({
-//           message: 'Error occurred while uploading profile picture'
-//         });
-//       } else {
-
-//         var oldImage = user.profileImageURL;
-
-//         user.profileImageURL = req.file.filename;
-
-//         user.save().then(function(saved) {
-//           if (!saved) {
-//             return res.status(400).send({
-//               message: errorHandler.getErrorMessage(saved)
-//             });
-//           } else {
-//             if (oldImage) {
-//               try {
-//                 var stats = fs.lstatSync('./public/uploads/users/profile/' + oldImage);
-//                 if (stats.isFile()) {
-//                   fs.unlinkSync('./public/uploads/users/profile/' + oldImage);
-//                 }
-//               } catch (e) {
-//                 console.log('Unable to delete the old image', e);
-//               }
-//             }
-
-//             req.user.profileImageURL = user.profileImageURL;
-//             res.json(user);
-//           }
-//         }).catch(function(err) {
-//           return res.status(400).send({
-//             message: errorHandler.getErrorMessage(err)
-//           });
-//         });
-//       }
-
-//     }
-//   }).catch(function(err) {
-//     return res.status(400).send({
-//       message: errorHandler.getErrorMessage(err)
-//     });
-//   });
-
-// };
-
 exports.getProfile = function(req, res) {
   User.findOne({
-    attributes: ['id', 'firstName', 'lastName', 'email', 'phoneNumber'],
+    attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'],
     where: {
       id: req.user.id
     }
