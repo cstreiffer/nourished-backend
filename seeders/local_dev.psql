@@ -2,8 +2,8 @@
 --   docker-compose run db psql -h db -U postgres -f /usr/src/nourished-backend/seeders/local_dev.psql nourished_dev
 
 -- users
-insert into users ("id", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('e205f838-57ea-4a60-9820-76574a31d24b', 'Alice','Abbott','215-555-1111', 'alice.abbott@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
-insert into public.users ("id", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('76bd12c8-4be3-4fef-9782-f69db274a872', 'Bernie','Baker','215-555-2222', 'bernie.baker@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
+insert into users ("id", "username", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('e205f838-57ea-4a60-9820-76574a31d24b', 'aabbott', 'Alice','Abbott','215-555-1111', 'alice.abbott@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
+insert into public.users ("id", "username", "firstName", "lastName", "phoneNumber", "email", "hashedPassword", "salt", "createdAt", "updatedAt") values ('76bd12c8-4be3-4fef-9782-f69db274a872', 'bbaker', 'Bernie','Baker','215-555-2222', 'bernie.baker@example.com', 'mLyE7v8rLV/Y9FYNcuUrdw3ddKDePlnpwfy+Zex2ykR+qi82hyO9nUwT+XeTMQZA7D6s2YeHIT9Wf/fCI4gGhA==', 'abE5uecASjdFF3pTOgGSwg==', '2020-04-08T00:00:00Z', '2020-04-08T00:00:00Z');
 
 -- restaurants
 insert into restaurants ("id", "name", "phoneNumber", "email", "streetAddress", "zip", "city", "state", "createdAt", "updatedAt", "userId")
