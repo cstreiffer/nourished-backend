@@ -6,6 +6,7 @@ var
   expect = require('chai').expect,
   path = require('path'),
   app = require(path.resolve('./test.js')),
+  stop = require(path.resolve('./test.js')).stop,
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -22,10 +23,10 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  userCredentials = {email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'},
-  restaurantCredentials = {email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'restaurant'},
-  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()},
-  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"201 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()};
+  userCredentials = {username: "testuser", email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'},
+  restaurantCredentials = {username: "testuser1", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7326", firstName: 'Chris', account_type: 'restaurant'},
+  hospital1 = {name:"Presby 1", phoneNumber:"504-613-7325", email:"email@penn.upenn.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()},
+  hospital2 = {name:"Presby 2", phoneNumber:"504-613-7325", email:"email@test.com", streetAddress:"201 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -58,7 +59,7 @@ describe('/GET api/hospitals endpoint', () => {
   before(function(done) {
     Hospital.destroy({where: {}})
       .then(function(){
-        Hospital.bulkCreate([hospital1, hospital2]).then(function() {
+        Hospital.bulkCreate([hospital1, hospital2], {validate: true}).then(function() {
           done()        
         })
       })
@@ -170,4 +171,19 @@ describe('/GET api/hospitals endpoint', () => {
         done();
       })
   })
+});
+
+after(function(done) {
+  Hospital.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });

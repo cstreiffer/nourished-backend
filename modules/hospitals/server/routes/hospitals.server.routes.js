@@ -21,15 +21,15 @@ module.exports = function(app) {
 
   // Articles collection routes
   app.route('/api/hospitals')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(hospitalsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(hospitalsPolicy.isAllowed)
     .get(hospitals.list);
     // .post(hospitals.create);
 
   // Single hospital routes
   app.route('/api/hospitals/:hospitalId')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(hospitalsPolicy.isAllowed)
+    // .all(passport.authenticate('jwt', {session: false}))
+    // .all(hospitalsPolicy.isAllowed)
     .get(hospitals.read);
     // .put(hospitals.update)
     // .delete(hospitals.delete);

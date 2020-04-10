@@ -52,5 +52,13 @@ module.exports = {
     publicKey : 'config/jwttokens/jwt_rsa.pub'
   },
   timeSlots : ['13:00:00', '18:30:00'],
-  orderTimeCutoff: 3 * 60 * 60 * 1000
+  orderTimeCutoff: 3 * 60 * 60 * 1000,
+  uploads: {
+    profileUpload: {
+      dest: 'public/uploads/users/meals/', // Profile upload destination path
+      limits: {
+        fileSize: 1 * 1024 * 1024 // Max file size in bytes (1 MB)
+      }
+    }
+  }
 };

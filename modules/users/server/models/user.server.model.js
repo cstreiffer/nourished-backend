@@ -25,7 +25,6 @@ var validationWrapper = function(name) {
   return validateLocalStrategyProperty;
 };
 
-
 /**
  * A Validation function for local strategy password 
  */
@@ -39,6 +38,24 @@ var validateLocalStrategyPassword = function(password) {
   }
 };
 
+/**
+ * A validation function for phone numbers
+ */
+var validatePhoneNumber = function(phoneNumber) {
+  if(!phoneNumber || !phoneNumber.match(/^[2-9]\d{2}-\d{3}-\d{4}$|^[2-9]\d{9}$/)) {
+    throw new Error('Invalid phone number');
+  }
+}
+
+/**
+ * A validation function for phone numbers
+ */
+var validateEmail = function(email) {
+  if(!email || !email.match(/^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/)) {
+    throw new Error('Invalid email address');
+  }
+}
+
 module.exports = function(sequelize, DataTypes) {
   var User = sequelize.define('user', {
     id: {
@@ -46,35 +63,43 @@ module.exports = function(sequelize, DataTypes) {
       primaryKey: true,
       allowNull: false
     },
-    firstName: {
+    username: {
       type: DataTypes.STRING,
-      defaultValue: '',
-      validate: {
-        isValid: validationWrapper("First Name")
-      }
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      defaultValue: ''
-    },
-    phoneNumber: {
-      type: DataTypes.STRING,
-      defaultValue: '',
-      validate: {
-        isValid: validationWrapper("Phone Number")
+      allowNull: false,
+      unique: {
+        args: true,
+        msg: "Username already in use!"
       }
     },
     email: {
       type: DataTypes.STRING,
+      allowNull: false,
       unique: {
           args: true,
           msg: 'Email address already in use!'
       },
       validate: {
-        isEmail: {
-            msg: 'Please fill a valid email address'
-        }
+        isValid: validateEmail
       }
+    },
+    phoneNumber: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: {
+          args: true,
+          msg: 'Phone number already in use!'
+      },
+      validate: {
+        isValid: validatePhoneNumber
+      }
+    },
+    firstName: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      defaultValue: ''
     },
     roles: {
       type: DataTypes.JSON,
@@ -92,12 +117,6 @@ module.exports = function(sequelize, DataTypes) {
     resetPasswordToken: DataTypes.STRING,
     resetPasswordExpires: DataTypes.BIGINT
   });
-  // }, {
-  //   associate: function(models) {
-  //     User.hasMany(models.restaurant);
-  //     User.hasMany(models.order);
-  //   }
-  // });
 
   User.prototype.makeSalt = function() {
     return crypto.randomBytes(16).toString('base64');

@@ -18,15 +18,14 @@ const {Op} = require('sequelize');
  */
 exports.create = function(req, res) {
   delete req.body.id;
+  delete req.body.imageURL;
+
   req.body.id = uuid();
   req.body.userId = req.user.id;
 
   // Visibility checks
   req.body.finalized = req.body.finalized || false;
   req.body.visible = (req.body.visible && req.body.finalized) || false;
-
-  // Separate endpoint to upload the meal image
-  delete req.body.mealImageURL;
   
   if(!req.body.menuId) {
       return res.status(400).send({
@@ -98,7 +97,11 @@ exports.update = function(req, res) {
 /** 
  * Update meal image
  */
-exports.changeMealPicture = function (req, res) {
+exports.changeMealPicture = function(req, res) {
+  return _changeMealPicture(req, res);
+}
+
+var _changeMealPicture = function(req, res) {
   var meal = req.meal;
   var upload = multer(config.uploads.profileUpload).single('newMealPicture');
   var profileUploadFileFilter = require(path.resolve('./config/lib/multer')).mealUploadFileFilter;
@@ -106,14 +109,13 @@ exports.changeMealPicture = function (req, res) {
 
   // Filtering to upload only images
   upload.fileFilter = profileUploadFileFilter;
-
   if (meal) {
-    existingImageUrl = meal.mealImageURL;
+    existingImageUrl = meal.imageURL;
     uploadImage()
       .then(updateMeal)
       .then(deleteOldImage)
       .then(function () {
-        res.json(meal);
+        res.json({meal: meal, message: "Meal image successfully updated"});
       })
       .catch(function (err) {
         return res.status(422).send(err);
@@ -134,24 +136,22 @@ exports.changeMealPicture = function (req, res) {
         }
       });
     });
-  }
+  };
 
   function updateMeal () {
     return new Promise(function (resolve, reject) {
-      meal.mealImageURL = config.uploads.profileUpload.dest + req.file.filename;
-      meal.save(function (err, themeal) {
-        if (err) {
-          reject(err);
-        } else {
-          resolve();
-        }
+      meal.imageURL = config.uploads.profileUpload.dest + req.file.filename;
+      meal.save().then(function() {
+        resolve();
+      }).catch(function(err) {
+        reject(err);
       });
     });
-  }
+  };
 
   function deleteOldImage () {
     return new Promise(function (resolve, reject) {
-      if (existingImageUrl !== Meal.schema.path('mealImageURL').defaultValue) {
+      if (existingImageUrl) {
         fs.unlink(existingImageUrl, function (unlinkError) {
           if (unlinkError) {
             console.log(unlinkError);
@@ -166,7 +166,7 @@ exports.changeMealPicture = function (req, res) {
         resolve();
       }
     });
-  }
+  };
 };
 
 /**
@@ -177,13 +177,13 @@ exports.delete = function(req, res) {
 
   if(!meal.finalized) {
     // Try to delete the image
-    if (meal.mealImageURL) {
-      fs.unlink(meal.mealImageURL, function (unlinkError) {
+    if (meal.imageURL) {
+      fs.unlink(meal.imageURL, function (unlinkError) {
         if (unlinkError) {
           console.log(unlinkError);
         }
       });       
-    }
+    };
 
     // Delete the meal
     meal.destroy().then(function() {
@@ -197,7 +197,7 @@ exports.delete = function(req, res) {
     return res.status(400).send({
       message: "Cannot delete finalized meal"
     });
-  }
+  };
 };
 
 var formatDate = function(query) {

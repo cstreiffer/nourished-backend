@@ -24,12 +24,22 @@ module.exports = function(app) {
   app.route('/api/user/orders')
     .all(passport.authenticate('jwt', {session: false}))
     .all(ordersPolicy.isUserAllowed)
-    .get(orders.userList)
-    .all(ordersPolicy.isOrderAllowed)
-    .delete(orders.delete)
+    .get(orders.userList);
+
+  app.route('/api/user/orders')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isUserAllowed)
+    .all(ordersPolicy.isCreateOrderAllowed)
+    .all(ordersPolicy.isFormatAllowed)
+    .post(orders.create);
+
+  app.route('/api/user/orders')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isUserAllowed)
+    .all(ordersPolicy.isUserOrderAllowed)
+    .all(ordersPolicy.isUpdateOrderAllowed)
     .put(orders.update)
-    .all(ordersPolicy.isFormattedCorrectly)
-    .post(orders.create)
+    .delete(orders.delete);
 
   app.route('/api/user/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
@@ -39,13 +49,13 @@ module.exports = function(app) {
   // RESTAURANT ROUTES --------------------------------------
   app.route('/api/rest/orders')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestAllowed)
+    .all(ordersPolicy.isUserAllowed)
     .get(orders.restList); // User only get orders
 
   // Single order routes
   app.route('/api/rest/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isRestAllowed)
+    .all(ordersPolicy.isUserAllowed)
     .put(orders.restStatusUpdate);
 
   // Finish by binding the order middleware
