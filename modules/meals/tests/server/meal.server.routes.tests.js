@@ -118,7 +118,7 @@ before((done) => {
     });
 });
 
-describe('/GET /api/menus endpoint', () => {
+describe('/GET /api/meals endpoint', () => {
   
   // Clear the database
   before(function(done) {
@@ -347,7 +347,7 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
       });
   });
 
-  it('User with "restaurant" role should be able to create meal', (done) => {
+  it('User with "restaurant" role should NOT be able to create meal if they dont own menu', (done) => {
     chai.request(app)
       .post('/api/rest/meals')
       .set('Authorization', restaurantJWT2)
@@ -360,7 +360,7 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
       });
   });
 
-    it('User with "restaurant" role should be able to create meal', (done) => {
+    it('User with "restaurant" role should NOT be able to create meal', (done) => {
     chai.request(app)
       .post('/api/rest/meals')
       .set('Authorization', userJWT1)
@@ -489,7 +489,7 @@ describe('/POST /api/meals/:mealId/picture endpoint', () => {
         .end((err, res) => {
           mealUpd = res.body.meal; 
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Meal image successfully uploaded');
+          res.body.should.have.property('message').eql('Meal image successfully updated');
           res.should.have.status(200);
           done();
         });
@@ -503,7 +503,7 @@ describe('/POST /api/meals/:mealId/picture endpoint', () => {
       .attach('newMealPicture', fs.readFileSync('public/testimage.png'), 'testimage.png')
       .end((err, res) => {
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Meal image successfully uploaded');
+        res.body.should.have.property('message').eql('Meal image successfully updated');
         res.should.have.status(200);
         done();
       });
