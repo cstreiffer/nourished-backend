@@ -221,16 +221,15 @@ exports.changePassword = function(req, res, next) {
 
   if (req.user) {
     if (passwordDetails.newPassword) {
-      User.findOne({where: {id: req.user.id}}, function(err, user) {
-        if (!err && user) {
+      User.findOne({where: {id: req.user.id}}).then(function(user) {
+        if (user) {
           if (user.authenticate(passwordDetails.currentPassword)) {
             if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
               user.password = passwordDetails.newPassword;
-
-              user.save(function(err) {
-                if (err) {
+              user.save().then(function(user) {
+                if (!user) {
                   return res.status(400).send({
-                    message: errorHandler.getErrorMessage(err)
+                    message: "Password not updated"
                   });
                 } else {
                   req.login(user, function(err) {
@@ -243,6 +242,10 @@ exports.changePassword = function(req, res, next) {
                     }
                   });
                 }
+              }).catch(function(err) {
+                res.status(400).send({
+                  message: err
+                });   
               });
             } else {
               res.status(400).send({
@@ -259,6 +262,10 @@ exports.changePassword = function(req, res, next) {
             message: 'User is not found'
           });
         }
+      }).catch(function(err) {
+          res.status(400).send({
+            message: err
+          });
       });
     } else {
       res.status(400).send({

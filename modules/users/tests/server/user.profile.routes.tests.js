@@ -161,6 +161,61 @@ describe('/PUT /api/user', () => {
   });
 });
 
+describe('/POST /api/user/password', () => {
+
+  it('User should NOT be able to change their password if no new password', (done) => {
+    chai.request(app)
+      .post('/api/user/password')
+      .set('Authorization', userJWT1)
+      .send({currentPassword: "h4dm322i8!!ssfSS", verifyPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql("Please provide a new password")
+        done();
+      });
+  });
+
+  it('User should NOT be able to change their password if no massing passwords', (done) => {
+    chai.request(app)
+      .post('/api/user/password')
+      .set('Authorization', userJWT1)
+      .send({currentPassword: "h4dm322i8!!ssfSS", newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql("Passwords do not match")
+        done();
+      });
+  });
+
+  it('User should NOT be able to change their password if incorrect current password', (done) => {
+    chai.request(app)
+      .post('/api/user/password')
+      .set('Authorization', userJWT1)
+      .send({currentPassword: "h4dm322i8!", newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql("Current password is incorrect")
+        done();
+      });
+  });
+
+  it('User should be able to change their password', (done) => {
+    chai.request(app)
+      .post('/api/user/password')
+      .set('Authorization', userJWT1)
+      .send({currentPassword: "h4dm322i8!!ssfSS", newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql("Password changed successfully")
+        done();
+      });
+  });
+});
+
 after(function(done) {
   User.destroy({where: {}})
   .then(function(){done()})

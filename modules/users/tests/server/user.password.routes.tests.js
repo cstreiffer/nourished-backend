@@ -40,7 +40,7 @@ before((done) => {
 	  });
 });
 
-describe('/POST api/auth/signup endpoint', () => {
+describe('/POST api/auth/forgot endpoint', () => {
 
   it('User should be able to get reset password', (done) => {
     chai.request(app)

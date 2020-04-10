@@ -4,7 +4,10 @@
  * Module dependencies.
  */
 var _ = require('lodash'),
+  path = require('path'),
+  config = require(path.resolve('./config/config')),
   fs = require('fs'),
+  jwt = require('jsonwebtoken'),
   async = require('async'),
   path = require('path'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
@@ -12,6 +15,7 @@ var _ = require('lodash'),
   User = db.user;
 
 const {Op} = require('sequelize');
+const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
 
 exports.update = function(req, res, next) {
   var userInfo = req.body;
@@ -120,8 +124,9 @@ exports.update = function(req, res, next) {
                 message: 'Unable to update'
               });
             } else {
+              var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
               var ret = _.pick(user || {}, ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'])
-              res.json({user: ret, message: "User successfully updated"});
+              res.json({user: ret, token: token, message: "User successfully updated"});
             }
           }).catch(function(err) {
             return res.status(400).send({
