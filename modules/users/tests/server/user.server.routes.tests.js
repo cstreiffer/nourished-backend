@@ -22,7 +22,7 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  userCredentials = {email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'};
+  userCredentials = {username: "testuser", email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'};
 
 describe('/POST api/auth/signup endpoint', () => {
   // Clear the database
@@ -56,7 +56,7 @@ describe('/POST api/auth/signup endpoint', () => {
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: Email address already in use!');
+          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: Username already in use!');
           done();
         });
       }); 
@@ -79,7 +79,7 @@ describe('/POST api/auth/signin endpoint', () => {
     user.save().then((user) => {
       chai.request(app)
         .post('/api/auth/signin')
-        .send({password: userCredentials.password, email: userCredentials.email})
+        .send({password: userCredentials.password, username: userCredentials.username})
         .end((err, res) => {
           res.should.have.status(200);
           res.body.should.be.a('object');

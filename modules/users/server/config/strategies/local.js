@@ -14,13 +14,13 @@ module.exports = function() {
 
   // Use local strategy
   passport.use(new LocalStrategy({
-      usernameField: 'email',    
+      usernameField: 'username',    
       passwordField: 'password'
     },
     function(username, password, done) {
       User.findOne({
         where: {
-          email: username
+          username: username
         }
       }).then(function(user) {
         if (!user) {
