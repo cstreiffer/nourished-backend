@@ -52,7 +52,7 @@ describe('/POST api/auth/signup endpoint', () => {
         res.body.should.have.property('message').eql('An email has been sent to the provided email with further instructions.');
         done();
       });
-  });
+  }).timeout(5000);
 });
 
 after(function(done) {

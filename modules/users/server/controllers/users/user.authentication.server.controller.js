@@ -33,7 +33,8 @@ exports.signup = function(req, res) {
   delete req.body.id;
   req.body.id = uuid();
   if (req.body.email) req.body.email = req.body.email.toLowerCase();
-
+  if (req.body.phoneNumber) req.body.phoneNumber = req.body.phoneNumber.replace(/-|\(|\)| /g, '');
+  
   var message = null;
   var user = User.build(req.body);
 

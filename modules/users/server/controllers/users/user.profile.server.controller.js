@@ -11,30 +11,83 @@ var _ = require('lodash'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user;
 
+const {Op} = require('sequelize');
 
 exports.update = function(req, res, next) {
   var userInfo = req.body;
+  var username = userInfo.username ? userInfo.username : null;
+  var email = userInfo.email ? userInfo.email.toLowerCase() : null;
+  var phoneNumber = userInfo.phoneNumber ? userInfo.phoneNumber.replace(/-|\(|\)| /g, '') : null;
 
   delete req.body.roles;
   if (userInfo) {
 
     async.waterfall([
       function(done) {
-
-        if (userInfo.email.toLowerCase() !== req.user.email.toLowerCase()) {
+        if (username && username !== req.user.username) {
           User.findOne({
             where: {
-              email: {
-                like: userInfo.email
-              },
+              username: username,
               id: {
-                '$ne': req.user.id
+                [Op.ne]: req.user.id
               }
             }
           }).then(function(user) {
-            if (user && user.email.toLowerCase() === userInfo.email.toLowerCase()) {
+            if (user && user.username === username) {
+              return res.status(400).send({
+                message: 'Username already exists'
+              });
+            }
+            done(null);
+          }).catch(function(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          });
+        } else {
+          done(null);
+        }
+      },
+      function(done) {
+        if (email && email !== req.user.email.toLowerCase()) {
+          User.findOne({
+            where: {
+              email: {
+                [Op.iLike]: email
+              },
+              id: {
+                [Op.ne]: req.user.id
+              }
+            }
+          }).then(function(user) {
+            if (user && user.email.toLowerCase() === email) {
               return res.status(400).send({
                 message: 'Email already exists'
+              });
+            }
+            done(null);
+          }).catch(function(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          });
+        } else {
+          done(null);
+        }
+      },
+      function(done) {
+        if (phoneNumber && phoneNumber !== req.user.phoneNumber.replace(/-|\(|\)| /g, '')) {
+          User.findOne({
+            where: {
+              phoneNumber: phoneNumber,
+              id: {
+                [Op.ne]: req.user.id
+              }
+            }
+          }).then(function(user) {
+            if (user && user.phoneNumber.replace(/-|\(|\)| /g, '') === phoneNumber) {
+              return res.status(400).send({
+                message: 'Phone number already exists'
               });
             }
             done(null);
@@ -54,9 +107,11 @@ exports.update = function(req, res, next) {
           }
         }).then(function(user) {
 
-          user.firstName = userInfo.firstName;
-          user.lastName = userInfo.lastName;
-          user.phoneNumber = userInfo.phoneNumber;
+          if (userInfo.firstName) user.firstName = userInfo.firstName;
+          if (userInfo.lastName) user.lastName = userInfo.firstName;
+          if (phoneNumber) user.phoneNumber = phoneNumber
+          if (email) user.email = email;
+          if (username) user.username = username;
           user.updatedAt = Date.now();
 
           user.save().then(function(user) {
@@ -65,7 +120,8 @@ exports.update = function(req, res, next) {
                 message: 'Unable to update'
               });
             } else {
-              res.json(user);
+              var ret = _.pick(user || {}, ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'])
+              res.json({user: ret, message: "User successfully updated"});
             }
           }).catch(function(err) {
             return res.status(400).send({
@@ -90,7 +146,7 @@ exports.getProfile = function(req, res) {
       id: req.user.id
     }
   }).then(function(user) {
-    res.json(user);
+    res.json({user: user, message: "User successfully found"});
   }).catch(function(err) {
     res.status(400).send(err);
   });
@@ -101,5 +157,6 @@ exports.getProfile = function(req, res) {
  * Send User
  */
 exports.me = function(req, res) {
-  res.json(req.user || null);
+  var ret = _.pick(req.user || {}, ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'])
+  res.json({user: ret});
 };

@@ -12,17 +12,17 @@ module.exports = function(app) {
   // Setting up the users profile api
   app.route('/api/user/me')
     .all(passport.authenticate('jwt', {session: false}))
-    .get(user.requiresLogin, user.me);
+    .get(user.me); // (Good)
  
   app.route('/api/user')
     .all(passport.authenticate('jwt', {session: false}))
-    .get(user.requiresLogin, user.getProfile)
-    .put(user.requiresLogin, user.update);
+    .get(user.getProfile) // (Good)
+    .put(user.update); // (Good)
   
   // app.route('/api/user/accounts').delete(user.requiresLogin, user.removeOAuthProvider);
   app.route('/api/user/password')
     .all(passport.authenticate('jwt', {session: false}))
-    .post(user.requiresLogin, user.changePassword);
+    .post(user.changePassword);
 
   // Finish by binding the user middleware
   app.param('userId', user.userByID);
