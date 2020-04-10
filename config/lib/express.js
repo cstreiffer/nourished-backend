@@ -153,11 +153,12 @@ module.exports.initSession = function(app, db) {
         },
         key: config.sessionKey,
         store: new RedisStore({
-            client: redis.createClient(),
+          client: redis.createClient({
             host: config.redis.host || 'localhost',
             port: config.redis.port || 6379,
             db: config.redis.database || 0,
-            pass: config.redis.password || '',
+            pass: config.redis.password || ''
+          })
         })
     }));
 };
