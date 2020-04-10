@@ -30,7 +30,7 @@ var
   restaurantCredentials2 = {email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'restaurant'},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu = {date: "2020-04-2 13:00:00"};
+  menu = {date: "2020-04-05T18:00:00Z"};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -85,7 +85,7 @@ describe('/GET /api/rest/menus endpoint', () => {
     chai.request(app)
       .get('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-05 06:20:00"})
+      .query({startDate: "2020-04-01T06:30:00Z", endDate: "2020-04-05T18:40:00Z"})
       .end((err, res) => {
        res.body.menus.should.be.a('array');
        res.body.menus.length.should.be.eql(1);
@@ -100,7 +100,7 @@ describe('/GET /api/rest/menus endpoint', () => {
       .get('/api/rest/menus')
       .set('Authorization', restaurantJWT2)
       .send({restaurantId: restaurant1.id})
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-05 06:20:00"})
+      .query({startDate: "2020-04-01T06:30:00Z", endDate: "2020-04-05T18:40:00Z"})
       .end((err, res) => {
          res.body.menus.should.be.a('array');
          res.body.menus.length.should.be.eql(1);
@@ -149,12 +149,12 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
       chai.request(app)
         .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
-        .send({date: "2020-04-05 13:30:30"})
+        .send({date: "2020-04-05T13:30:30Z"})
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully updated');
           res.body.menu.should.have.property('id').eql(menu.id);
-          res.body.menu.should.have.property('date').eql("2020-04-05T18:30:30.000Z");
+          res.body.menu.should.have.property('date').eql("2020-04-05T13:30:30.000Z");
           res.body.menu.should.have.property('restaurantId').eql(restaurant1.id);
           res.should.have.status(200);
           done();
@@ -211,7 +211,7 @@ describe('/GET /api/rest/menus/:menuId endpoint', () => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully found');
           res.body.menu.should.have.property('id').eql(menu.id);
-          res.body.menu.should.have.property('date').eql("2020-04-02T18:00:00.000Z");
+          res.body.menu.should.have.property('date').eql("2020-04-05T18:00:00.000Z");
           res.body.menu.should.have.property('restaurantId').eql(menu.restaurantId);
           res.should.have.status(200);
           done();

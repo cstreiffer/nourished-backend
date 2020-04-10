@@ -41,10 +41,10 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu1 = {date: "2021-04-01 13:00:00", id: uuid()},
-  menu2 = {date: "2021-04-02 13:00:00", id: uuid()},
-  menu3 = {date: "2020-04-03 13:00:00", id: uuid()},
-  menu4 = {date: "2020-04-04 13:00:00", id: uuid()},
+  menu1 = {date: "2021-04-01T18:00:00Z", id: uuid()},
+  menu2 = {date: "2021-04-02T18:00:00Z", id: uuid()},
+  menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
+  menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
   meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true},
   meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
   ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1},
@@ -524,7 +524,7 @@ describe('/GET /api/rest/orders endpoint', () => {
     chai.request(app)
     .get('/api/rest/orders')
     .set('Authorization', restaurantJWT2)
-    .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-04 07:30:00"})
+    .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T12:30:00Z"})
     .end((err, res) => {
       res.should.have.status(200);
       res.body.should.be.a('object');

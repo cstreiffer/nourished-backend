@@ -40,12 +40,12 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu1 = {date: "2020-04-01 13:00:00", id: uuid()},
-  menu2 = {date: "2020-04-02 13:00:00", id: uuid()},
-  menu3 = {date: "2020-04-03 13:00:00", id: uuid()},
-  menu4 = {date: "2020-04-04 13:00:00", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50, finalized: false},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", date: "2019-04-08 10:30:00", category: "Meat", price: 7.50, finalized: true};
+  menu1 = {date: "2020-04-01T18:00:00Z", id: uuid()},
+  menu2 = {date: "2020-04-02T18:00:00Z", id: uuid()},
+  menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
+  menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
+  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -139,25 +139,25 @@ describe('/GET /api/meals endpoint', () => {
       })
   });
 
-  it('User with "user" role should get all meals', (done) => {
+  it('User with "user" role should get all meals filtered by date', (done) => {
     chai.request(app)
       .get('/api/meals')
       // .set('Authorization', userJWT1)
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-02 06:20:00"})
+      .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T11:20:00Z"})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
-       res.body.meals.length.should.be.eql(2);
+       res.body.meals.length.should.be.eql(6);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
       });
   });
 
-  it('User with "user" role should get all meals', (done) => {
+  it('User with "user" role should get all meals filtered by restaurantId', (done) => {
     chai.request(app)
       .get('/api/meals')
       // .set('Authorization', userJWT1)
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-03 06:20:00", restaurantId: restaurant1.id})
+      .query({restaurantId: restaurant1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
        res.body.meals.length.should.be.eql(4);
@@ -167,7 +167,7 @@ describe('/GET /api/meals endpoint', () => {
       });
   });
 
-  it('User with "user" role should get all meals', (done) => {
+  it('User with "user" role should get all meals filtered by menuId', (done) => {
     chai.request(app)
       .get('/api/meals')
       // .set('Authorization', userJWT1)
@@ -290,7 +290,7 @@ describe('/GET /api/rest/meals endpoint', () => {
     chai.request(app)
       .get('/api/rest/meals')
       .set('Authorization', restaurantJWT1)
-      .query({startDate: "2020-04-01 06:30:00", endDate: "2020-04-03 06:20:00", restaurantId: restaurant1.id})
+      .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-03T11:20:00Z", restaurantId: restaurant1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
        res.body.meals.length.should.be.eql(4);
