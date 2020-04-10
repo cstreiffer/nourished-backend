@@ -11,8 +11,11 @@ module.exports = function(app) {
 
   // Setting up the users password api
   app.route('/api/auth/forgot').post(users.forgot); // (Good)
-  app.route('/api/auth/reset/:token').get(users.validateResetToken);
-  app.route('/api/auth/reset/:token').post(users.reset);
+  if (process.env.NODE_ENV === "test" || Process.env.NODE_ENV === "dev") {
+    app.route('/api/auth/forgot/test').post(users.forgotTest); // (Good)
+  }
+  app.route('/api/auth/reset/:token').get(users.validateResetToken); // (Good)
+  app.route('/api/auth/reset/:token').post(users.reset); // (Good)
 
   // Setting up the users authentication api
   app.route('/api/auth/signup').post(users.signup); // (Good)
