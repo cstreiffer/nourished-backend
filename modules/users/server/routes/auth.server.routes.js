@@ -11,7 +11,7 @@ module.exports = function(app) {
 
   // Setting up the users password api
   app.route('/api/auth/forgot').post(users.forgot); // (Good)
-  if (process.env.NODE_ENV === "test" || Process.env.NODE_ENV === "dev") {
+  if (process.env.NODE_ENV === "test" || process.env.NODE_ENV === "development") {
     app.route('/api/auth/forgot/test').post(users.forgotTest); // (Good)
   }
   app.route('/api/auth/reset/:token').get(users.validateResetToken); // (Good)

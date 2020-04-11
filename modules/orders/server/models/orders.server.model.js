@@ -31,7 +31,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: 'PENDING'  
     },
     quantity: {
-      type: DataTypes.STRING,
+      type: DataTypes.INTEGER,
       defaultValue: 1
     },
     information: {
