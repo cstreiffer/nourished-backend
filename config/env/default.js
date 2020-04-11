@@ -41,11 +41,11 @@ module.exports = {
   },
   jwt : {
     signOptions : {
-      expiresIn:  3 * 60 * 60 * 24,
+      expiresIn:  7 * 60 * 60 * 24,
       algorithm: "RS256"
     },
     verifyOptions : {
-      expiresIn:  3 * 60 * 60 * 24,
+      expiresIn:  7 * 60 * 60 * 24,
       algorithm: ["RS256"]
     },
     privateKey : 'config/jwttokens/jwt_rsa',

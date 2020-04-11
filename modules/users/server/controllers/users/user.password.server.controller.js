@@ -12,6 +12,8 @@ var path = require('path'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user;
 
+const {Op} = require('sequelize');
+
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
 /**
@@ -29,7 +31,6 @@ exports.forgot = function(req, res, next) {
     // Lookup user by email
     function(token, done) {
       if (req.body.email) {
-
         User.findOne({
           where: {
             email: req.body.email.toLowerCase()
@@ -43,8 +44,11 @@ exports.forgot = function(req, res, next) {
             user.resetPasswordToken = token;
             user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
             user.save().then(function(saved) {
-              var err = (!saved) ? true : false;
-              done(err, token, saved);
+              return done(null, token, saved);
+            }).catch(function(error) {
+              return res.status(400).send({
+                message: 'Error occured'
+              });
             });
           }
         }).catch(function(err) {
@@ -59,9 +63,9 @@ exports.forgot = function(req, res, next) {
       }
     },
     function(token, user, done) {
-      res.render(path.resolve('modules/users/server/templates/reset-password-email'), {
+      res.render(path.resolve('modules/users/server/templates/password-recovery'), {
         name: user.displayName,
-        appName: config.app.title,
+        emailAddress: config.mailer.from,
         url: 'http://' + req.headers.host + '/api/auth/reset/' + token
       }, function(err, emailHTML) {
         done(err, emailHTML, user);
@@ -73,7 +77,12 @@ exports.forgot = function(req, res, next) {
         to: user.email,
         from: config.mailer.from,
         subject: 'Password Reset',
-        html: emailHTML
+        html: emailHTML,
+        attachments: [{
+          filename: 'nourished_logo.png',
+          path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+          cid: 'nourishedlogo' //same cid value as in the html img src
+        }]
       };
       smtpTransport.sendMail(mailOptions, function(err) {
         if (!err) {
@@ -85,7 +94,6 @@ exports.forgot = function(req, res, next) {
             message: 'Failure sending email'
           });
         }
-
         done(err);
       });
     }
@@ -97,6 +105,56 @@ exports.forgot = function(req, res, next) {
 };
 
 /**
+ * Forgot for reset password (forgot POST)
+ */
+exports.forgotTest = function(req, res, next) {
+  async.waterfall([
+    // Generate random token
+    function(done) {
+      crypto.randomBytes(20, function(err, buffer) {
+        var token = buffer.toString('hex');
+        done(err, token);
+      });
+    },
+    // Lookup user by email
+    function(token, done) {
+      if (req.body.email) {
+        User.findOne({
+          where: {
+            email: req.body.email.toLowerCase()
+          }
+        }).then(function(user) {
+          if (!user) {
+            return res.status(400).send({
+              message: 'No account with that email has been found'
+            });
+          } else {
+            user.resetPasswordToken = token;
+            user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+
+            user.save().then(function(saved) {
+              return res.json({user: saved, message: "Token generated"});
+            }).catch(function(error) {
+              return res.status(400).send({
+                message: 'Error occured'
+              });
+            });
+          }
+        }).catch(function(err) {
+          return res.status(400).send({
+            message: 'Email field must not be blank'
+          });
+        });
+      } else {
+        return res.status(400).send({
+          message: 'Email field must not be blank'
+        });
+      }
+    }
+  ]);
+};
+
+/**
  * Reset password GET from email token
  */
 exports.validateResetToken = function(req, res) {
@@ -104,14 +162,16 @@ exports.validateResetToken = function(req, res) {
     where: {
       resetPasswordToken: req.params.token,
       resetPasswordExpires: {
-        $gt: Date.now()
+        [Op.gt]: Date.now()
       }
     }
   }).then(function(user) {
     if (!user) {
-      return res.redirect('/password/reset/invalid');
+      return res.status(400).send({
+        message: 'Password reset token is invalid or has expired.'
+      });
     }
-    res.redirect('/password/reset/' + req.params.token);
+    res.json({message: "Valid reset token"});
   });
 };
 /**
@@ -129,7 +189,7 @@ exports.reset = function(req, res, next) {
           where: {
             resetPasswordToken: req.params.token,
             resetPasswordExpires: {
-              $gt: Date.now()
+              [Op.gt]: Date.now()
             }
           }
         }).then(function(user) {
@@ -152,16 +212,14 @@ exports.reset = function(req, res, next) {
                       // Remove sensitive data before return authenticated user
                       user.password = undefined;
                       user.salt = undefined;
-
-                      res.json(user);
-
                       done(err, user);
                     }
                   });
                 }
 
+              }).catch(function(err) {
+                res.status(400).send(err);
               });
-
             } else {
               return res.status(400).send({
                 message: 'Passwords do not match'
@@ -175,9 +233,9 @@ exports.reset = function(req, res, next) {
         });
       },
       function(user, done) {
-        res.render(path.resolve('modules/users/server/templates/reset-password-confirm-email'), {
-          name: user.displayName,
-          appName: config.app.title
+        res.render(path.resolve('modules/users/server/templates/password-reset-confirm'), {
+          appName: config.app.title,
+          emailAddress: config.mailer.from
         }, function(err, emailHTML) {
           done(err, emailHTML, user);
         });
@@ -188,11 +246,23 @@ exports.reset = function(req, res, next) {
           to: user.email,
           from: config.mailer.from,
           subject: 'Your password has been changed',
-          html: emailHTML
+          html: emailHTML,
+          attachments: [{
+            filename: 'nourished_logo.png',
+            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+            cid: 'nourishedlogo' //same cid value as in the html img src
+          }]
         };
-
         smtpTransport.sendMail(mailOptions, function(err) {
-          done(err, 'done');
+          if (!err) {
+            res.send({
+              message: 'Password successfully reset'
+            });
+          } else {
+            return res.status(400).send({
+              message: 'Failure sending email'
+            });
+          }
         });
       }
     ],
@@ -213,16 +283,15 @@ exports.changePassword = function(req, res, next) {
 
   if (req.user) {
     if (passwordDetails.newPassword) {
-      User.findOne({where: {id: req.user.id}}, function(err, user) {
-        if (!err && user) {
+      User.findOne({where: {id: req.user.id}}).then(function(user) {
+        if (user) {
           if (user.authenticate(passwordDetails.currentPassword)) {
             if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
               user.password = passwordDetails.newPassword;
-
-              user.save(function(err) {
-                if (err) {
+              user.save().then(function(user) {
+                if (!user) {
                   return res.status(400).send({
-                    message: errorHandler.getErrorMessage(err)
+                    message: "Password not updated"
                   });
                 } else {
                   req.login(user, function(err) {
@@ -235,6 +304,10 @@ exports.changePassword = function(req, res, next) {
                     }
                   });
                 }
+              }).catch(function(err) {
+                res.status(400).send({
+                  message: err
+                });   
               });
             } else {
               res.status(400).send({
@@ -251,6 +324,10 @@ exports.changePassword = function(req, res, next) {
             message: 'User is not found'
           });
         }
+      }).catch(function(err) {
+          res.status(400).send({
+            message: err
+          });
       });
     } else {
       res.status(400).send({

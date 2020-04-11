@@ -13,14 +13,15 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user;
 
-const jwtSecret = fs.readFileSync(path.resolve(config.jwt.publicKey), 'utf8');
+const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
+// const jwtSecret = "fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');";
 
 module.exports = function() {
     // console.log("Atleast checking that we made it this far!!");
     passport.use(new JWTStrategy({
         jwtFromRequest: ExtractJWT.fromAuthHeaderAsBearerToken(),
         secretOrKey   : jwtSecret,
-        algorithms: ["RS256"],
+        algorithms: config.jwt.verifyOptions.algorithm,
         jsonWebTokenOptions : config.jwt.verifyOptions
     },
       function (jwtPayload, cb) {
