@@ -35,7 +35,7 @@ exports.invokeRolesPolicies = function() {
     roles: ['user'],
     allows: [{
       resources: '/api/user/carts',
-      permissions: ['get', 'post']
+      permissions: ['get', 'post', 'delete']
     }, {
       resources: '/api/user/carts/:cartId',
       permissions: []

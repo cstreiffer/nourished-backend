@@ -31,7 +31,7 @@ exports.create = function(req, res) {
           errors: 'Could not create the cart'
         });
       } else {
-        res.jsonp({cart: cart, message: "Cart successfully created"});
+        res.jsonp({cart: cart, message: "Cart item successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
@@ -56,7 +56,7 @@ exports.userList = function(req, res) {
         message: 'No carts found'
       });
     } else {
-      res.json({carts: carts, message: "Carts successfully found"});
+      res.json({carts: carts, message: "Cart items successfully found"});
     }
   }).catch(function(err) {
     res.jsonp(err);
@@ -67,8 +67,25 @@ exports.userList = function(req, res) {
  * Show the current cart
  */
 exports.read = function(req, res) {
-  res.jsonp({cart: req.cart, message: "Cart successfully found"});
-};
+  res.jsonp({cart: req.cart, message: "Cart item successfully found"});
+}; 
+
+/**
+ * Wipes user cart
+ */
+exports.destroy = function(req, res) {
+  Cart.destroy({
+    where: {
+      userId: req.user.id,
+    }
+  }).then(function() {
+    return res.jsonp({message: "Cart successfully deleted"});
+  }).catch(function(err) {
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
+    });
+  });
+}
 
 /**
  * Update a cart
@@ -81,7 +98,7 @@ exports.update = function(req, res) {
   cart.update({
     quantity: req.body.quantity,
   }).then(function(cart) {
-    return res.jsonp({cart: cart, message: "Cart successfully updated"});
+    return res.jsonp({cart: cart, message: "Cart item successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -98,7 +115,7 @@ exports.delete = function(req, res) {
   cart
     .destroy()
     .then(function() {
-      return res.jsonp({cart: cart, message: "Cart successfully deleted"});
+      return res.jsonp({cart: cart, message: "Cart item successfully deleted"});
     }).catch(function(err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)

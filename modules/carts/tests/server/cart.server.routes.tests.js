@@ -167,7 +167,7 @@ describe('/POST /api/user/carts endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Cart successfully created');
+        res.body.should.have.property('message').eql('Cart item successfully created');
         res.body.cart.should.have.property('id');
         res.body.cart.should.have.property('mealId');
         res.body.cart.should.have.property('quantity').eql(7);
@@ -199,10 +199,48 @@ describe('/GET /api/user/carts endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Carts successfully found');
+        res.body.should.have.property('message').eql('Cart items successfully found');
         res.body.carts.should.be.a('array');
         res.body.carts.length.should.be.eql(2);
         done();
+      });
+  });
+});
+
+describe('/GET /api/user/carts endpoint', () => {
+  // Clear the database
+  beforeEach(function(done) {
+    var carts = [
+      {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
+      {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
+      {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
+      {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
+    ];
+    Cart.destroy({where: {}})
+      .then(function(){
+        Cart.bulkCreate(carts).then(function(){done();});
+      });
+  });
+
+  it('User with "user" role should be able to delete their carts', (done) => {
+    chai.request(app)
+      .delete('/api/user/carts/')
+      .set('Authorization', userJWT1)
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart successfully deleted');
+        chai.request(app)
+          .get('/api/user/carts/')
+          .set('Authorization', userJWT1)
+          .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property('message').eql('Cart items successfully found');
+            res.body.carts.should.be.a('array');
+            res.body.carts.length.should.be.eql(0);
+            done();
+          });
       });
   });
 });
@@ -224,7 +262,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Cart successfully updated');
+        res.body.should.have.property('message').eql('Cart item successfully updated');
         res.body.cart.should.have.property('id');
         res.body.cart.should.have.property('mealId');
         res.body.cart.should.have.property('quantity').eql(100);
@@ -264,7 +302,7 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Cart successfully deleted');
+        res.body.should.have.property('message').eql('Cart item successfully deleted');
         done();
       });
     })
@@ -300,7 +338,7 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Cart successfully found');
+        res.body.should.have.property('message').eql('Cart item successfully found');
         done();
       });
     })
@@ -319,4 +357,34 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
       });
     })
   });
+});
+
+after(function(done) {
+  Cart.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  Restaurant.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  Menu.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  Meal.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  stop();
+  done();
 });
