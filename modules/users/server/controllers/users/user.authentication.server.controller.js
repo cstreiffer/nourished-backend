@@ -78,6 +78,7 @@ exports.signup = function(req, res) {
  * Signin after passport authentication
  */
 exports.signin = function(req, res, next) {
+  console.log("Attemptint to sign-in: " + req.body);
   passport.authenticate('local', {session: false}, function(err, user, info) {
     if (err || !user) {
       res.status(400).send({

@@ -82,7 +82,7 @@ describe('/POST api/auth/signin endpoint', () => {
     user.save().then((user) => {
       chai.request(app)
         .post('/api/auth/signin')
-        .send({password: userCredentials.password, username: userCredentials.username})
+        .send({id: user.id})
         .end((err, res) => {
           res.should.have.status(200);
           res.body.should.be.a('object');
