@@ -59,38 +59,23 @@ module.exports = function(sequelize, DataTypes) {
     },
     email: {
       type: DataTypes.STRING,
-      defaultValue: '',
-      validate: {
-        isValid: validateEmail
-      }
+      defaultValue: ''
     },
     streetAddress: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isValid: validationWrapper("Street Address")
-      }
+      defaultValue: ''
     },
     zip: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isValid: validationWrapper("Zip Code")
-      }
+      defaultValue: ''
     },
     city: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isValid: validationWrapper("City")
-      }
+      defaultValue: ''
     },
     state: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        isValid: validationWrapper("State")
-      }
+      defaultValue: ''
     }
   }, {
     associate: function(models) {

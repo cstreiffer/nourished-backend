@@ -27,83 +27,83 @@ exports.update = function(req, res, next) {
   if (userInfo) {
 
     async.waterfall([
-      function(done) {
-        if (username && username !== req.user.username) {
-          User.findOne({
-            where: {
-              username: username,
-              id: {
-                [Op.ne]: req.user.id
-              }
-            }
-          }).then(function(user) {
-            if (user && user.username === username) {
-              return res.status(400).send({
-                message: 'Username already exists'
-              });
-            }
-            done(null);
-          }).catch(function(err) {
-            return res.status(400).send({
-              message: errorHandler.getErrorMessage(err)
-            });
-          });
-        } else {
-          done(null);
-        }
-      },
-      function(done) {
-        if (email && email !== req.user.email.toLowerCase()) {
-          User.findOne({
-            where: {
-              email: {
-                [Op.iLike]: email
-              },
-              id: {
-                [Op.ne]: req.user.id
-              }
-            }
-          }).then(function(user) {
-            if (user && user.email.toLowerCase() === email) {
-              return res.status(400).send({
-                message: 'Email already exists'
-              });
-            }
-            done(null);
-          }).catch(function(err) {
-            return res.status(400).send({
-              message: errorHandler.getErrorMessage(err)
-            });
-          });
-        } else {
-          done(null);
-        }
-      },
-      function(done) {
-        if (phoneNumber && phoneNumber !== req.user.phoneNumber.replace(/-|\(|\)| /g, '')) {
-          User.findOne({
-            where: {
-              phoneNumber: phoneNumber,
-              id: {
-                [Op.ne]: req.user.id
-              }
-            }
-          }).then(function(user) {
-            if (user && user.phoneNumber.replace(/-|\(|\)| /g, '') === phoneNumber) {
-              return res.status(400).send({
-                message: 'Phone number already exists'
-              });
-            }
-            done(null);
-          }).catch(function(err) {
-            return res.status(400).send({
-              message: errorHandler.getErrorMessage(err)
-            });
-          });
-        } else {
-          done(null);
-        }
-      },
+      // function(done) {
+      //   if (username && username !== req.user.username) {
+      //     User.findOne({
+      //       where: {
+      //         username: username,
+      //         id: {
+      //           [Op.ne]: req.user.id
+      //         }
+      //       }
+      //     }).then(function(user) {
+      //       if (user && user.username === username) {
+      //         return res.status(400).send({
+      //           message: 'Username already exists'
+      //         });
+      //       }
+      //       done(null);
+      //     }).catch(function(err) {
+      //       return res.status(400).send({
+      //         message: errorHandler.getErrorMessage(err)
+      //       });
+      //     });
+      //   } else {
+      //     done(null);
+      //   }
+      // },
+      // function(done) {
+      //   if (email && email !== req.user.email.toLowerCase()) {
+      //     User.findOne({
+      //       where: {
+      //         email: {
+      //           [Op.iLike]: email
+      //         },
+      //         id: {
+      //           [Op.ne]: req.user.id
+      //         }
+      //       }
+      //     }).then(function(user) {
+      //       if (user && user.email.toLowerCase() === email) {
+      //         return res.status(400).send({
+      //           message: 'Email already exists'
+      //         });
+      //       }
+      //       done(null);
+      //     }).catch(function(err) {
+      //       return res.status(400).send({
+      //         message: errorHandler.getErrorMessage(err)
+      //       });
+      //     });
+      //   } else {
+      //     done(null);
+      //   }
+      // },
+      // function(done) {
+      //   if (phoneNumber && phoneNumber !== req.user.phoneNumber.replace(/-|\(|\)| /g, '')) {
+      //     User.findOne({
+      //       where: {
+      //         phoneNumber: phoneNumber,
+      //         id: {
+      //           [Op.ne]: req.user.id
+      //         }
+      //       }
+      //     }).then(function(user) {
+      //       if (user && user.phoneNumber.replace(/-|\(|\)| /g, '') === phoneNumber) {
+      //         return res.status(400).send({
+      //           message: 'Phone number already exists'
+      //         });
+      //       }
+      //       done(null);
+      //     }).catch(function(err) {
+      //       return res.status(400).send({
+      //         message: errorHandler.getErrorMessage(err)
+      //       });
+      //     });
+      //   } else {
+      //     done(null);
+      //   }
+      // },
       function(done) {
         User.findOne({
           where: {
@@ -111,11 +111,11 @@ exports.update = function(req, res, next) {
           }
         }).then(function(user) {
 
-          if (userInfo.firstName) user.firstName = userInfo.firstName;
-          if (userInfo.lastName) user.lastName = userInfo.firstName;
+          if (userInfo.fullName) user.fullName = userInfo.fullName;
           if (phoneNumber) user.phoneNumber = phoneNumber
           if (email) user.email = email;
           if (username) user.username = username;
+          if (userInfo.hospitalId) user.hospitalId = userInfo.hospitalId;
           user.updatedAt = Date.now();
 
           user.save().then(function(user) {
@@ -125,7 +125,7 @@ exports.update = function(req, res, next) {
               });
             } else {
               var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-              var ret = _.pick(user || {}, ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'])
+              var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
               res.json({user: ret, token: token, message: "User successfully updated"});
             }
           }).catch(function(err) {
@@ -146,7 +146,7 @@ exports.update = function(req, res, next) {
 
 exports.getProfile = function(req, res) {
   User.findOne({
-    attributes: ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'],
+    attributes: ['id', 'username', 'fullName', 'email', 'phoneNumber'],
     where: {
       id: req.user.id
     }
@@ -162,6 +162,6 @@ exports.getProfile = function(req, res) {
  * Send User
  */
 exports.me = function(req, res) {
-  var ret = _.pick(req.user || {}, ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber'])
+  var ret = _.pick(req.user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
   res.json({user: ret});
 };

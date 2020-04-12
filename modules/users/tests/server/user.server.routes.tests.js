@@ -22,7 +22,7 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  userCredentials = {username: "testuser", email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'};
+  userCredentials = {id: uuid(), username: "testuser", email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", fullName: 'Chris Streiffer', account_type: 'user'};
 
 describe('/POST api/auth/signup endpoint', () => {
   // Clear the database
@@ -40,23 +40,26 @@ describe('/POST api/auth/signup endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('User successfully created');
         res.body.should.have.property('token');
-        res.body.user.should.have.property('firstName');
-        res.body.user.should.have.property('lastName');
+        res.body.user.should.have.property('fullName');
         res.body.user.should.have.property('phoneNumber');
         res.body.user.should.have.property('email');
+        res.body.user.should.not.have.property('hashedPassword');
+        res.body.user.should.not.have.property('salt');
+        res.body.user.should.not.have.property('resetPasswordExpires');
+        res.body.user.should.not.have.property('resetPasswordToken');
         done();
       });
   });
 
   it('User should not be able to signup if username exists', (done) => {
-    User.create({...userCredentials, id: uuid()}).then((user) => {
+    User.create(userCredentials).then((user) => {
       chai.request(app)
         .post('/api/auth/signup')
         .send(userCredentials)
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: Username already in use!');
+          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: Validation error');
           done();
         });
       }); 
@@ -85,8 +88,7 @@ describe('/POST api/auth/signin endpoint', () => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('User successfully logged-in');
           res.body.should.have.property('token');
-          res.body.user.should.have.property('firstName');
-          res.body.user.should.have.property('lastName');
+          res.body.user.should.have.property('fullName');
           res.body.user.should.have.property('phoneNumber');
           res.body.user.should.have.property('email');
           done();
