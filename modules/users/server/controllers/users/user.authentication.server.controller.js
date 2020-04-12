@@ -30,16 +30,18 @@ var noReturnUrls = [
 exports.signup = function(req, res) {
   // For security measurement we remove the roles from the req.body object
   delete req.body.roles;
-  delete req.body.id;
-  req.body.id = uuid();
+  // delete req.body.id;
+  // req.body.id = uuid();
   if (req.body.email) req.body.email = req.body.email.toLowerCase();
   if (req.body.phoneNumber) req.body.phoneNumber = req.body.phoneNumber.replace(/-|\(|\)| /g, '');
   
-  var message = null;
+  // var message = null;
   var user = User.build(req.body);
 
-  user.salt = user.makeSalt();
-  user.hashedPassword = user.encryptPassword(req.body.password, user.salt);
+  if(req.body.password) {
+    user.salt = user.makeSalt();
+    user.hashedPassword = user.encryptPassword(req.body.password, user.salt);
+  }
 
   if (req.body.account_type === "provider") {
     user.roles = ["user"];

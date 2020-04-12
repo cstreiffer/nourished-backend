@@ -26,9 +26,9 @@ module.exports = function() {
         if (!user) {
           return done('Invalid username or password', null, null);
         }
-        if (!user || !user.authenticate(password)) {
-          return done('Invalid username or password', null, null);
-        }
+        // if (!user || !user.authenticate(password)) {
+        //   return done('Invalid username or password', null, null);
+        // }
         return done(null, user, null);
       }).catch(function(err) {
         return done(err, null, null);

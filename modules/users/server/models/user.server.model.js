@@ -12,6 +12,9 @@ var crypto = require('crypto'),
 
 owasp.config(config.shared.owasp);
 
+var pr = /^[2-9]\d{2}-\d{3}-\d{4}$|^[2-9]\d{9}|\([2-9]\d{2}\)-\d{3}-\d{4}|\([2-9]\d{2}\) \d{3}-\d{4}$/;
+var er = /^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+
 /**
  * A Validation function for local strategy properties
  */
@@ -42,7 +45,7 @@ var validateLocalStrategyPassword = function(password) {
  * A validation function for phone numbers
  */
 var validatePhoneNumber = function(phoneNumber) {
-  if(!phoneNumber || !phoneNumber.match(/^[2-9]\d{2}-\d{3}-\d{4}$|^[2-9]\d{9}$/)) {
+  if(phoneNumber && !phoneNumber.match(pr)) {
     throw new Error('Invalid phone number');
   }
 }
@@ -51,7 +54,7 @@ var validatePhoneNumber = function(phoneNumber) {
  * A validation function for phone numbers
  */
 var validateEmail = function(email) {
-  if(!email || !email.match(/^([a-zA-Z0-9_\-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([a-zA-Z0-9\-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/)) {
+  if(email && !email.match(er)) {
     throw new Error('Invalid email address');
   }
 }
@@ -65,41 +68,25 @@ module.exports = function(sequelize, DataTypes) {
     },
     username: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: {
-        args: true,
-        msg: "Username already in use!"
-      }
+      defaultValue: ''
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: {
-          args: true,
-          msg: 'Email address already in use!'
-      },
+      defaultValue: '',
       validate: {
         isValid: validateEmail
       }
     },
     phoneNumber: {
       type: DataTypes.STRING,
-      allowNull: false,
-      unique: {
-          args: true,
-          msg: 'Phone number already in use!'
-      },
+      defaultValue: '',
       validate: {
         isValid: validatePhoneNumber
       }
     },
-    firstName: {
+    fullName: {
       type: DataTypes.STRING,
       defaultValue: '',
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      defaultValue: ''
     },
     roles: {
       type: DataTypes.JSON,
@@ -116,6 +103,10 @@ module.exports = function(sequelize, DataTypes) {
     salt: DataTypes.STRING,
     resetPasswordToken: DataTypes.STRING,
     resetPasswordExpires: DataTypes.BIGINT
+  }, {
+    associate: function(models) {
+      User.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+    }
   });
 
   User.prototype.makeSalt = function() {

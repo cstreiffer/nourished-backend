@@ -27,6 +27,7 @@ exports.create = function(req, res) {
     ret.id = uuid();
     ret.information = order.information;
     ret.quantity = order.quantity;
+    ret.hospitalId = order.hospitalId || req.user.hospitalId;
     return ret;
   });
 
