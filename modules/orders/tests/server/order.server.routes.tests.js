@@ -187,6 +187,13 @@ describe('/POST /api/user/orders endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully created');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
+        res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('quantity');
+        res.body.orders[0].should.have.property('mealId');
+        res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -257,49 +264,49 @@ describe('/POST /api/user/orders endpoint', () => {
   });
 });
 
-describe('/POST /api/user/orders endpoint with CART delete', () => {
+// describe('/POST /api/user/orders endpoint with CART delete', () => {
 
-  before(function(done) {
-    var carts = [
-      {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
-      {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
-    ];
-    Cart.destroy({where: {}})
-      .then(function(){
-        Cart.bulkCreate(carts).then(function(){done();});
-      });
-  });
+//   before(function(done) {
+//     var carts = [
+//       {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
+//       {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
+//       {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
+//       {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
+//     ];
+//     Cart.destroy({where: {}})
+//       .then(function(){
+//         Cart.bulkCreate(carts).then(function(){done();});
+//       });
+//   });
 
-  it('User with "user" role - cart should be wipe when post completes ', (done) => {
-    chai.request(app)
-      .post('/api/user/orders')
-      .set('Authorization', userJWT1)
-      .send({orders: [
-          {...order, hospitalId: hospital1.id, mealId: ml1.id},
-          {...order, hospitalId: hospital2.id, mealId: ml3.id},
-      ]})
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Orders successfully created');
-        res.body.orders.should.be.a('array');
-        res.body.orders.length.should.be.eql(2);
-        chai.request(app)
-          .get('/api/user/carts/')
-          .set('Authorization', userJWT1)
-          .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('message').eql('Cart items successfully found');
-            res.body.carts.should.be.a('array');
-            res.body.carts.length.should.be.eql(0);
-            done();
-          });
-      });
-  });
-});
+//   it('User with "user" role - cart should be wipe when post completes ', (done) => {
+//     chai.request(app)
+//       .post('/api/user/orders')
+//       .set('Authorization', userJWT1)
+//       .send({orders: [
+//           {...order, hospitalId: hospital1.id, mealId: ml1.id},
+//           {...order, hospitalId: hospital2.id, mealId: ml3.id},
+//       ]})
+//       .end((err, res) => {
+//         res.should.have.status(200);
+//         res.body.should.be.a('object');
+//         res.body.should.have.property('message').eql('Orders successfully created');
+//         res.body.orders.should.be.a('array');
+//         res.body.orders.length.should.be.eql(2);
+//         chai.request(app)
+//           .get('/api/user/carts/')
+//           .set('Authorization', userJWT1)
+//           .end((err, res) => {
+//             res.should.have.status(200);
+//             res.body.should.be.a('object');
+//             res.body.should.have.property('message').eql('Cart items successfully found');
+//             res.body.carts.should.be.a('array');
+//             res.body.carts.length.should.be.eql(0);
+//             done();
+//           });
+//       });
+//   });
+// });
 
 describe('/GET /api/orders/:orderId endpoint', () => {
   // Clear the database
@@ -326,6 +333,14 @@ describe('/GET /api/orders/:orderId endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully found');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('quantity');
+        res.body.orders[0].should.have.property('mealId');
+        res.body.orders[0].should.have.property('hospitalId');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].meal.should.not.have.property('userId');
+        res.body.orders[0].meal.menu.should.not.have.property('userId');
+        res.body.orders[0].meal.menu.restaurant.should.not.have.property('userId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -359,6 +374,13 @@ describe('/PUT /api/user/orders endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully updated');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
+        res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('quantity');
+        res.body.orders[0].should.have.property('mealId');
+        res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -416,6 +438,13 @@ describe('/DELETE /api/user/orders endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders markerd as deleted');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
+        res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('quantity');
+        res.body.orders[0].should.have.property('mealId');
+        res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -466,6 +495,9 @@ describe('/PUT /api/user/orders/status endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully updated');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
         done();
       });
     })
@@ -488,6 +520,9 @@ describe('/PUT /api/user/orders/status endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully updated');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
         done();
       });
     })
@@ -509,6 +544,9 @@ describe('/PUT /api/user/orders/status endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully updated');
         res.body.orders.should.be.a('array');
+        res.body.orders[0].should.not.have.property('userId');
+        res.body.orders[0].should.not.have.property('meal');
+        res.body.orders[0].should.not.have.property('hospital');
         done();
       });
     })
@@ -546,6 +584,14 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully found');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(4);
+      res.body.orders[0].should.have.property('groupId');
+      res.body.orders[0].should.have.property('quantity');
+      res.body.orders[0].should.have.property('mealId');
+      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].meal.should.not.have.property('userId');
+      res.body.orders[0].meal.menu.should.not.have.property('userId');
+      res.body.orders[0].meal.should.have.property('price');
       done();
     });
   });
@@ -561,6 +607,14 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully found');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(2);
+      res.body.orders[0].should.have.property('groupId');
+      res.body.orders[0].should.have.property('quantity');
+      res.body.orders[0].should.have.property('mealId');
+      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].meal.should.not.have.property('userId');
+      res.body.orders[0].meal.menu.should.not.have.property('userId');
+      res.body.orders[0].meal.should.have.property('price');
       done();
     });
   });
@@ -569,13 +623,21 @@ describe('/GET /api/rest/orders endpoint', () => {
     chai.request(app)
     .get('/api/rest/orders')
     .set('Authorization', restaurantJWT2)
-    .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T12:30:00Z"})
+    .query({startDate: "2020-04-01T11:30:00Z", endDate: "2021-04-04T12:30:00Z"})
     .end((err, res) => {
       res.should.have.status(200);
       res.body.should.be.a('object');
       res.body.should.have.property('message').eql('Orders successfully found');
       res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(2);
+      res.body.orders.length.should.be.eql(4);
+      res.body.orders[0].should.have.property('groupId');
+      res.body.orders[0].should.have.property('quantity');
+      res.body.orders[0].should.have.property('mealId');
+      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].meal.should.not.have.property('userId');
+      res.body.orders[0].meal.menu.should.not.have.property('userId');
+      res.body.orders[0].meal.should.have.property('price');
       done();
     });
   });
@@ -591,6 +653,14 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully found');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(4);
+      res.body.orders[0].should.have.property('groupId');
+      res.body.orders[0].should.have.property('quantity');
+      res.body.orders[0].should.have.property('mealId');
+      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].meal.should.not.have.property('userId');
+      res.body.orders[0].meal.menu.should.not.have.property('userId');
+      res.body.orders[0].meal.should.have.property('price');
       done();
     });
   });
@@ -630,6 +700,9 @@ describe('/PUT /api/rest/orders/status endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully updated');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(4);
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].should.not.have.property('meal');
+      res.body.orders[0].should.not.have.property('hospital');
       done();
     });
   });
@@ -645,6 +718,9 @@ describe('/PUT /api/rest/orders/status endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully updated');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(4);
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].should.not.have.property('meal');
+      res.body.orders[0].should.not.have.property('hospital');
       done();
     });
   });
@@ -675,6 +751,9 @@ describe('/PUT /api/rest/orders/status endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully updated');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(2);
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].should.not.have.property('meal');
+      res.body.orders[0].should.not.have.property('hospital');
       done();
     });
   });
@@ -690,6 +769,9 @@ describe('/PUT /api/rest/orders/status endpoint', () => {
       res.body.should.have.property('message').eql('Orders successfully updated');
       res.body.orders.should.be.a('array');
       res.body.orders.length.should.be.eql(1);
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].should.not.have.property('meal');
+      res.body.orders[0].should.not.have.property('hospital');
       done();
     });
   });

@@ -3,12 +3,18 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var 
+  _ = require('lodash'),
+  path = require('path'),
   uuid = require('uuid/v4'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Restaurant = db.restaurant,
   uuid = require('uuid/v4');
+
+// Define return
+// id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
+const retAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 
 /**
  * Create a restaurant
@@ -25,7 +31,8 @@ exports.create = function(req, res) {
         errors: 'Could not create the restaurant'
       });
     } else {
-      return res.jsonp({restaurant: restaurant, message: "Restaurant successfully created"});
+      var ret = _.pick(restaurant, retAttributes);
+      return res.jsonp({restaurant: ret, message: "Restaurant successfully created"});
     }
   }).catch(function(err) {
     return res.status(400).send({
@@ -38,7 +45,8 @@ exports.create = function(req, res) {
  * Show the current restaurant
  */
 exports.read = function(req, res) {
-  res.json({restaurant: req.restaurant, message: "Restaurant successfully found"});
+  var ret = _.pick(req.restaurant, retAttributes);
+  res.json({restaurant: ret, message: "Restaurant successfully found"});
 };
 
 /**
@@ -58,7 +66,8 @@ exports.update = function(req, res) {
     city: req.body.city,
     state: req.body.state
   }).then(function(restaurant) {
-    return res.jsonp({restaurant: restaurant, message: "Restaurant successfully updated"});
+    var ret = _.pick(req.restaurant, retAttributes);
+    return res.jsonp({restaurant: ret, message: "Restaurant successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -75,7 +84,8 @@ exports.delete = function(req, res) {
   restaurant
     .destroy()
     .then(function() {
-      return res.jsonp({restaurant: restaurant, message: "Restaurant successfully deleted"});
+      var ret = _.pick(req.restaurant, retAttributes);
+      return res.jsonp({restaurant: ret, message: "Restaurant successfully deleted"});
     }).catch(function(err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
@@ -95,7 +105,8 @@ exports.list = function(req, res) {
   if(req.query.streetAddress) query.streetAddress = req.query.streetAddress;
 
   Restaurant.findAll({
-    where: query
+    where: query,
+    attributes: retAttributes
   }).then(function(restaurants) {
     if (!restaurants) {
       return res.status(404).send({
@@ -121,14 +132,15 @@ exports.userList = function(req, res) {
   if(req.query.streetAddress) query.streetAddress = req.query.streetAddress;
 
   Restaurant.findAll({
-    where: query
+    where: query,
+    attributes: retAttributes
   }).then(function(restaurants) {
     if (!restaurants) {
       return res.status(404).send({
         message: 'No restaurants found for user'
       });
     } else {
-      res.json(restaurants);
+      res.json({restaurants: restaurants, message: "Restaurants successfully found"});
     }
   }).catch(function(err) {
     res.jsonp(err);

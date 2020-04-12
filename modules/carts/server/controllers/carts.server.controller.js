@@ -3,7 +3,9 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var 
+  _ = require('lodash'),
+  path = require('path'),
   uuid = require('uuid/v4'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,

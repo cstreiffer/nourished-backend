@@ -3,7 +3,9 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var 
+  _ = require('lodash'),
+  path = require('path'),
   uuid = require('uuid/v4'),
   config = require(path.resolve('./config/config')),
   fs = require('fs'),
@@ -12,6 +14,9 @@ var path = require('path'),
   Menu = db.menu;
 
 const {Op} = require('sequelize');
+const retAttributes = ['id', 'date', 'restaurantId'];
+const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+
 /**
  * Create a menu
  */
@@ -32,7 +37,8 @@ exports.create = function(req, res) {
           errors: 'Could not create the menu'
         });
       } else {
-        res.jsonp({menu: menu, message: "Menu successfully created"});
+        var ret = _.pick(menu, retAttributes);
+        res.jsonp({menu: ret, message: "Menu successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
@@ -46,7 +52,8 @@ exports.create = function(req, res) {
  * Show the current menu
  */
 exports.read = function(req, res) {
-  res.jsonp({menu: req.menu, message: "Menu successfully found"});
+  var ret = _.pick(req.menu, retAttributes);
+  res.jsonp({menu: ret, message: "Menu successfully found"});
 };
 
 /**
@@ -61,7 +68,8 @@ exports.update = function(req, res) {
   menu.update({
     date: req.body.date
   }).then(function(menu) {
-    res.jsonp({menu: menu, message: "Menu successfully updated"});
+    var ret = _.pick(menu, retAttributes);
+    res.jsonp({menu: ret, message: "Menu successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -77,7 +85,8 @@ exports.delete = function(req, res) {
 
   // Delete the menu
   menu.destroy().then(function() {
-    return res.jsonp({menu: menu, message: "Menu successfully deleted"});
+    var ret = _.pick(menu, retAttributes);
+    return res.jsonp({menu: ret, message: "Menu successfully deleted"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -94,6 +103,34 @@ var formatDate = function(query) {
 /**
  * List of restaurant menus
  */
+exports.list = function(req, res) {
+  var query = {};
+  if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
+  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+
+  Menu.findAll({
+    where: query,
+    attributes: retAttributes,
+    include: [{
+      model: db.restaurant,
+      attributes: restRetAttributes
+    }]
+  }).then(function(menus) {
+    if (!menus) {
+      return res.status(404).send({
+        message: 'No menus found for restaurant'
+      });
+    } else {
+      res.jsonp({menus: menus, message: "Menus successfully found"});
+    }
+  }).catch(function(err) {
+    res.jsonp(err);
+  });
+};
+
+/**
+ * List of restaurant menus
+ */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
   if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
@@ -101,7 +138,8 @@ exports.userList = function(req, res) {
 
   Menu.findAll({
     where: query,
-    include: [db.restaurant]
+    attributes: retAttributes,
+    // include: [db.restaurant]
   }).then(function(menus) {
     if (!menus) {
       return res.status(404).send({
