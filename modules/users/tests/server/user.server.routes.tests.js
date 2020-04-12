@@ -43,6 +43,10 @@ describe('/POST api/auth/signup endpoint', () => {
         res.body.user.should.have.property('fullName');
         res.body.user.should.have.property('phoneNumber');
         res.body.user.should.have.property('email');
+        res.body.user.should.not.have.property('hashedPassword');
+        res.body.user.should.not.have.property('salt');
+        res.body.user.should.not.have.property('resetPasswordExpires');
+        res.body.user.should.not.have.property('resetPasswordToken');
         done();
       });
   });

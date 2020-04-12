@@ -4,6 +4,7 @@
  * Module dependencies.
  */
 var 
+  _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
   config = require(path.resolve('./config/config')),
@@ -51,20 +52,21 @@ exports.signup = function(req, res) {
     user.roles = ["user"];
   }
 
-  user.save().then(function() {
-    req.login(user, function(err) {
+  user.save().then(function(user) {
+    // req.login(user, function(err) {
 
       user.password = undefined;
       user.salt = undefined;
 
-      if (err) {
-        res.status(400).send({
-          message: errorHandler.getErrorMessage(err)
-        });
-      }
+    //   if (err) {
+    //     res.status(400).send({
+    //       message: errorHandler.getErrorMessage(err)
+    //     });
+    //   }
+      var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
       var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-      res.jsonp({user: user, token: token, message: "User successfully created"});
-    });
+      res.jsonp({user: ret, token: token, message: "User successfully created"});
+    // });
   }).catch(function(err) {
     res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -86,16 +88,17 @@ exports.signin = function(req, res, next) {
       user.password = undefined;
       user.salt = undefined;
 
-      req.login(user, function(err) {
-        if (err) {
-          res.status(400).send({
-            message: errorHandler.getErrorMessage(err)
-          });
-        } else {
-          var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-          res.json({user: user, token: token, message: "User successfully logged-in"});
-        }
-      });
+      // req.login(user, function(err) {
+      //   if (err) {
+      //     res.status(400).send({
+      //       message: errorHandler.getErrorMessage(err)
+      //     });
+      //   } else {
+        var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
+        var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+        res.json({user: ret, token: token, message: "User successfully logged-in"});
+      //   }
+      // });
     }
   })(req, res, next);
 };
