@@ -120,9 +120,9 @@
  *                  type: string
  *      responses:
  *        "200":
- *          description: Updates a restaurant
+ *          description: Updates a menu
  *          content:
  *            application/json:
  *              schema:
- *                $ref: '#/components/schemas/Restaurant'
+ *                $ref: '#/components/schemas/Menu'
  */

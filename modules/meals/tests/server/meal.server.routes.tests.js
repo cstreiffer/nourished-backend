@@ -12,6 +12,7 @@ var
   User = db.user,
   Menu = db.menu,
   Meal = db.meal,
+  MealInfo = db.mealinfo,
   Restaurant = db.restaurant,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
@@ -40,12 +41,14 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
+  mealInfo1 = {type: "lunch", price: 5.00, time: "1:00", id: uuid()},
+  mealInfo2 = {type: "dinner", price: 5.00, time: "7:00", id: uuid()},
   menu1 = {date: "2020-04-01T18:00:00Z", id: uuid()},
   menu2 = {date: "2020-04-02T18:00:00Z", id: uuid()},
   menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
   menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true};
+  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: false},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: true};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -96,6 +99,15 @@ before((done) => {
 	  });
 });
 
+before((done) => {
+  MealInfo.destroy({where: {}})
+    .then(function(){
+      MealInfo.bulkCreate([mealInfo1, mealInfo2]).then(()=> {
+        done()
+      })
+    })
+})
+
 before((done) =>{
   var r1 = {...restaurant1, userId: restaurantId1};
   var r2 = {...restaurant2, userId: restaurantId1};
@@ -116,6 +128,26 @@ before((done) => {
     .then(() => {
       done();
     });
+});
+
+describe('/GET /api/mealinfo endpoint', () => {
+
+  it('User with should be able to get all meal info', (done) => {
+    chai.request(app)
+      .get('/api/mealinfo')
+      .end((err, res) => {
+       res.body.mealinfo.should.be.a('array');
+       res.body.mealinfo.length.should.be.eql(2);
+       res.body.mealinfo[0].should.have.property('id');
+       res.body.mealinfo[0].should.have.property('price');
+       res.body.mealinfo[0].should.have.property('type');
+       res.body.mealinfo[0].should.have.property('notes');
+       res.body.mealinfo[0].should.have.property('other');
+       res.body.should.have.property('message').eql('Meal information successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
 });
 
 describe('/GET /api/meals endpoint', () => {
@@ -146,7 +178,8 @@ describe('/GET /api/meals endpoint', () => {
       .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T11:20:00Z"})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
-       res.body.meals.length.should.be.eql(6);
+       res.body.meals.length.should.be.eql(3);
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
@@ -163,10 +196,11 @@ describe('/GET /api/meals endpoint', () => {
       .query({restaurantId: restaurant1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
-       res.body.meals.length.should.be.eql(4);
+       res.body.meals.length.should.be.eql(2);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
@@ -180,10 +214,11 @@ describe('/GET /api/meals endpoint', () => {
       .query({menuId: menu1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
-       res.body.meals.length.should.be.eql(2);
+       res.body.meals.length.should.be.eql(1);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
@@ -212,7 +247,7 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('description');
           res.body.meal.should.have.property('category');
           res.body.meal.should.have.property('imageURL');
-          res.body.meal.should.have.property('price');
+          res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
           res.body.meal.should.have.property('finalized');
           res.body.meal.should.have.property('menuId');
@@ -246,7 +281,7 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('description');
           res.body.meal.should.have.property('category');
           res.body.meal.should.have.property('imageURL');
-          res.body.meal.should.have.property('price');
+          res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
           res.body.meal.should.have.property('menuId');
           res.body.meal.should.not.have.property('menu');
@@ -287,6 +322,7 @@ describe('/GET /api/rest/meals endpoint', () => {
       .query()
       .end((err, res) => {
        res.body.meals.should.be.a('array');
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
@@ -304,6 +340,7 @@ describe('/GET /api/rest/meals endpoint', () => {
       .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-03T11:20:00Z", restaurantId: restaurant1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
@@ -321,6 +358,7 @@ describe('/GET /api/rest/meals endpoint', () => {
       .query({menuId: menu1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
+       res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
        res.body.meals[0].menu.should.not.have.property('userId');
        res.body.meals[0].menu.restaurant.should.not.have.property('userId');
@@ -353,7 +391,7 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
         res.body.meal.should.have.property('description');
         res.body.meal.should.have.property('category');
         res.body.meal.should.have.property('imageURL');
-        res.body.meal.should.have.property('price');
+        res.body.meal.should.have.property('mealinfoId');
         res.body.meal.should.have.property('visible');
         res.body.meal.should.have.property('menuId');
         res.body.meal.should.not.have.property('menu');
@@ -399,7 +437,7 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
   });
 
   it('User with "user" role should get single meal ', (done) => {
-    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1, finalized: false, visible: false}).then((meal) => {
       chai.request(app)
         .put('/api/rest/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
@@ -438,14 +476,14 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
       chai.request(app)
         .put('/api/rest/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
-        .send({menuId: menu2.id, price: 10.50, visible: true, name: "Chicken 2.0"})
+        .send({menuId: menu2.id, visible: true, name: "Chicken 2.0"})
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Meal successfully updated');
           res.body.meal.should.have.property('menuId').eql(menu1.id);
           res.body.meal.should.have.property('visible').eql(true);
           res.body.meal.should.have.property('name').eql("Chicken 2.0");
-          res.body.meal.should.have.property('price').eql(meal.price);
+          res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.not.have.property('menu');
           res.body.meal.should.not.have.property('userId');
           res.should.have.status(200);
@@ -567,6 +605,11 @@ after(function(done) {
 
 after(function(done) {
   Meal.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  MealInfo.destroy({where: {}})
   .then(function(){done()})
 });
 

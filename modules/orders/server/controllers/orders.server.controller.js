@@ -16,7 +16,8 @@ const {Op} = require('sequelize');
 
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
 const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'hospitalId', 'mealId'];
-const mealRetAttributes = ['id', 'name', 'price', 'menuId'];
+const mealRetAttributes = ['id', 'name', 'menuId', 'mealinfoId'];
+const mealinfoRetAttributes = ['id', 'type', 'price'];
 const menuRetAttributes = ['id', 'date', 'restaurantId'];
 const restRetAttributes = ['id', 'name', 'email'];
 
@@ -77,14 +78,17 @@ exports.userList = function(req, res) {
     include: [{
       model: db.meal, 
       attributes: mealRetAttributes,
-      include: {
+      include: [{
         model: db.menu, 
         attributes: menuRetAttributes,
         include: {
           model: db.restaurant,
           attributes: restRetAttributes
         }
-      }
+      }, {
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }]
     }]
   }).then(function(orders) {
     if (!orders) {
@@ -150,7 +154,6 @@ exports.userStatusUpdate = function(req, res) {
     Order.update({userStatus: req.body.userStatus}, {
       where: query
     }).then(function(orders) {
-      console.log("Here are the orders: " + orders);
       var ret = orders.map((order)=> _.pick(order, retAttributes));
       res.jsonp({orders: orders, message: "Orders successfully updated"});
     })
@@ -184,10 +187,13 @@ exports.restStatusUpdate = function(req, res) {
       include: {
         model: db.meal, 
         where: mealQuery, 
-        include: {
+        include: [{
           model: db.menu, 
           where: menuQuery
-        }
+        }, {
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }]
       }
     }).then(function(orders) {
       if (!orders) {
@@ -269,10 +275,13 @@ exports.restList = function(req, res) {
       model: db.meal, 
       where: mealQuery,
       attributes: mealRetAttributes,
-      include: {
+      include: [{
         model: db.menu, 
         attributes: menuRetAttributes,
-      }
+      },{
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }]
     }]
   }).then(function(orders) {
     if (!orders) {

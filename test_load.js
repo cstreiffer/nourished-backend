@@ -13,6 +13,7 @@ var
   Hospital = db.hospital,
   Restaurant = db.restaurant,
   Meal = db.meal,
+  MealInfo = db.mealinfo,
   Menu = db.menu,
   Order = db.order,
   Cart = db.cart;
@@ -31,10 +32,12 @@ var
   menu2 = {date: "2021-04-02T18:00:00Z", id: uuid()},
   menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
   menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
-  meal3 = {name: "Chicken 3", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true},
-  meal4 = {name: "Chicken 4", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
+  mealInfo1 = {type: "lunch", price: 5.00, time: "1:00", id: uuid(), notes: "Pickup in lobby."},
+  mealInfo2 = {type: "dinner", price: 5.00, time: "6:00", id: uuid(), notes: "Pickup in lobby."},
+  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: true},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: false},
+  meal3 = {name: "Chicken 3", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: true},
+  meal4 = {name: "Chicken 4", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: false},
   ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: rest1.id},
   ml2 = {...meal2, menuId: menu1.id, id: uuid(), userId: rest1.id},
   ml3 = {...meal1, menuId: menu2.id, id: uuid(), userId: rest1.id},
@@ -89,6 +92,14 @@ async.waterfall([
           });
         });
   },
+  function(done) {
+    MealInfo.destroy({where: {}})
+      .then(function(){
+        MealInfo.bulkCreate([mealInfo1, mealInfo2]).then(()=> {
+          done()
+        })
+      })
+  }, 
   function(done) {
     var meals = [
       {...ml1, menuId: menu1.id, userId: rest1.id},

@@ -13,6 +13,7 @@ var
   Hospital = db.hospital,
   Restaurant = db.restaurant,
   Meal = db.meal,
+  MealInfo = db.mealinfo,
   Menu = db.menu,
   Order = db.order,
   Cart = db.cart,
@@ -46,8 +47,10 @@ var
   menu2 = {date: "2021-04-02T18:00:00Z", id: uuid()},
   menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
   menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
+  mealInfo1 = {type: "lunch", price: 5.00, time: "1:00", id: uuid()},
+  mealInfo2 = {type: "dinner", price: 5.00, time: "7:00", id: uuid()},
+  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: true},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: false},
   ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1},
   ml2 = {...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1},
   ml3 = {...meal1, menuId: menu2.id, id: uuid(), userId: restaurantId1},
@@ -108,6 +111,15 @@ before((done) => {
       done();
     });
 });
+
+before((done) => {
+  MealInfo.destroy({where: {}})
+    .then(function(){
+      MealInfo.bulkCreate([mealInfo1, mealInfo2]).then(()=> {
+        done()
+      })
+    })
+})
 
 before((done) =>{
   var r1 = {...restaurant1, userId: restaurantId1};
@@ -591,7 +603,7 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].meal.should.not.have.property('userId');
       res.body.orders[0].meal.menu.should.not.have.property('userId');
-      res.body.orders[0].meal.should.have.property('price');
+      res.body.orders[0].meal.mealinfo.should.have.property('price');
       done();
     });
   });
@@ -614,7 +626,7 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].meal.should.not.have.property('userId');
       res.body.orders[0].meal.menu.should.not.have.property('userId');
-      res.body.orders[0].meal.should.have.property('price');
+      res.body.orders[0].meal.mealinfo.should.have.property('price');
       done();
     });
   });
@@ -637,7 +649,7 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].meal.should.not.have.property('userId');
       res.body.orders[0].meal.menu.should.not.have.property('userId');
-      res.body.orders[0].meal.should.have.property('price');
+      res.body.orders[0].meal.mealinfo.should.have.property('price');
       done();
     });
   });
@@ -660,7 +672,7 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].meal.should.not.have.property('userId');
       res.body.orders[0].meal.menu.should.not.have.property('userId');
-      res.body.orders[0].meal.should.have.property('price');
+      res.body.orders[0].meal.mealinfo.should.have.property('price');
       done();
     });
   });

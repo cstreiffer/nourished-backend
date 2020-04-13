@@ -45,10 +45,6 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       defaultValue: ''
     },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0.00
-    },
     minQuantity: {
       type: DataTypes.INTEGER,
       defaultValue: 1
@@ -59,16 +55,17 @@ module.exports = function(sequelize, DataTypes) {
     },
     visible: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: true
     },
     finalized: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: true
     }
   }, {
     associate: function(models) {
       Meal.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Meal.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Meal.belongsTo(models.mealinfo, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });
 

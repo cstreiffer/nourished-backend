@@ -18,9 +18,10 @@ const {Op} = require('sequelize');
 
 // Define return
  // id | name | description | category | imageURL | price | minQuantity | maxQuantity | visible | finalized | createdAt | updatedAt | userId | menuId 
-const retAttributes = ['id', 'name', 'category', 'description', 'imageURL', 'price', 'visible', 'finalized', 'menuId'];
+const retAttributes = ['id', 'name', 'category', 'description', 'imageURL', 'visible', 'finalized', 'menuId', 'mealinfoId'];
 const menuRetAttributes = ['id', 'date', 'restaurantId'];
 const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const mealinfoRetAttributes = ['id', 'type', 'price'];
 
 /**
  * Create a meal
@@ -36,9 +37,9 @@ exports.create = function(req, res) {
   req.body.finalized = req.body.finalized || false;
   req.body.visible = (req.body.visible && req.body.finalized) || false;
   
-  if(!req.body.menuId) {
+  if(!req.body.menuId || !req.body.mealinfoId) {
       return res.status(400).send({
-        message: "Please include menu id"
+        message: "Please include menu/meal info id"
       });
   } else {
     req.body.menuId = req.menu.id;
@@ -79,8 +80,8 @@ exports.update = function(req, res) {
 
   // Unfinalized to update these values
   if(!meal.finalized) {
+    updateBuilder.mealinfoId = req.body.mealinfoId;
     updateBuilder.menuId = req.body.menuId;
-    updateBuilder.price = req.body.price;
     updateBuilder.minQuantity = req.body.minQuantity;
     updateBuilder.maxQuantity = req.body.maxQuantity;
     updateBuilder.finalized = req.body.finalized || false;
@@ -224,7 +225,7 @@ var formatDate = function(query) {
  * List of Meals
  */
 exports.list = function(req, res) {
-  var query = {};
+  var query = {finalized: true};
   if(req.query.menuId) query.menuId = req.query.menuId;
   if(req.query.category) query.category = req.query.category;
   if(req.query.price) query.price = req.query.price;
@@ -239,7 +240,7 @@ exports.list = function(req, res) {
 
   Meal.findAll({
     where: query,
-    include: {
+    include: [{
       model: db.menu, 
       where: menuQuery, 
       attributes: menuRetAttributes,
@@ -248,7 +249,10 @@ exports.list = function(req, res) {
         where: restQuery,
         attributes: restRetAttributes
       }
-    },
+    },{
+      model: db.mealinfo,
+      attributes: mealinfoRetAttributes
+    }],
     attributes: retAttributes
   }).then(function(meals) {
     if (!meals) {
@@ -259,6 +263,7 @@ exports.list = function(req, res) {
       res.jsonp({meals: meals, message: "Meals successfully found"});
     }
   }).catch(function(err) {
+    console.log(err);
     res.jsonp(err);
   });
 };
@@ -270,7 +275,6 @@ exports.userList = function(req, res) {
   var query = {userId: req.user.id};
   if(req.query.menuId) query.menuId = req.query.menuId;
   if(req.query.category) query.category = req.query.category;
-  if(req.query.price) query.price = req.query.price;
   if(req.query.name) query.name = req.query.name;
   if(req.query.visible) query.visible = req.query.visible;
 
@@ -282,7 +286,7 @@ exports.userList = function(req, res) {
 
   Meal.findAll({
     where: query,
-    include: {
+    include: [{
       model: db.menu, 
       where: menuQuery, 
       attributes: menuRetAttributes,
@@ -291,7 +295,10 @@ exports.userList = function(req, res) {
         where: restQuery,
         attributes: restRetAttributes
       }
-    },
+    },{
+      model: db.mealinfo,
+      attributes: mealinfoRetAttributes
+    }],
     attributes: retAttributes
   }).then(function(meals) {
     if (!meals) {
@@ -315,7 +322,7 @@ exports.mealByID = function(req, res, next, id) {
     where: {
       id: id
     },
-    include: {model: db.menu, include: db.restaurant}
+    include: [{model: db.menu, include: db.restaurant}, {model: db.mealinfo}]
   }).then(function(meal) {
     if (!meal) {
       return res.status(404).send({

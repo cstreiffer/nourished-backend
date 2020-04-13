@@ -89,6 +89,9 @@
  *          application/json:
  *            schema:
  *              type: object
+ *              required:
+ *                - name
+ *                - phoneNumber
  *              properties:
  *                name:
  *                  type: string
@@ -159,7 +162,7 @@
  *          description: Id of the restaurant
  *      responses:
  *        "200":
- *          description: Updates a restaurant
+ *          description: Deletes a restaurant
  *          content:
  *            application/json:
  *              schema:
