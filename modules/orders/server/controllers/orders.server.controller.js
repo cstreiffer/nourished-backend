@@ -3,15 +3,23 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var 
+  _ = require('lodash'),
+  path = require('path'),
   uuid = require('uuid/v4'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Order = db.order,
-  Menu = db.menu,
-  Cart = db.cart;
+  Menu = db.menu;
 
 const {Op} = require('sequelize');
+
+//  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
+const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'hospitalId', 'mealId'];
+const mealRetAttributes = ['id', 'name', 'price', 'menuId'];
+const menuRetAttributes = ['id', 'date', 'restaurantId'];
+const restRetAttributes = ['id', 'name', 'email'];
+
 /**
  * Create a order
  */
@@ -24,12 +32,11 @@ exports.create = function(req, res) {
     var ret = {};
     ret.groupId = groupId;
     ret.userId = req.user.id;
-    ret.mealId = order.mealId;
-    ret.hospitalId = order.hospitalId;
     ret.date= date;
     ret.id = uuid();
     ret.information = order.information;
     ret.quantity = order.quantity;
+    ret.mealId = order.mealId;
     ret.hospitalId = order.hospitalId || req.user.hospitalId;
     return ret;
   });
@@ -40,17 +47,8 @@ exports.create = function(req, res) {
         errors: 'Could not create the order'
       });
     } else {
-      var mealIds = orders.map(order => order.mealId);
-      Cart.destroy({
-        where: {
-          userId: req.user.id,
-          mealId: mealIds
-        }
-      }).then(function() {
-        return res.jsonp({orders: orders, message: "Orders successfully created"});
-      }).catch(function(err) {
-        return res.jsonp({orders: orders, message: "Orders successfully created. Error deleting cart."});
-      })
+      var ret = orders.map((order)=> _.pick(order, retAttributes));
+      return res.jsonp({orders: ret, message: "Orders successfully created"});
     }
   }).catch(function(err) {
     return res.status(400).send({
@@ -64,17 +62,30 @@ exports.create = function(req, res) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
+  if(req.query.mealId) query.mealId = req.query.mealId;
   if(req.query.userStatus) query.userStatus = req.query.userStatus;
   if(req.query.restStatus) query.restStatus = req.query.restStatus;
   if(req.query.payStatus) query.payStatus = req.query.payStatus;
-  if(req.query.quantity) query.quantity = req.query.quantity;
+  // if(req.query.quantity) query.quantity = req.query.quantity;
   if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
   if(req.query.groupId) query.groupId = req.query.groupId;
   if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
 
   Order.findAll({
     where: query,
-    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
+    attributes: retAttributes,
+    include: [{
+      model: db.meal, 
+      attributes: mealRetAttributes,
+      include: {
+        model: db.menu, 
+        attributes: menuRetAttributes,
+        include: {
+          model: db.restaurant,
+          attributes: restRetAttributes
+        }
+      }
+    }]
   }).then(function(orders) {
     if (!orders) {
       return res.status(404).send({
@@ -84,6 +95,7 @@ exports.userList = function(req, res) {
       res.json({orders: orders, message: "Orders successfully found"});
     }
   }).catch(function(err) {
+    console.log(err);
     res.jsonp(err);
   });
 };
@@ -115,7 +127,8 @@ exports.update = function(req, res) {
   // console.log("Here are the orders", orders);
 
   Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId", "userStatus"]}).then(function() {
-    res.jsonp({orders: orders, message: "Orders successfully updated"});
+    var ret = orders.map((order)=> _.pick(order, retAttributes));
+    res.jsonp({orders: ret, message: "Orders successfully updated"});
   }).catch(function(err) {
     console.log(err);
     return res.status(400).send({
@@ -137,6 +150,8 @@ exports.userStatusUpdate = function(req, res) {
     Order.update({userStatus: req.body.userStatus}, {
       where: query
     }).then(function(orders) {
+      console.log("Here are the orders: " + orders);
+      var ret = orders.map((order)=> _.pick(order, retAttributes));
       res.jsonp({orders: orders, message: "Orders successfully updated"});
     })
   } else {
@@ -154,9 +169,9 @@ exports.restStatusUpdate = function(req, res) {
     var orderQuery = {};
     if(req.body.orderIds) orderQuery.id = req.body.orderIds;
     if(req.body.mealIds) orderQuery.mealId = req.body.mealIds;
-    // if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
-    // if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
-    // if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
+    if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
+    if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
+    if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
 
     var mealQuery = {userId: req.user.id};
     if(req.body.menuId) mealQuery.menuId = req.body.menuId;
@@ -186,7 +201,8 @@ exports.restStatusUpdate = function(req, res) {
             id: orderIds
           }
         }).then(function() {
-          return res.jsonp({orders: orders, message: "Orders successfully updated"});
+          var ret = orders.map((order)=> _.pick(order, retAttributes));
+          return res.jsonp({orders: ret, message: "Orders successfully updated"});
         }).catch(function(err) {
           return res.status(400).send({
             message: errorHandler.getErrorMessage(err)
@@ -217,7 +233,8 @@ exports.delete = function(req, res) {
       id: orderIds
     }
   }).then(function(orders) {
-    return res.jsonp({orders: req.orders, message: "Orders markerd as deleted"});
+    var ret = req.orders.map((order)=> _.pick(order, retAttributes));
+    return res.jsonp({orders: ret, message: "Orders markerd as deleted"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -240,23 +257,23 @@ exports.restList = function(req, res) {
   if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
   if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
   if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
+  if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
 
   var mealQuery = {userId: req.user.id};
   if(req.query.menuId) mealQuery.menuId = req.query.menuId;
 
-  var menuQuery = {};
-  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
-
   Order.findAll({
     where: orderQuery,
-    include: {
+    attributes: retAttributes,
+    include: [{
       model: db.meal, 
-      where: mealQuery, 
+      where: mealQuery,
+      attributes: mealRetAttributes,
       include: {
         model: db.menu, 
-        where: menuQuery
+        attributes: menuRetAttributes,
       }
-    }
+    }]
   }).then(function(orders) {
     if (!orders) {
       return res.status(404).send({
@@ -281,7 +298,7 @@ exports.orderByID = function(req, res, next, id) {
     where: {
       id: id
     },
-    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}, {model: db.hospital}]
+    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}]
   }).then(function(order) {
     if (!order) {
       return res.status(404).send({

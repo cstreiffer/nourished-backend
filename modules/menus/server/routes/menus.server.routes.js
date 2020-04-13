@@ -11,6 +11,10 @@ var path = require('path'),
 module.exports = function(app) {
 
   // Restaurant 
+  app.route('/api/menus')
+    .get(menus.list) // Restaurant/User get (Good)
+
+  // Restaurant 
   app.route('/api/rest/menus')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)

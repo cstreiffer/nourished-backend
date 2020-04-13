@@ -66,6 +66,36 @@ before((done) =>{
     .then(() => {done();});
 });
 
+describe('/GET /api/menus endpoint', () => {
+  
+  // Clear the database
+  beforeEach(function(done) {
+    var menu1 = {...menu, restaurantId: restaurant1.id, id: uuid(), userId: restaurantId1};
+    var menu2 = {...menu, restaurantId: restaurant2.id, id: uuid(), userId: restaurantId2};
+
+    Menu.destroy({where: {}})
+      .then(function(){
+        Menu.bulkCreate([menu1, menu2], {returning: true}).then(function(menus) {
+          done();
+        });
+      });
+  });
+
+  it('User with "user" role should get menus', (done) => {
+    chai.request(app)
+      .get('/api/menus')
+      .end((err, res) => {
+       res.body.menus.should.be.a('array');
+       res.body.menus[0].should.not.have.property('userId');
+       res.body.menus[0].restaurant.should.not.have.property('userId');
+       res.body.menus.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Menus successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+});
+
 describe('/GET /api/rest/menus endpoint', () => {
   
   // Clear the database
@@ -88,6 +118,8 @@ describe('/GET /api/rest/menus endpoint', () => {
       .query({startDate: "2020-04-01T06:30:00Z", endDate: "2020-04-05T18:40:00Z"})
       .end((err, res) => {
        res.body.menus.should.be.a('array');
+       res.body.menus[0].should.not.have.property('userId');
+       res.body.menus[0].should.not.have.property('restaurant');
        res.body.menus.length.should.be.eql(1);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -103,6 +135,8 @@ describe('/GET /api/rest/menus endpoint', () => {
       .query({startDate: "2020-04-01T06:30:00Z", endDate: "2020-04-05T18:40:00Z"})
       .end((err, res) => {
          res.body.menus.should.be.a('array');
+         res.body.menus[0].should.not.have.property('userId');
+         res.body.menus[0].should.not.have.property('restaurant');
          res.body.menus.length.should.be.eql(1);
          res.body.should.have.property('message').eql('Menus successfully found');
          res.should.have.status(200);
@@ -130,6 +164,8 @@ describe('/POST /api/rest/menus endpoint', () => {
         res.body.menu.should.have.property('id');
         res.body.menu.should.have.property('date');
         res.body.menu.should.have.property('restaurantId');
+        res.body.menu.should.not.have.property('userId');
+        res.body.menu.should.not.have.property('restaurant');
         res.should.have.status(200);
         done();
       });
@@ -156,6 +192,8 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
           res.body.menu.should.have.property('id').eql(menu.id);
           res.body.menu.should.have.property('date').eql("2020-04-05T13:30:30.000Z");
           res.body.menu.should.have.property('restaurantId').eql(restaurant1.id);
+          res.body.menu.should.not.have.property('userId');
+          res.body.menu.should.not.have.property('restaurant');
           res.should.have.status(200);
           done();
         });
@@ -213,6 +251,8 @@ describe('/GET /api/rest/menus/:menuId endpoint', () => {
           res.body.menu.should.have.property('id').eql(menu.id);
           res.body.menu.should.have.property('date').eql("2020-04-05T18:00:00.000Z");
           res.body.menu.should.have.property('restaurantId').eql(menu.restaurantId);
+          res.body.menu.should.not.have.property('userId');
+          res.body.menu.should.not.have.property('restaurant');
           res.should.have.status(200);
           done();
         });
@@ -250,6 +290,8 @@ describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully deleted');
+          res.body.menu.should.not.have.property('userId');
+          res.body.menu.should.not.have.property('restaurant');
           res.should.have.status(200);
           done();
         });
