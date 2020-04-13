@@ -93,6 +93,13 @@
  *                  type: integer
  *                mealId:
  *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Updates a cart
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Cart'
  *    put:
  *      summary: Updates a cart attached to user by id
  *      tags: [Carts]

@@ -182,9 +182,9 @@ exports.restStatusUpdate = function(req, res) {
     var orderQuery = {};
     if(req.body.orderIds) orderQuery.id = req.body.orderIds;
     if(req.body.mealIds) orderQuery.mealId = req.body.mealIds;
-    if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
-    if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
-    if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
+    // if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
+    // if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
+    // if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
 
     var mealQuery = {userId: req.user.id};
     if(req.body.menuId) mealQuery.menuId = req.body.menuId;

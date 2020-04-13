@@ -270,7 +270,7 @@ describe('/POST /api/user/orders endpoint', () => {
       .end((err, res) => {
         res.should.have.status(400);
         res.body.should.have.property('message');
-        res.body.message.should.be.eql("Please include hospital and meal ids in every order");
+        res.body.message.should.be.eql("Please include hospital id, meal id, and/or quantity in every order");
         done();
       });
   });
