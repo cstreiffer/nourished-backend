@@ -33,8 +33,8 @@
  *          state:
  *            type: string
  * tags:
- *   name: Users
- *   description: User management
+ *   name: Restaurants
+ *   description: Restaurant management
  * path:
  *  /restaurants/:
  *    get:
@@ -49,7 +49,7 @@
  *                $ref: '#/components/schemas/Restaurant'
  *  /restaurants/{restaurantId}:
  *    get:
- *      summary: Get a user by id
+ *      summary: Get a restaurant by id
  *      tags: [Restaurants]
  *      parameters:
  *        - in: path
@@ -61,6 +61,105 @@
  *      responses:
  *        "200":
  *          description: Get restaurant
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
+ *  /rest/restaurants/:
+ *    get:
+ *      summary: Gets all restaurants attached to user
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Restaurants]
+ *      responses:
+ *        "200":
+ *          description: A list of restaurant schemas
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
+ *    post:
+ *      summary: Creates a restaurant attached to the user
+ *      tags: [Restaurants]
+ *      security:
+ *        - bearerAuth: []
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                  type: string
+ *                phoneNumber:
+ *                  type: string
+ *                email:
+ *                  type: string
+ *                streetAddress:
+ *                  type: string
+ *                city:
+ *                  type: string
+ *                state:
+ *                  type: string
+ *                zip:
+ *                  type: string
+ *  /rest/restaurants/{restaurantId}:
+ *    put:
+ *      summary: Updates a restaurant attached to user by id
+ *      tags: [Restaurants]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: restaurantId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the restaurant
+ *      requestBody:
+ *        required: false
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                  type: string
+ *                phoneNumber:
+ *                  type: string
+ *                email:
+ *                  type: string
+ *                streetAddress:
+ *                  type: string
+ *                city:
+ *                  type: string
+ *                state:
+ *                  type: string
+ *                zip:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Updates a restaurant
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
+ *    delete:
+ *      summary: Deletes a restaurant attached to user by id
+ *      tags: [Restaurants]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: restaurantId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the restaurant
+ *      responses:
+ *        "200":
+ *          description: Updates a restaurant
  *          content:
  *            application/json:
  *              schema:

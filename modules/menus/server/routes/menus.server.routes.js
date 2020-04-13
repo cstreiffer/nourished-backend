@@ -26,7 +26,7 @@ module.exports = function(app) {
   app.route('/api/rest/menus/:menuId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
-    .delete(menus.delete) // Restaurant delete (Good)
+    // .delete(menus.delete) // Restaurant delete (Good)
     .get(menus.read)
     .all(menusPolicy.isValidRestaurant)
     .put(menus.update); // Restaurant update (Good)

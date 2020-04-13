@@ -13,7 +13,7 @@
  *            type: string
  *            description: UUID of the menu.
  *          date:
- *            type: datetime
+ *            type: string
  *            description: Time slot for the menu.
  *          userId:
  *            type: boolean
@@ -36,10 +36,51 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Menu'
- *  /menus/{menuId}:
+ *  /rest/menus/:
+ *    post:
+ *      summary: Creates a menu attached to the user
+ *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - date
+ *                - restaurantId
+ *              properties:
+ *                date:
+ *                  type: string
+ *                restaurantId:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Get menu
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Menu'
+ *    get:
+ *      summary: Creates a menu attached to the user
+ *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
+ *      responses:
+ *        "200":
+ *          description: Get menu
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Menu'
+ *  /rest/menus/{menuId}:
  *    get:
  *      summary: Get a menu by id
  *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
  *      parameters:
  *        - in: path
  *          name: menuId
@@ -54,4 +95,34 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Menu'
+ *    put:
+ *      summary: Updates a menu attached to user by id. Might not 
+ *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: menuId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the menu
+ *      requestBody:
+ *        required: false
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                date:
+ *                  type: string
+ *                restaurantId:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Updates a restaurant
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
  */

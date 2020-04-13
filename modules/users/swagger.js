@@ -35,8 +35,6 @@
  * path:
  *  /auth/signup:
  *    post:
- *      security:
- *        - bearerAuth: []
  *      summary: Create a new user
  *      tags: [Users]
  *      requestBody:
@@ -82,6 +80,70 @@
  *              properties:
  *                id:
  *                  type: string
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
+ *  /user/me:
+ *    get:
+ *      summary: Gets user profile
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Users]
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
+ *  /user:
+ *    get:
+ *      summary: Gets user profile
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Users]
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
+ *    put:
+ *      summary: Updates user profile
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Users]
+ *      requestBody:
+ *        required: false
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                email:
+ *                  type: string
+ *                phoneNumber:
+ *                  type: string
+ *                fullName:
+ *                  type: string
+ *                hospitalId:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
+ *  /users:
+ *    get:
+ *      summary: Gets all user profiles. Only available in dev.
+ *      tags: [Users]
  *      responses:
  *        "200":
  *          description: A user schema

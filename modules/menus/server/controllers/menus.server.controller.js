@@ -62,11 +62,12 @@ exports.read = function(req, res) {
 exports.update = function(req, res) {
   delete req.body.id;
   delete req.body.userId;
-  delete req.body.restaurantId;
+  // delete req.body.restaurantId;
   var menu = req.menu;
 
   menu.update({
-    date: req.body.date
+    date: req.body.date,
+    restaurantId: req.body.restaurantId
   }).then(function(menu) {
     var ret = _.pick(menu, retAttributes);
     res.jsonp({menu: ret, message: "Menu successfully updated"});
@@ -139,7 +140,10 @@ exports.userList = function(req, res) {
   Menu.findAll({
     where: query,
     attributes: retAttributes,
-    // include: [db.restaurant]
+    include: [{
+      model: db.restaurant,
+      attributes: restRetAttributes
+    }]
   }).then(function(menus) {
     if (!menus) {
       return res.status(404).send({

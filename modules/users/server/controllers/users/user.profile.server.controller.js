@@ -16,6 +16,7 @@ var _ = require('lodash'),
 
 const {Op} = require('sequelize');
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
+const retAttributes = ['id', 'username', 'fullName', 'email', 'phoneNumber', 'roles'];
 
 exports.update = function(req, res, next) {
   var userInfo = req.body;
@@ -125,7 +126,7 @@ exports.update = function(req, res, next) {
               });
             } else {
               var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-              var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
+              var ret = _.pick(user || {}, retAttributes)
               res.json({user: ret, token: token, message: "User successfully updated"});
             }
           }).catch(function(err) {
@@ -144,9 +145,19 @@ exports.update = function(req, res, next) {
   }
 };
 
+exports.list = function(req, res) {
+  User.findAll({
+    where: {}
+  }).then(function(users) {
+    res.json({users: users, message: "Users successfully found"});
+  }).catch(function(err) {
+    res.status(400).send(err);
+  });
+};
+
 exports.getProfile = function(req, res) {
   User.findOne({
-    attributes: ['id', 'username', 'fullName', 'email', 'phoneNumber'],
+    attributes: retAttributes,
     where: {
       id: req.user.id
     }
@@ -162,6 +173,6 @@ exports.getProfile = function(req, res) {
  * Send User
  */
 exports.me = function(req, res) {
-  var ret = _.pick(req.user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
+  var ret = _.pick(req.user || {}, retAttributes)
   res.json({user: ret});
 };
