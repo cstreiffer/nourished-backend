@@ -277,6 +277,18 @@ module.exports.configureSocketIO = function(app, db) {
 };
 
 /**
+ * Configure swagger.js
+ */
+module.exports.initSwagger = function(app) {
+    if(process.env.NODE_ENV === "development") {
+        winston.info('Initializing swagger.js...');
+        // Load the Socket.io configuration
+        require('./swagger')(app);
+    }
+};
+
+
+/**
  * Initialize the Express application
  */
 module.exports.init = function(db) {
@@ -306,6 +318,9 @@ module.exports.init = function(db) {
 
     // Initialize modules static client routes
     // this.initModulesClientRoutes(app);
+
+    // Initialize swagger
+    this.initSwagger(app);
 
     // Initialize modules server authorization policies
     this.initModulesServerPolicies(app);

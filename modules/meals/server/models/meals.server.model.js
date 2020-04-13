@@ -39,10 +39,7 @@ module.exports = function(sequelize, DataTypes) {
     },
     category: {
       type: DataTypes.STRING,
-      defaultValue: '',
-      validate: {
-        isValid: validationWrapper("Meal Category")
-      }
+      defaultValue: ''
     },
     imageURL: {
       type: DataTypes.STRING,

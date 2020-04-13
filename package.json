@@ -55,6 +55,8 @@
     "sequelize": "^5.21.5",
     "serve-favicon": "^2.5.0",
     "socket.io": "^2.3.0",
+    "swagger-jsdoc": "^4.0.0",
+    "swagger-ui-express": "^4.1.4",
     "swig": "^1.4.2",
     "uuid": "^7.0.2",
     "validator": "^13.0.0",
