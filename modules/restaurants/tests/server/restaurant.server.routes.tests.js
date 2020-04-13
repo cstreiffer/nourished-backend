@@ -97,7 +97,8 @@ describe('/POST api/rest/restaurants endpoint', () => {
       	res.body.restaurant.should.have.property('zip');
       	res.body.restaurant.should.have.property('city');
       	res.body.restaurant.should.have.property('state');
-    	done();
+        res.body.restaurant.should.not.have.property('userId');
+    	  done();
       })
   })
 
@@ -117,7 +118,8 @@ describe('/POST api/rest/restaurants endpoint', () => {
       	res.body.restaurant.should.have.property('zip');
       	res.body.restaurant.should.have.property('city');
       	res.body.restaurant.should.have.property('state');
-	    done();
+        res.body.restaurant.should.not.have.property('userId');
+	      done();
       })
   })
 
@@ -159,6 +161,7 @@ describe('/GET api/restaurants endpoint', () => {
       	res.body.restaurants.should.be.a('array');
       	res.body.restaurants.length.should.be.eql(1);
       	res.body.should.have.property('message').eql('Restaurants successfully found');
+        res.body.restaurants[0].should.not.have.property("userId");
       	res.should.have.status(200);
 	    done();
       })
@@ -196,6 +199,7 @@ describe('/PUT api/rest/restaurants/:restaurantId endpoint', () => {
 	      	res.body.should.be.a('object');
 	      	res.body.should.have.property('message').eql('Restaurant successfully updated');
 	      	res.body.restaurant.should.have.property('name').eql('Goldie 2!!');
+          res.body.restaurant.should.not.have.property('userId');
 		    done();
 	      })
   	})
@@ -240,6 +244,7 @@ describe('/GET api/restaurants/:restaurantId endpoint', () => {
 	      	res.body.restaurant.should.have.property('zip');
 	      	res.body.restaurant.should.have.property('city');
 	      	res.body.restaurant.should.have.property('state');
+          res.body.restaurant.should.not.have.property('userId');
 		    done();
 	      })
   	})
@@ -304,9 +309,10 @@ describe('/GET api/rest/restaurants endpoint', () => {
       .set('Authorization', restaurantJWT1)
       .end((err, res) => {
       	res.should.have.status(200);
-      	res.body.should.be.a('array');
-      	res.body.length.should.be.eql(1);
-	    done();
+      	res.body.restaurants.should.be.a('array');
+      	res.body.restaurants.length.should.be.eql(1);
+        res.body.restaurants[0].should.not.have.property("userId");
+	      done();
       });
   });
 

@@ -3,7 +3,9 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var 
+  _ = require('lodash'),
+  path = require('path'),
   uuid = require('uuid/v4'),
   config = require(path.resolve('./config/config')),
   fs = require('fs'),
@@ -13,6 +15,13 @@ var path = require('path'),
   Meal = db.meal;
 
 const {Op} = require('sequelize');
+
+// Define return
+ // id | name | description | category | imageURL | price | minQuantity | maxQuantity | visible | finalized | createdAt | updatedAt | userId | menuId 
+const retAttributes = ['id', 'name', 'category', 'description', 'imageURL', 'price', 'visible', 'finalized', 'menuId'];
+const menuRetAttributes = ['id', 'date', 'restaurantId'];
+const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+
 /**
  * Create a meal
  */
@@ -39,7 +48,8 @@ exports.create = function(req, res) {
           errors: 'Could not create the meal'
         });
       } else {
-        res.jsonp({meal: meal, message: "Meal successfully created"});
+        var ret = _.pick(meal, retAttributes);
+        res.jsonp({meal: ret, message: "Meal successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
@@ -53,7 +63,8 @@ exports.create = function(req, res) {
  * Show the current meal
  */
 exports.read = function(req, res) {
-  res.jsonp({meal: req.meal, message: "Meal successfully found"});
+  var ret = _.pick(req.meal, retAttributes);
+  res.jsonp({meal: ret, message: "Meal successfully found"});
 };
 
 /**
@@ -86,7 +97,8 @@ exports.update = function(req, res) {
   updateBuilder.category = req.body.category;
 
   meal.update(updateBuilder).then(function(meal) {
-    res.jsonp({meal: meal, message: "Meal successfully updated"});
+    var ret = _.pick(meal, retAttributes);
+    res.jsonp({meal: ret, message: "Meal successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -115,7 +127,8 @@ var _changeMealPicture = function(req, res) {
       .then(updateMeal)
       .then(deleteOldImage)
       .then(function () {
-        res.json({meal: meal, message: "Meal image successfully updated"});
+        var ret = _.pick(meal, retAttributes);
+        res.json({meal: ret, message: "Meal image successfully updated"});
       })
       .catch(function (err) {
         return res.status(422).send(err);
@@ -187,7 +200,8 @@ exports.delete = function(req, res) {
 
     // Delete the meal
     meal.destroy().then(function() {
-      return res.jsonp({meal: meal, message: "Meal successfully deleted"});
+      var ret = _.pick(meal, retAttributes);
+      return res.jsonp({meal: ret, message: "Meal successfully deleted"});
     }).catch(function(err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
@@ -228,11 +242,14 @@ exports.list = function(req, res) {
     include: {
       model: db.menu, 
       where: menuQuery, 
+      attributes: menuRetAttributes,
       include: {
         model: db.restaurant, 
-        where: restQuery
+        where: restQuery,
+        attributes: restRetAttributes
       }
-    }
+    },
+    attributes: retAttributes
   }).then(function(meals) {
     if (!meals) {
       return res.status(404).send({
@@ -268,11 +285,14 @@ exports.userList = function(req, res) {
     include: {
       model: db.menu, 
       where: menuQuery, 
+      attributes: menuRetAttributes,
       include: {
         model: db.restaurant, 
-        where: restQuery
+        where: restQuery,
+        attributes: restRetAttributes
       }
-    }
+    },
+    attributes: retAttributes
   }).then(function(meals) {
     if (!meals) {
       return res.status(404).send({

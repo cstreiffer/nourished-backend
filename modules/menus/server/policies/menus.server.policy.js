@@ -51,7 +51,6 @@ exports.invokeRolesPolicies = function() {
  * Check if Restaurant belongs to User
  */
 exports.isValidRestaurant = function(req, res, next) {
-  console.log("Checking the validity of the restaurant!");
   if(req.body.restaurantId) {
     Restaurant.findOne({
       where: {
