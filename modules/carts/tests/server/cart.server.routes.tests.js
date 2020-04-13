@@ -171,6 +171,8 @@ describe('/POST /api/user/carts endpoint', () => {
         res.body.cart.should.have.property('id');
         res.body.cart.should.have.property('mealId');
         res.body.cart.should.have.property('quantity').eql(7);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
   });
@@ -202,12 +204,18 @@ describe('/GET /api/user/carts endpoint', () => {
         res.body.should.have.property('message').eql('Cart items successfully found');
         res.body.carts.should.be.a('array');
         res.body.carts.length.should.be.eql(2);
+        res.body.carts[0].should.have.property('quantity');
+        res.body.carts[0].should.have.property('mealId');
+        res.body.carts[0].should.not.have.property('userId');
+        res.body.carts[0].meal.should.not.have.property('userId');
+        res.body.carts[0].meal.menu.should.not.have.property('userId');
+        res.body.carts[0].meal.menu.restaurant.should.not.have.property('userId');
         done();
       });
   });
 });
 
-describe('/GET /api/user/carts endpoint', () => {
+describe('/DELETE /api/user/carts endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     var carts = [
@@ -266,6 +274,8 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
         res.body.cart.should.have.property('id');
         res.body.cart.should.have.property('mealId');
         res.body.cart.should.have.property('quantity').eql(100);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })
@@ -303,6 +313,8 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully deleted');
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })
@@ -339,6 +351,8 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully found');
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })

@@ -10,6 +10,7 @@ var
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Order = db.order,
+  Cart = db.cart,
   Menu = db.menu;
 
 const {Op} = require('sequelize');
@@ -48,9 +49,18 @@ exports.create = function(req, res) {
         errors: 'Could not create the order'
       });
     } else {
+      var mealIds = orders.map(order => order.mealId);
       var ret = orders.map((order)=> _.pick(order, retAttributes));
-      return res.jsonp({orders: ret, message: "Orders successfully created"});
-    }
+      Cart.destroy({
+        where: {
+          userId: req.user.id
+        }
+      }).then(function() {
+        return res.jsonp({orders: ret, message: "Orders successfully created"});
+      }).catch(function(err) {
+        return res.jsonp({orders: ret, message: "Orders successfully created. Error deleting cart."});
+      });
+    };
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)

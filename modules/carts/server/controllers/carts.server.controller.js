@@ -13,6 +13,12 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
+const retAttributes = ['id', 'date', 'quantity', 'mealId'];
+const mealRetAttributes = ['id', 'name', 'menuId', 'mealinfoId'];
+const mealinfoRetAttributes = ['id', 'type', 'price'];
+const menuRetAttributes = ['id', 'date', 'restaurantId'];
+const restRetAttributes = ['id', 'name', 'email'];
+
 /**
  * Create a menu
  */
@@ -33,7 +39,8 @@ exports.create = function(req, res) {
           errors: 'Could not create the cart'
         });
       } else {
-        res.jsonp({cart: cart, message: "Cart item successfully created"});
+        var ret = _.pick(cart, retAttributes);
+        res.jsonp({cart: ret, message: "Cart item successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
@@ -51,7 +58,22 @@ exports.userList = function(req, res) {
 
   Cart.findAll({
     where: query,
-    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}]
+    attributes: retAttributes,
+    include: [{
+      model: db.meal, 
+      attributes: mealRetAttributes,
+      include: [{
+        model: db.menu, 
+        attributes: menuRetAttributes,
+        include: {
+          model: db.restaurant,
+          attributes: restRetAttributes
+        }
+      }, {
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }]
+    }]
   }).then(function(carts) {
     if (!carts) {
       return res.status(404).send({
@@ -69,7 +91,8 @@ exports.userList = function(req, res) {
  * Show the current cart
  */
 exports.read = function(req, res) {
-  res.jsonp({cart: req.cart, message: "Cart item successfully found"});
+  var ret = _.pick(req.cart, retAttributes);
+  res.jsonp({cart: ret, message: "Cart item successfully found"});
 }; 
 
 /**
@@ -100,7 +123,8 @@ exports.update = function(req, res) {
   cart.update({
     quantity: req.body.quantity,
   }).then(function(cart) {
-    return res.jsonp({cart: cart, message: "Cart item successfully updated"});
+    var ret = _.pick(cart, retAttributes);
+    return res.jsonp({cart: ret, message: "Cart item successfully updated"});
   }).catch(function(err) {
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
@@ -117,7 +141,8 @@ exports.delete = function(req, res) {
   cart
     .destroy()
     .then(function() {
-      return res.jsonp({cart: cart, message: "Cart item successfully deleted"});
+      var ret = _.pick(cart, retAttributes);
+      return res.jsonp({cart: ret, message: "Cart item successfully deleted"});
     }).catch(function(err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)

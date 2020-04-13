@@ -276,49 +276,49 @@ describe('/POST /api/user/orders endpoint', () => {
   });
 });
 
-// describe('/POST /api/user/orders endpoint with CART delete', () => {
+describe('/POST /api/user/orders endpoint with CART delete', () => {
 
-//   before(function(done) {
-//     var carts = [
-//       {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
-//       {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
-//       {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
-//       {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
-//     ];
-//     Cart.destroy({where: {}})
-//       .then(function(){
-//         Cart.bulkCreate(carts).then(function(){done();});
-//       });
-//   });
+  before(function(done) {
+    var carts = [
+      {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
+      {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
+      {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
+      {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
+    ];
+    Cart.destroy({where: {}})
+      .then(function(){
+        Cart.bulkCreate(carts).then(function(){done();});
+      });
+  });
 
-//   it('User with "user" role - cart should be wipe when post completes ', (done) => {
-//     chai.request(app)
-//       .post('/api/user/orders')
-//       .set('Authorization', userJWT1)
-//       .send({orders: [
-//           {...order, hospitalId: hospital1.id, mealId: ml1.id},
-//           {...order, hospitalId: hospital2.id, mealId: ml3.id},
-//       ]})
-//       .end((err, res) => {
-//         res.should.have.status(200);
-//         res.body.should.be.a('object');
-//         res.body.should.have.property('message').eql('Orders successfully created');
-//         res.body.orders.should.be.a('array');
-//         res.body.orders.length.should.be.eql(2);
-//         chai.request(app)
-//           .get('/api/user/carts/')
-//           .set('Authorization', userJWT1)
-//           .end((err, res) => {
-//             res.should.have.status(200);
-//             res.body.should.be.a('object');
-//             res.body.should.have.property('message').eql('Cart items successfully found');
-//             res.body.carts.should.be.a('array');
-//             res.body.carts.length.should.be.eql(0);
-//             done();
-//           });
-//       });
-//   });
-// });
+  it('User with "user" role - cart should be wipe when post completes ', (done) => {
+    chai.request(app)
+      .post('/api/user/orders')
+      .set('Authorization', userJWT1)
+      .send({orders: [
+          {...order, hospitalId: hospital1.id, mealId: ml1.id},
+          {...order, hospitalId: hospital2.id, mealId: ml3.id},
+      ]})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Orders successfully created');
+        res.body.orders.should.be.a('array');
+        res.body.orders.length.should.be.eql(2);
+        chai.request(app)
+          .get('/api/user/carts/')
+          .set('Authorization', userJWT1)
+          .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property('message').eql('Cart items successfully found');
+            res.body.carts.should.be.a('array');
+            res.body.carts.length.should.be.eql(0);
+            done();
+          });
+      });
+  });
+});
 
 describe('/GET /api/orders/:orderId endpoint', () => {
   // Clear the database
@@ -822,6 +822,11 @@ after(function(done) {
 after(function(done) {
   Cart.destroy({where: {}})
   .then(function(){done()})
+});
+
+after((done) => {
+  MealInfo.destroy({where: {}})
+    .then(function(){done()})
 });
 
 after(function(done) {

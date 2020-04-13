@@ -123,6 +123,18 @@ async.waterfall([
       })
   },
   function(done) {
+    var carts = [
+      {quantity: 5, mealId: ml1.id, userId: user1.id, id: uuid()},
+      {quantity: 5, mealId: ml2.id, userId: user1.id, id: uuid()},
+      {quantity: 5, mealId: ml3.id, userId: user2.id, id: uuid()},
+      {quantity: 5, mealId: ml4.id, userId: user2.id, id: uuid()},
+    ];
+    Cart.destroy({where: {}})
+      .then(function(){
+        Cart.bulkCreate(carts).then(function(){done();});
+      });
+  },
+  function(done) {
     Hospital.destroy({where: {}})
       .then(function() {
         Hospital.bulkCreate([hospital1, hospital2])
