@@ -24,9 +24,19 @@
  *          hospitalId:
  *            type: string
  *            description: Hospital user can attach to their profile.
+ *    securitySchemes:
+ *      bearerAuth:
+ *        type: http
+ *        scheme: bearer
+ *        bearerFormat: JWT 
+ * schemes:
+ *   - http
+ *   - https
  * path:
  *  /auth/signup:
  *    post:
+ *      security:
+ *        - bearerAuth: []
  *      summary: Create a new user
  *      tags: [Users]
  *      requestBody:
