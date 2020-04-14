@@ -15,6 +15,9 @@
  *          name:
  *            type: string
  *            description: Name of the restaurant.
+ *          description:
+ *            type: string
+ *            description: Description of the restaurant.
  *          phoneNumber:
  *            type: string
  *            description: Phone number for contact at hosital.
@@ -97,6 +100,8 @@
  *                  type: string
  *                phoneNumber:
  *                  type: string
+ *                description:
+ *                  type: string
  *                email:
  *                  type: string
  *                streetAddress:
@@ -130,6 +135,8 @@
  *                name:
  *                  type: string
  *                phoneNumber:
+ *                  type: string
+ *                description:
  *                  type: string
  *                email:
  *                  type: string

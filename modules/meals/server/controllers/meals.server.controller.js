@@ -18,9 +18,9 @@ const {Op} = require('sequelize');
 
 // Define return
  // id | name | description | category | imageURL | price | minQuantity | maxQuantity | visible | finalized | createdAt | updatedAt | userId | menuId 
-const retAttributes = ['id', 'name', 'category', 'description', 'imageURL', 'visible', 'finalized', 'menuId', 'mealinfoId'];
+const retAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'menuId', 'mealinfoId'];
 const menuRetAttributes = ['id', 'date', 'restaurantId'];
-const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 
 /**

@@ -18,9 +18,12 @@
  *          description:
  *            type: string
  *            description: Description of the dish
- *          category:
+ *          allergens:
  *            type: string
- *            description: Type of food. Can be anything.
+ *            description: Any allergens in food - milk/dairy, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soy
+ *          dietaryRestrictions:
+ *            type: string
+ *            description: Type of food - Vegan, Vegetarian, Gluten-Free
  *          imageURL:
  *            type: string
  *            description: Image URL of the uploaded meal image. 

@@ -47,8 +47,8 @@ var
   menu2 = {date: "2020-04-02T18:00:00Z", id: uuid()},
   menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
   menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: false},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: true};
+  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", mealinfoId: mealInfo1.id, finalized: false},
+  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan",mealinfoId: mealInfo2.id, finalized: true};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -245,7 +245,8 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('id');
           res.body.meal.should.have.property('name');
           res.body.meal.should.have.property('description');
-          res.body.meal.should.have.property('category');
+          res.body.meal.should.have.property('allergens');
+          res.body.meal.should.have.property('dietaryRestrictions');
           res.body.meal.should.have.property('imageURL');
           res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
@@ -279,7 +280,8 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('id');
           res.body.meal.should.have.property('name');
           res.body.meal.should.have.property('description');
-          res.body.meal.should.have.property('category');
+          res.body.meal.should.have.property('allergens');
+          res.body.meal.should.have.property('dietaryRestrictions');
           res.body.meal.should.have.property('imageURL');
           res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
@@ -389,7 +391,8 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
         res.body.meal.should.have.property('id');
         res.body.meal.should.have.property('name');
         res.body.meal.should.have.property('description');
-        res.body.meal.should.have.property('category');
+        res.body.meal.should.have.property('allergens');
+        res.body.meal.should.have.property('dietaryRestrictions');
         res.body.meal.should.have.property('imageURL');
         res.body.meal.should.have.property('mealinfoId');
         res.body.meal.should.have.property('visible');
