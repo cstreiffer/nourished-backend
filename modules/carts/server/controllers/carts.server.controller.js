@@ -13,11 +13,12 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'date', 'quantity', 'mealId'];
-const mealRetAttributes = ['id', 'name', 'menuId', 'mealinfoId'];
+const retAttributes = ['id', 'date', 'quantity', 'menuId'];
+const menuRetAttributes = ['id', 'timeslotId', 'mealId'];
+const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
-const menuRetAttributes = ['id', 'date', 'restaurantId'];
-const restRetAttributes = ['id', 'name', 'email'];
+const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
+const restRetAttributes = ['id', 'name', 'phoneNumber', 'email'];
 
 /**
  * Create a menu
@@ -28,15 +29,15 @@ exports.create = function(req, res) {
   req.body.userId = req.user.id;
   req.body.date = new Date().toISOString();
   
-  if( !req.body.mealId) {
+  if( !req.body.menuId) {
       return res.status(400).send({
-        message: "Please include meal id"
+        message: "Please include menu id"
       });
   } else {
     Cart.create(req.body).then(function(cart) {
       if (!cart) {
-        return res.send('/', {
-          errors: 'Could not create the cart'
+        return res.status(400).send({
+          message: "Could not create the cart item"
         });
       } else {
         var ret = _.pick(cart, retAttributes);
@@ -59,21 +60,25 @@ exports.userList = function(req, res) {
   Cart.findAll({
     where: query,
     attributes: retAttributes,
-    include: [{
-      model: db.meal, 
-      attributes: mealRetAttributes,
+    include: {
+      model: db.menu,
+      attributes: menuRetAttributes,
       include: [{
-        model: db.menu, 
-        attributes: menuRetAttributes,
+        model: db.meal,
+        attributes: mealRetAttributes,        
+        include: {
+          model: db.mealinfo,
+          attributes: mealinfoRetAttributes
+        }
+      }, {
+        model: db.timeslot,
+        attributes: timeslotRetAttributes,
         include: {
           model: db.restaurant,
           attributes: restRetAttributes
         }
-      }, {
-        model: db.mealinfo,
-        attributes: mealinfoRetAttributes
       }]
-    }]
+    }
   }).then(function(carts) {
     if (!carts) {
       return res.status(404).send({
@@ -83,6 +88,7 @@ exports.userList = function(req, res) {
       res.json({carts: carts, message: "Cart items successfully found"});
     }
   }).catch(function(err) {
+    console.log(err);
     res.jsonp(err);
   });
 };
@@ -160,7 +166,20 @@ exports.cartByID = function(req, res, next, id) {
     where: {
       id: id
     },
-    include: [{model: db.meal, include: {model: db.menu, include: db.restaurant}}]
+    include: {
+      model: db.menu,
+      include: [{
+        model: db.meal,
+        include: {
+          model: db.mealinfo
+        }
+      }, {
+        model: db.timeslot,
+        include: {
+          model: db.restaurant
+        }
+      }]
+    }
   }).then(function(cart) {
     if (!cart) {
       return res.status(404).send({

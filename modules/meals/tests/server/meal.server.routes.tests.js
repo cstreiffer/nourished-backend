@@ -175,55 +175,55 @@ describe('/GET /api/meals endpoint', () => {
     chai.request(app)
       .get('/api/meals')
       // .set('Authorization', userJWT1)
-      .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T11:20:00Z"})
+      // .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-04T11:20:00Z"})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
-       res.body.meals.length.should.be.eql(3);
+       res.body.meals.length.should.be.eql(4);
        res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+       // res.body.meals[0].menu.should.not.have.property('userId');
+       // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
       });
   });
 
-  it('User with "user" role should get all meals filtered by restaurantId', (done) => {
-    chai.request(app)
-      .get('/api/meals')
-      // .set('Authorization', userJWT1)
-      .query({restaurantId: restaurant1.id})
-      .end((err, res) => {
-       res.body.meals.should.be.a('array');
-       res.body.meals[0].mealinfo.should.have.property('price');
-       res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
-       res.body.meals.length.should.be.eql(2);
-       res.body.should.have.property('message').eql('Meals successfully found');
-       res.should.have.status(200);
-       done();
-      });
-  });
+  // it('User with "user" role should get all meals filtered by restaurantId', (done) => {
+  //   chai.request(app)
+  //     .get('/api/meals')
+  //     // .set('Authorization', userJWT1)
+  //     .query({restaurantId: restaurant1.id})
+  //     .end((err, res) => {
+  //      res.body.meals.should.be.a('array');
+  //      res.body.meals[0].mealinfo.should.have.property('price');
+  //      res.body.meals[0].should.not.have.property('userId');
+  //      // res.body.meals[0].menu.should.not.have.property('userId');
+  //      // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+  //      res.body.meals.length.should.be.eql(2);
+  //      res.body.should.have.property('message').eql('Meals successfully found');
+  //      res.should.have.status(200);
+  //      done();
+  //     });
+  // });
 
-  it('User with "user" role should get all meals filtered by menuId', (done) => {
-    chai.request(app)
-      .get('/api/meals')
-      // .set('Authorization', userJWT1)
-      .query({menuId: menu1.id})
-      .end((err, res) => {
-       res.body.meals.should.be.a('array');
-       res.body.meals[0].mealinfo.should.have.property('price');
-       res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
-       res.body.meals.length.should.be.eql(1);
-       res.body.should.have.property('message').eql('Meals successfully found');
-       res.should.have.status(200);
-       done();
-      });
-  });
+//   it('User with "user" role should get all meals filtered by menuId', (done) => {
+//     chai.request(app)
+//       .get('/api/meals')
+//       // .set('Authorization', userJWT1)
+//       .query({menuId: menu1.id})
+//       .end((err, res) => {
+//        res.body.meals.should.be.a('array');
+//        res.body.meals[0].mealinfo.should.have.property('price');
+//        res.body.meals[0].should.not.have.property('userId');
+//        // res.body.meals[0].menu.should.not.have.property('userId');
+//        // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+//        res.body.meals.length.should.be.eql(1);
+//        res.body.should.have.property('message').eql('Meals successfully found');
+//        res.should.have.status(200);
+//        done();
+//       });
+//   });
 });
 
 describe('/GET /api/meals/:mealId endpoint', () => {
@@ -235,7 +235,7 @@ describe('/GET /api/meals/:mealId endpoint', () => {
   });
 
   it('User with "user" role should get single meal ', (done) => {
-    Meal.create({...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+    Meal.create({...meal1, id: uuid(), userId: restaurantId1}).then((meal) => {
       chai.request(app)
         .get('/api/meals/' + meal.id)
         // .set('Authorization', userJWT1)
@@ -251,7 +251,7 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
           res.body.meal.should.have.property('finalized');
-          res.body.meal.should.have.property('menuId');
+          // res.body.meal.should.have.property('menuId');
           res.body.meal.should.not.have.property('menu');
           res.body.meal.should.not.have.property('userId');
           res.should.have.status(200);
@@ -285,7 +285,7 @@ describe('/GET /api/meals/:mealId endpoint', () => {
           res.body.meal.should.have.property('imageURL');
           res.body.meal.should.have.property('mealinfoId');
           res.body.meal.should.have.property('visible');
-          res.body.meal.should.have.property('menuId');
+          // res.body.meal.should.have.property('menuId');
           res.body.meal.should.not.have.property('menu');
           res.body.meal.should.not.have.property('userId');
           res.should.have.status(200);
@@ -326,8 +326,8 @@ describe('/GET /api/rest/meals endpoint', () => {
        res.body.meals.should.be.a('array');
        res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+       // res.body.meals[0].menu.should.not.have.property('userId');
+       // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
        res.body.meals.length.should.be.eql(4);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
@@ -339,13 +339,13 @@ describe('/GET /api/rest/meals endpoint', () => {
     chai.request(app)
       .get('/api/rest/meals')
       .set('Authorization', restaurantJWT1)
-      .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-03T11:20:00Z", restaurantId: restaurant1.id})
+      // .query({startDate: "2020-04-01T11:30:00Z", endDate: "2020-04-03T11:20:00Z", restaurantId: restaurant1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
        res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+       // res.body.meals[0].menu.should.not.have.property('userId');
+       // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
        res.body.meals.length.should.be.eql(4);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
@@ -357,14 +357,14 @@ describe('/GET /api/rest/meals endpoint', () => {
     chai.request(app)
       .get('/api/rest/meals')
       .set('Authorization', restaurantJWT1)
-      .query({menuId: menu1.id})
+      // .query({menuId: menu1.id})
       .end((err, res) => {
        res.body.meals.should.be.a('array');
        res.body.meals[0].mealinfo.should.have.property('price');
        res.body.meals[0].should.not.have.property('userId');
-       res.body.meals[0].menu.should.not.have.property('userId');
-       res.body.meals[0].menu.restaurant.should.not.have.property('userId');
-       res.body.meals.length.should.be.eql(2);
+       // res.body.meals[0].menu.should.not.have.property('userId');
+       // res.body.meals[0].menu.restaurant.should.not.have.property('userId');
+       res.body.meals.length.should.be.eql(4);
        res.body.should.have.property('message').eql('Meals successfully found');
        res.should.have.status(200);
        done();
@@ -396,7 +396,7 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
         res.body.meal.should.have.property('imageURL');
         res.body.meal.should.have.property('mealinfoId');
         res.body.meal.should.have.property('visible');
-        res.body.meal.should.have.property('menuId');
+        // res.body.meal.should.have.property('menuId');
         res.body.meal.should.not.have.property('menu');
         res.body.meal.should.not.have.property('userId');
         res.should.have.status(200);
@@ -404,18 +404,18 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
       });
   });
 
-  it('User with "restaurant" role should NOT be able to create meal if they dont own menu', (done) => {
-    chai.request(app)
-      .post('/api/rest/meals')
-      .set('Authorization', restaurantJWT2)
-      .send({...meal1, menuId: menu1.id})
-      .end((err, res) => {
-        res.should.have.status(403);
-        res.body.should.have.property('message');
-        res.body.message.should.be.eql("User is not authorized");
-        done();
-      });
-  });
+  // it('User with "restaurant" role should NOT be able to create meal if they dont own menu', (done) => {
+  //   chai.request(app)
+  //     .post('/api/rest/meals')
+  //     .set('Authorization', restaurantJWT2)
+  //     .send({...meal1})
+  //     .end((err, res) => {
+  //       res.should.have.status(403);
+  //       res.body.should.have.property('message');
+  //       res.body.message.should.be.eql("User is not authorized");
+  //       done();
+  //     });
+  // });
 
     it('User with "restaurant" role should NOT be able to create meal', (done) => {
     chai.request(app)
@@ -448,7 +448,7 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Meal successfully updated');
-          res.body.meal.should.have.property('menuId').eql(menu2.id);
+          // res.body.meal.should.have.property('menuId').eql(menu2.id);
           res.body.meal.should.have.property('visible').eql(false);
           res.body.meal.should.have.property('name').eql("Chicken 2.0");
           res.body.meal.should.not.have.property('menu');
@@ -483,7 +483,7 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Meal successfully updated');
-          res.body.meal.should.have.property('menuId').eql(menu1.id);
+          // res.body.meal.should.have.property('menuId').eql(menu1.id);
           res.body.meal.should.have.property('visible').eql(true);
           res.body.meal.should.have.property('name').eql("Chicken 2.0");
           res.body.meal.should.have.property('mealinfoId');

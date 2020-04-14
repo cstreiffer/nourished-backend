@@ -6,7 +6,7 @@
  *        type: object
  *        required:
  *          - id
- *          - mealId
+ *          - menuId
  *          - userId
  *          - quantity
  *        properties:
@@ -19,7 +19,7 @@
  *          quantity:
  *            type: integer
  *            description: Quantity of the meal.
- *          mealId:
+ *          menuId:
  *            type: string
  *            description: UUID of the meal.
  *          userId:
@@ -87,11 +87,11 @@
  *              type: object
  *              required:
  *                - quantity
- *                - mealId
+ *                - menuId
  *              properties:
  *                quantity:
  *                  type: integer
- *                mealId:
+ *                menuId:
  *                  type: string
  *      responses:
  *        "200":

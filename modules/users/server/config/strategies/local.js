@@ -18,7 +18,6 @@ module.exports = function() {
       passwordField: 'id'
     },
     function(username, password, done) {
-      console.log('Username: ' + username);
       User.findOne({
         where: {
           id: username

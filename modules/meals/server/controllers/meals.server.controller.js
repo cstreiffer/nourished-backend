@@ -18,9 +18,9 @@ const {Op} = require('sequelize');
 
 // Define return
  // id | name | description | category | imageURL | price | minQuantity | maxQuantity | visible | finalized | createdAt | updatedAt | userId | menuId 
-const retAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'menuId', 'mealinfoId'];
-const menuRetAttributes = ['id', 'date', 'restaurantId'];
-const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const retAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId'];
+// const menuRetAttributes = ['id', 'date', 'restaurantId'];
+// const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 
 /**
@@ -29,20 +29,20 @@ const mealinfoRetAttributes = ['id', 'type', 'price'];
 exports.create = function(req, res) {
   delete req.body.id;
   delete req.body.imageURL;
+  delete req.body.price;
 
   req.body.id = uuid();
   req.body.userId = req.user.id;
 
   // Visibility checks
-  req.body.finalized = req.body.finalized || false;
-  req.body.visible = (req.body.visible && req.body.finalized) || false;
+  // req.body.finalized = req.body.finalized || false;
+  // req.body.visible = (req.body.visible && req.body.finalized) || false;
   
-  if(!req.body.menuId || !req.body.mealinfoId) {
+  if(!req.body.mealinfoId) {
       return res.status(400).send({
-        message: "Please include menu/meal info id"
+        message: "Please include meal info id"
       });
   } else {
-    req.body.menuId = req.menu.id;
     Meal.create(req.body).then(function(meal) {
       if (!meal) {
         return res.send('/', {
@@ -80,22 +80,24 @@ exports.update = function(req, res) {
 
   // Unfinalized to update these values
   if(!meal.finalized) {
-    updateBuilder.mealinfoId = req.body.mealinfoId;
-    updateBuilder.menuId = req.body.menuId;
-    updateBuilder.minQuantity = req.body.minQuantity;
-    updateBuilder.maxQuantity = req.body.maxQuantity;
-    updateBuilder.finalized = req.body.finalized || false;
+    // updateBuilder.mealinfoId = req.body.mealinfoId;
+    // updateBuilder.menuId = req.body.menuId;
+    // updateBuilder.minQuantity = req.body.minQuantity;
+    // updateBuilder.maxQuantity = req.body.maxQuantity;
+    // updateBuilder.finalized = req.body.finalized || false;
   }
 
   // Finalized to update this value
-  if(meal.finalized) {
-    updateBuilder.visible = req.body.visible;
-  }
+  // if(meal.finalized) {
+  //   updateBuilder.visible = req.body.visible;
+  // }
 
   // Values okay to update
   updateBuilder.name = req.body.name;
   updateBuilder.description = req.body.description;
-  updateBuilder.category = req.body.category;
+  updateBuilder.allergens = req.body.allergens;
+  updateBuilder.dietaryRestrictions = req.body.dietaryRestrictions;
+  // updateBuilder.mealinfoId = req.body.mealinfoId;
 
   meal.update(updateBuilder).then(function(meal) {
     var ret = _.pick(meal, retAttributes);
@@ -226,30 +228,38 @@ var formatDate = function(query) {
  */
 exports.list = function(req, res) {
   var query = {finalized: true};
-  if(req.query.menuId) query.menuId = req.query.menuId;
-  if(req.query.category) query.category = req.query.category;
-  if(req.query.price) query.price = req.query.price;
-  if(req.query.name) query.name = req.query.name;
-  if(req.query.visible) query.visible = req.query.visible;
+  // if(req.query.menuId) query.menuId = req.query.menuId;
+  // if(req.query.category) query.category = req.query.category;
+  // if(req.query.price) query.price = req.query.price;
+  // if(req.query.name) query.name = req.query.name;
+  // if(req.query.visible) query.visible = req.query.visible;
 
-  var menuQuery = {};
-  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+  // var menuQuery = {};
+  // if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
 
-  var restQuery = {};
-  if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
+  // var restQuery = {};
+  // if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
 
+  // Meal.findAll({
+  //   where: query,
+  //   include: [{
+  //     model: db.menu, 
+  //     where: menuQuery, 
+  //     attributes: menuRetAttributes,
+  //     include: {
+  //       model: db.restaurant, 
+  //       where: restQuery,
+  //       attributes: restRetAttributes
+  //     }
+  //   },{
+  //     model: db.mealinfo,
+  //     attributes: mealinfoRetAttributes
+  //   }],
+  //   attributes: retAttributes
+  // }).then(function(meals) {
   Meal.findAll({
     where: query,
     include: [{
-      model: db.menu, 
-      where: menuQuery, 
-      attributes: menuRetAttributes,
-      include: {
-        model: db.restaurant, 
-        where: restQuery,
-        attributes: restRetAttributes
-      }
-    },{
       model: db.mealinfo,
       attributes: mealinfoRetAttributes
     }],
@@ -273,29 +283,37 @@ exports.list = function(req, res) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
-  if(req.query.menuId) query.menuId = req.query.menuId;
-  if(req.query.category) query.category = req.query.category;
-  if(req.query.name) query.name = req.query.name;
-  if(req.query.visible) query.visible = req.query.visible;
+  // if(req.query.menuId) query.menuId = req.query.menuId;
+  // if(req.query.category) query.category = req.query.category;
+  // if(req.query.name) query.name = req.query.name;
+  // if(req.query.visible) query.visible = req.query.visible;
 
-  var menuQuery = {};
-  if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
+  // var menuQuery = {};
+  // if(req.query.startDate || req.query.endDate) menuQuery.date = formatDate(req.query);
 
-  var restQuery = {};
-  if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
+  // var restQuery = {};
+  // if(req.query.restaurantId) restQuery.id = req.query.restaurantId;
 
+  // Meal.findAll({
+  //   where: query,
+  //   include: [{
+  //     model: db.menu, 
+  //     where: menuQuery, 
+  //     attributes: menuRetAttributes,
+  //     include: {
+  //       model: db.restaurant, 
+  //       where: restQuery,
+  //       attributes: restRetAttributes
+  //     }
+  //   },{
+  //     model: db.mealinfo,
+  //     attributes: mealinfoRetAttributes
+  //   }],
+  //   attributes: retAttributes
+  // }).then(function(meals) {
   Meal.findAll({
     where: query,
     include: [{
-      model: db.menu, 
-      where: menuQuery, 
-      attributes: menuRetAttributes,
-      include: {
-        model: db.restaurant, 
-        where: restQuery,
-        attributes: restRetAttributes
-      }
-    },{
       model: db.mealinfo,
       attributes: mealinfoRetAttributes
     }],
@@ -322,7 +340,7 @@ exports.mealByID = function(req, res, next, id) {
     where: {
       id: id
     },
-    include: [{model: db.menu, include: db.restaurant}, {model: db.mealinfo}]
+    include: [{model: db.mealinfo}]
   }).then(function(meal) {
     if (!meal) {
       return res.status(404).send({

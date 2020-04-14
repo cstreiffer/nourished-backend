@@ -7,7 +7,8 @@
  *        required:
  *          - id
  *          - name
- *          - menuId 
+ *          - mealinfoId 
+ *          - userId 
  *        properties:
  *          id:
  *            type: string
@@ -37,10 +38,10 @@
  *            type: boolean
  *            description: Set to FALSE if meal can be updated/deleted. Set to TRUE by default. 
  *          userId:
- *            type: boolean
+ *            type: string
  *            description: ID of the user who created the meal. Should not be returned.  
- *          menuId:
- *            type: boolean
+ *          mealinfoId:
+ *            type: string
  *            description: ID of the menu the meal is attached to. Menu contains the timeslot information. 
  *      MealInfo:
  *        type: object
@@ -124,19 +125,21 @@
  *              type: object
  *              required:
  *                - name
- *                - menuId
+ *                - mealinfoId
  *              properties:
  *                name:
  *                  type: string
  *                description:
  *                  type: string
- *                category:
+ *                allergens:
+ *                  type: string
+ *                dietaryRestrictions:
  *                  type: string
  *                visible:
  *                  type: boolean
  *                finalized:
  *                  type: boolean
- *                menuId:
+ *                mealinfoId:
  *                  type: string
  *      responses:
  *        "200":
@@ -169,13 +172,15 @@
  *                  type: string
  *                description:
  *                  type: string
- *                category:
+ *                allergens:
+ *                  type: string
+ *                dietaryRestrictions:
  *                  type: string
  *                visible:
  *                  type: boolean
  *                finalized:
  *                  type: boolean
- *                menuId:
+ *                mealinfoId:
  *                  type: string
  *      responses:
  *        "200":
@@ -229,7 +234,7 @@
  *      tags: [Meals]
  *      responses:
  *        "200":
- *          description: A list of meal schemas
+ *          description: A list of meal info schemas
  *          content:
  *            application/json:
  *              schema:

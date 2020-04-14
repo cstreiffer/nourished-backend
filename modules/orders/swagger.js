@@ -7,7 +7,7 @@
  *        required:
  *          - id
  *          - quantity
- *          - mealId
+ *          - menuId
  *          - hospitalId
  *          - userId
  *          - groupId
@@ -18,9 +18,9 @@
  *          quantity:
  *            type: string
  *            description: Number of meals included in order entry.
- *          mealId:
+ *          menuId:
  *            type: string
- *            description: UUID of meal.
+ *            description: UUID of menu.
  *          hospitalId:
  *            type: string
  *            description: UUID of hospital location. 
@@ -69,11 +69,11 @@
  *                  items:
  *                    type: object
  *                    required:
- *                      - mealId
+ *                      - menuId
  *                      - quantity
  *                      - hospitalId
  *                    properties:
- *                      mealId:
+ *                      menuId:
  *                        type: string
  *                      quantity:
  *                        type: integer
@@ -168,7 +168,7 @@
  *                $ref: '#/components/schemas/Order'
  *  /user/orders/status:
  *    put:
- *      summary: Updates user status. Applies update to either orderIds, groupId, or mealId. 
+ *      summary: Updates user status. Applies update to either orderIds or menuIds. 
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -187,10 +187,10 @@
  *                  type: array
  *                  items:
  *                    type: string
- *                groupId:
- *                  type: string
- *                mealId:
- *                  type: string
+ *                menuIds:
+ *                  type: array
+ *                  items:
+ *                    type: string
  *      responses:
  *        "200":
  *          description: Get order
@@ -213,7 +213,7 @@
  *                $ref: '#/components/schemas/Order'
  *  /rest/orders/status:
  *    put:
- *      summary: Updates restaurant status. Applies update to either orderIds, mealIds, or menuId. 
+ *      summary: Updates restaurant status. Applies update to either orderIds or menuIds. 
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -232,12 +232,10 @@
  *                  type: array
  *                  items:
  *                    type: string
- *                mealIds:
+ *                menuIds:
  *                  type: array
  *                  items:
  *                    type: string
- *                menuId:
- *                  type: string
  *      responses:
  *        "200":
  *          description: Get order

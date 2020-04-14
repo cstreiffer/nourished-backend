@@ -39,7 +39,7 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     .get(meals.userList) // Restaurant/User get (Good)
-    .all(mealsPolicy.isValidMenu)
+    // .all(mealsPolicy.isValidMenu)
     .post(meals.create); // Restaurant create (Good)
 
   // Restaurant 
