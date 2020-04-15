@@ -34,7 +34,14 @@ exports.createPaymentIntent = function(req, res) {
   stripe.paymentIntents.create({
     amount: calculateOrderAmount(req.orders),
     currency: 'usd',
-    payment_method_types: ['card']
+    payment_method_types: ['card'],
+    metadata: {
+      userId: req.user.id,
+      email: req.user.email,
+      phoneNumber: req.user.phoneNumber,
+      fullName: req.user.fullName,
+      orderId: req.groupId,
+    }
   }).then(function(paymentIntent) {
     // Store the order in the db
     Stripe.create({
@@ -42,7 +49,7 @@ exports.createPaymentIntent = function(req, res) {
       userId: req.user.id,
       groupId: req.groupId,
       paymentIntentId: paymentIntent.id,
-      amount: orderAmount
+      amount: orderAmount,
     }).then(function(stripeorder) {
       var ret = _.pick(stripeorder, retAttributes);
       res.json({
