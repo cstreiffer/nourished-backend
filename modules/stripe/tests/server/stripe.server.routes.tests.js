@@ -141,88 +141,88 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
   });
 });
 
-// describe('/GET /user/stripe', () => {
+describe('/GET /user/stripe', () => {
   
-//   // Clear the database
-//   beforeEach(function(done) {
-//     Stripe.destroy({where: {}})
-//       .then(function(){done()})
-//   });
+  // Clear the database
+  beforeEach(function(done) {
+    Stripe.destroy({where: {}})
+      .then(function(){done()})
+  });
 
-//   it('User with "user" role should be able to create payment intent for their order', (done) => {
-//     var stripes = [
-//       {id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 105},
-//       {id: uuid(), userId: user2.id, groupId: group2.id, paymentIntentId: "test", amount: 106},
-//       {id: uuid(), userId: user1.id, groupId: group3.id, paymentIntentId: "test", amount: 105},
-//       {id: uuid(), userId: user2.id, groupId: group4.id, paymentIntentId: "test", amount: 106},
-//     ];
-//     Stripe.bulkCreate(stripes).then(function(stripes) {
-//       chai.request(app)
-//         .get('/api/user/stripe')
-//         .set('Authorization', userJWT1)
-//         .end((err, res) => {
-//           res.should.have.status(200);
-//           res.body.should.be.a('object');
-//           res.body.should.have.property('message').eql('Stripe entries successfully found');
-//           res.body.stripeorders[0].should.not.have.property('userId');
-//           res.body.stripeorders[0].should.have.property('groupId').eql(group1.id);
-//           res.body.stripeorders[0].should.have.property('amount').eql(105);
-//           res.body.stripeorders.should.be.a('array');
-//           res.body.stripeorders.length.should.be.eql(2);
-//           done();
-//         });
-//     });
-//   });
-// });
+  it('User with "user" role should be able to create payment intent for their order', (done) => {
+    var stripes = [
+      {id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 105},
+      {id: uuid(), userId: user2.id, groupId: group2.id, paymentIntentId: "test", amount: 106},
+      {id: uuid(), userId: user1.id, groupId: group3.id, paymentIntentId: "test", amount: 105},
+      {id: uuid(), userId: user2.id, groupId: group4.id, paymentIntentId: "test", amount: 106},
+    ];
+    Stripe.bulkCreate(stripes).then(function(stripes) {
+      chai.request(app)
+        .get('/api/user/stripe')
+        .set('Authorization', userJWT1)
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Stripe entries successfully found');
+          res.body.stripeorders[0].should.not.have.property('userId');
+          res.body.stripeorders[0].should.have.property('groupId').eql(group1.id);
+          res.body.stripeorders[0].should.have.property('amount').eql(105);
+          res.body.stripeorders.should.be.a('array');
+          res.body.stripeorders.length.should.be.eql(2);
+          done();
+        });
+    });
+  });
+});
 
-// describe('/GET /api/user/stripe/:stripeId', () => {
+describe('/GET /api/user/stripe/:stripeId', () => {
   
-//   // Clear the database
-//   beforeEach(function(done) {
-//     Stripe.destroy({where: {}})
-//       .then(function(){done()})
-//   });
+  // Clear the database
+  beforeEach(function(done) {
+    Stripe.destroy({where: {}})
+      .then(function(){done()})
+  });
 
-//   it('User with "user" role should be able to create payment intent for their order', (done) => {
-//     chai.request(app)
-//       .post('/api/stripe/create-payment-intent')
-//       .set('Authorization', userJWT1)
-//       .send({groupId: group1.id})
-//       .end((err, res) => {
-//             chai.request(app)
-//             .get('/api/user/stripe/' + res.body.stripeorder.id)
-//             .set('Authorization', userJWT1)
-//             .end((err, res) => {
-//               res.should.have.status(200);
-//               res.body.should.be.a('object');
-//               res.body.should.have.property('message').eql('Payment intent successfully created');
-//               res.body.should.not.have.property('userId');
-//               res.body.should.have.property('publishableKey');
-//               res.body.should.have.property('clientSecret');
-//               res.body.should.have.property('stripeorder');
-//               res.body.stripeorder.should.not.have.property('userId');
-//               res.body.stripeorder.should.not.have.property('paymentIntentId');
-//               res.body.stripeorder.should.have.property('groupId');
-//               res.body.stripeorder.should.have.property('amount').equal(5230);
-//               done();
-//             });
-//       });
-//   });
+  it('User with "user" role should be able to create payment intent for their order', (done) => {
+    chai.request(app)
+      .post('/api/stripe/create-payment-intent')
+      .set('Authorization', userJWT1)
+      .send({groupId: group1.id})
+      .end((err, res) => {
+            chai.request(app)
+            .get('/api/user/stripe/' + res.body.stripeorder.id)
+            .set('Authorization', userJWT1)
+            .end((err, res) => {
+              res.should.have.status(200);
+              res.body.should.be.a('object');
+              res.body.should.have.property('message').eql('Payment intent successfully created');
+              res.body.should.not.have.property('userId');
+              res.body.should.have.property('publishableKey');
+              res.body.should.have.property('clientSecret');
+              res.body.should.have.property('stripeorder');
+              res.body.stripeorder.should.not.have.property('userId');
+              res.body.stripeorder.should.not.have.property('paymentIntentId');
+              res.body.stripeorder.should.have.property('groupId');
+              res.body.stripeorder.should.have.property('amount').equal(5230);
+              done();
+            });
+      });
+  });
 
-//   it('User with "user" role should NOT be able to get payment they didnt create', (done) => {
-//     Stripe.create({id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
-//       chai.request(app)
-//         .get('/api/user/stripe/' + stripe.id)
-//         .set('Authorization', userJWT2)
-//         .end((err, res) => {
-//           res.should.have.status(403);
-//           res.body.should.be.a('object');
-//           res.body.should.have.property('message').eql('User is not authorized');
-//           done();
-//         });
-//     });
-//   });
-// });
+  it('User with "user" role should NOT be able to get payment they didnt create', (done) => {
+    Stripe.create({id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
+      chai.request(app)
+        .get('/api/user/stripe/' + stripe.id)
+        .set('Authorization', userJWT2)
+        .end((err, res) => {
+          res.should.have.status(403);
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('User is not authorized');
+          done();
+        });
+    });
+  });
+});
 
 
 after(function(done) {
