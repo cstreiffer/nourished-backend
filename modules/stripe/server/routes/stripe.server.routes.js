@@ -18,7 +18,7 @@ module.exports = function(app) {
     .get(stripe.userList); // Good
 
   // Single stripe routes
-  app.route('/api/user/:stripeId')
+  app.route('/api/user/stripe/:stripeId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(stripePolicy.isAllowed)
     .get(stripe.read); // Good
@@ -42,17 +42,26 @@ module.exports = function(app) {
 
   app.route('/api/stripe/checkout')
     .all(passport.authenticate('jwt', {session: false}))
-    .get(stripe.checkout) // Good
+    .get(stripe.checkout); // Good
 
-  app.route('/api/stripe/create-payment-intent/:groupId')
+  if (process.env.NODE_ENV === 'development') {
+    app.route('/api/stripe/create-payment-intent')
     .all(passport.authenticate('jwt', {session: false}))
-    .post(stripe.createPaymentIntent) // Good
+      .all(stripePolicy.isOrderPaymentAllowed)
+      .post(stripe.createPaymentIntent); // Good
+  } else {
+    app.route('/api/stripe/create-payment-intent')
+      .all(passport.authenticate('jwt', {session: false}))
+      .all(stripePolicy.isNewOrder)
+      .all(stripePolicy.isOrderPaymentAllowed)
+      .post(stripe.createPaymentIntent); // Good
+  }
 
   app.route('/api/stripe/webhook')
     .all(passport.authenticate('jwt', {session: false}))
-    .post(stripe.webhook) // Goods  
+    .post(stripe.webhook); // Goods  
 
   // Finish by binding the stripe middleware
-  app.param('groupId', stripe.orderByGroupId);
+  // app.param('groupId', stripe.orderByGroupId);
 
 };

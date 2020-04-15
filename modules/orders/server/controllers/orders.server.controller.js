@@ -59,9 +59,9 @@ exports.create = function(req, res) {
           userId: req.user.id
         }
       }).then(function() {
-        return res.jsonp({orders: ret, message: "Orders successfully created"});
+        return res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully created"});
       }).catch(function(err) {
-        return res.jsonp({orders: ret, message: "Orders successfully created. Error deleting cart."});
+        return res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully created. Error deleting cart."});
       });
     };
   }).catch(function(err) {
@@ -86,21 +86,22 @@ exports.update = function(req, res) {
   // For each, set same date, set same groupId, set individual id, set userId
   var updateOrders = {};
   req.body.orders.map((order)=> updateOrders[order.id] = order);
-
+  var groupId = '';
   var orders = req.orders.map((order) => {
     var order = order.toJSON();
     var ord = updateOrders[order.id];
     order.information = ord.information ? ord.information : order.information;
     order.quantity = ord.quantity ? ord.quantity : order.quantity;
     order.hospitalId = ord.hospitalId ? ord.hospitalId : order.hospitalId;
+    groupId = order.groupId;
     return order;
   });
 
   // TO DO -- SEND OUT EMAIL!!!
 
-  Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId", "userStatus"]}).then(function() {
+  Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId"]}).then(function() {
     var ret = orders.map((order)=> _.pick(order, retAttributes));
-    res.jsonp({orders: ret, message: "Orders successfully updated"});
+    res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully updated"});
   }).catch(function(err) {
     console.log(err);
     return res.status(400).send({

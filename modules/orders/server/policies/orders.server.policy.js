@@ -73,7 +73,6 @@ var isMenuFinalized = function(menu) {
 /**
  * Check If All Orders are Good
  */
-
 exports.isCreateOrderAllowed = function(req, res, next) {
   if(req.body.orders) {
     var menuIds = req.body.orders.map((order) => order.menuId);

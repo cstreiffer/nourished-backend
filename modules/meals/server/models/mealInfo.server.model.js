@@ -21,7 +21,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ''
     },
     price: {
-      type: DataTypes.DECIMAL,
+      type: DataTypes.DECIMAL(10,2),
       defaultValue: 5.00
     },
     time: {

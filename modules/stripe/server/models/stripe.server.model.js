@@ -21,10 +21,15 @@ module.exports = function(sequelize, DataTypes) {
     groupId: {
       type: DataTypes.UUID,
       allowNull: false,
+      unique: true
     },
     paymentIntentId: {
       type: DataTypes.STRING,
-      defaultValue: ''
+      allowNull: false,
+    },
+    amount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
     }
   }, {
     associate: function(models) {
