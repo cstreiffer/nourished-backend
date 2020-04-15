@@ -57,9 +57,16 @@ module.exports = function(sequelize, DataTypes) {
         isValid: validatePhoneNumber
       }
     },
-    email: {
+    description: {
       type: DataTypes.STRING,
       defaultValue: ''
+    },
+    email: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+      validate: {
+        isValid: validateEmail
+      }
     },
     streetAddress: {
       type: DataTypes.STRING,

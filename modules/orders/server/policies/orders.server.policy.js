@@ -6,7 +6,7 @@ var
   acl = require('acl'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Order = db.order,
-  Meal = db.meal;
+  Menu = db.menu;
 
 /**
  * Module dependencies.
@@ -61,13 +61,13 @@ exports.invokeRolesPolicies = function() {
  * Check If Menu Policy Allows 
  */
 
-var isTimeValid = function(meal) {
+var isTimeValid = function(menu) {
   var time = new Date(new Date().getTime() + config.orderTimeCutoff);
-  return time < new Date(meal.menu.date);
+  return time < new Date(menu.timeslot.date);
 };
 
-var isMealFinalized = function(meal) {
-  return meal.finalized;
+var isMenuFinalized = function(menu) {
+  return menu.finalized;
 };
 
 /**
@@ -76,23 +76,23 @@ var isMealFinalized = function(meal) {
 
 exports.isCreateOrderAllowed = function(req, res, next) {
   if(req.body.orders) {
-    var orderMeals = req.body.orders.map((order) => order.mealId);
-    Meal.findAll({
+    var menuIds = req.body.orders.map((order) => order.menuId);
+    Menu.findAll({
       where: {
-        id: orderMeals
+        id: menuIds
       },
-      include: db.menu
-    }).then((meals) => {
+      include: db.timeslot
+    }).then((menus) => {
       // console.log(meals);
-      if(meals && meals.length === new Set(orderMeals).size) {
-        var validation = meals.map((meal) => isMealFinalized(meal) && isTimeValid(meal));
+      if(menus && menus.length === new Set(menuIds).size) {
+        var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu));
         if(validation.every((v) => v)) {
           return next();
         } else {
           return res.status(400).json({message: "Invalid order"});
         }
       } else {
-        return res.status(400).json({message: "Invalid meal IDs"});
+        return res.status(400).json({message: "Invalid menu IDs"});
       }
     }).catch((err) => {
       console.log(err);
@@ -105,7 +105,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
 
 exports.isUpdateOrderAllowed = function(req, res, next) {
   if(req.orders) {
-    var validation = req.orders.map((order) => isMealFinalized(order.meal) && isTimeValid(order.meal));
+    var validation = req.orders.map((order) => isMenuFinalized(order.menu) && isTimeValid(order.menu));
     if(validation.every((v) => v)) {
       return next();
     } else {
@@ -123,7 +123,7 @@ exports.isUserOrderAllowed = function(req, res, next) {
       where: {
         id: orderIds
       },
-      include: {model: db.meal, include: db.menu}
+      include: {model: db.menu, include: db.timeslot}
     }).then((orders) => {
       if(orders && orders.length === new Set(orderIds).size) {
         var validation = orders.map((order) => order.userId === req.user.id);
@@ -147,10 +147,10 @@ exports.isUserOrderAllowed = function(req, res, next) {
 
 exports.isFormatAllowed = function(req, res, next) {
   if(req.body.orders) {
-    if(req.body.orders.every(order => order.hospitalId && order.mealId)) {
+    if(req.body.orders.every(order => order.hospitalId && order.menuId && order.quantity)) {
       next();
     } else {
-      return res.status(400).json({message: 'Please include hospital and meal ids in every order'});
+      return res.status(400).json({message: 'Please include hospital id, menu id, and/or quantity in every order'});
     }
   } else {
     return res.status(400).json({message: 'Please include list of orders'});

@@ -11,7 +11,9 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
   Menu = db.menu,
+  Meal = db.meal,
   Restaurant = db.restaurant,
+  TimeSlot = db.timeslot,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
   should = chai.should();
@@ -30,7 +32,14 @@ var
   restaurantCredentials2 = {id: uuid(), username: "testuser1", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7327", firstName: 'Chris', account_type: 'restaurant'},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu = {date: "2020-04-05T18:00:00Z"};
+  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false},
+  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true},
+  m1 = {...meal1, userId: restaurantCredentials1.id, id: uuid()},
+  m2 = {...meal1, userId: restaurantCredentials2.id, id: uuid()},
+  m3 = {...meal2, userId: restaurantCredentials1.id, id: uuid()},
+  m4 = {...meal2, userId: restaurantCredentials2.id, id: uuid()};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -45,7 +54,7 @@ before((done) => {
       restaurantId1 = res.body.user.id;
 	    restaurantJWT1 = "bearer " + res.body.token;
 	    done();
-	  });
+	  }).catch((err) => {console.log(err)});
 });
 
 before((done) => {  
@@ -56,7 +65,7 @@ before((done) => {
       restaurantId2 = res.body.user.id;
 	    restaurantJWT2 = "bearer " + res.body.token;
 	    done();
-	  });
+	  }).catch((err) => {console.log(err)});
 });
 
 before((done) =>{
@@ -66,18 +75,45 @@ before((done) =>{
     .then(() => {done();});
 });
 
+before((done) =>{
+  TimeSlot.bulkCreate([timeslot1, timeslot2])
+    .then(() => {done();}).catch((err) => {console.log("One, " + err)});
+});
+
+before((done) =>{
+  Meal.bulkCreate([m1, m2, m3, m4])
+    .then(() => {done();}).catch((err) => {console.log("Two, " + err)});
+});
+
+describe('/GET /api/timeslots endpoint', () => {
+
+  it('User with "user" role should get menus', (done) => {
+    chai.request(app)
+      .get('/api/user/timeslots')
+      .set('Authorization', restaurantJWT1)
+      .end((err, res) => {
+       res.body.timeslots.should.be.a('array');
+       res.body.timeslots[0].should.not.have.property('userId');
+       res.body.timeslots.length.should.be.eql(1);
+       res.body.should.have.property('message').eql('Timeslots successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+});
+
 describe('/GET /api/menus endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
-    var menu1 = {...menu, restaurantId: restaurant1.id, id: uuid(), userId: restaurantId1};
-    var menu2 = {...menu, restaurantId: restaurant2.id, id: uuid(), userId: restaurantId2};
+    var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
+    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
 
     Menu.destroy({where: {}})
       .then(function(){
         Menu.bulkCreate([menu1, menu2], {returning: true}).then(function(menus) {
           done();
-        });
+        }).catch((err)=> {console.log(err)});
       });
   });
 
@@ -87,7 +123,8 @@ describe('/GET /api/menus endpoint', () => {
       .end((err, res) => {
        res.body.menus.should.be.a('array');
        res.body.menus[0].should.not.have.property('userId');
-       res.body.menus[0].restaurant.should.not.have.property('userId');
+       res.body.menus[0].timeslot.should.not.have.property('userId');
+       res.body.menus[0].meal.should.not.have.property('userId');
        res.body.menus.length.should.be.eql(2);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -100,8 +137,8 @@ describe('/GET /api/rest/menus endpoint', () => {
   
   // Clear the database
   beforeEach(function(done) {
-    var menu1 = {...menu, restaurantId: restaurant1.id, id: uuid(), userId: restaurantId1};
-    var menu2 = {...menu, restaurantId: restaurant2.id, id: uuid(), userId: restaurantId2};
+    var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
+    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
 
     Menu.destroy({where: {}})
     	.then(function(){
@@ -119,7 +156,8 @@ describe('/GET /api/rest/menus endpoint', () => {
       .end((err, res) => {
        res.body.menus.should.be.a('array');
        res.body.menus[0].should.not.have.property('userId');
-       res.body.menus[0].should.not.have.property('restaurant');
+       res.body.menus[0].timeslot.should.not.have.property('userId');
+       res.body.menus[0].meal.should.not.have.property('userId');
        res.body.menus.length.should.be.eql(1);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -136,7 +174,8 @@ describe('/GET /api/rest/menus endpoint', () => {
       .end((err, res) => {
          res.body.menus.should.be.a('array');
          res.body.menus[0].should.not.have.property('userId');
-         res.body.menus[0].should.not.have.property('restaurant');
+         res.body.menus[0].timeslot.should.not.have.property('userId');
+         res.body.menus[0].meal.should.not.have.property('userId');
          res.body.menus.length.should.be.eql(1);
          res.body.should.have.property('message').eql('Menus successfully found');
          res.should.have.status(200);
@@ -157,16 +196,39 @@ describe('/POST /api/rest/menus endpoint', () => {
     chai.request(app)
       .post('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
-      .send({...menu, restaurantId: restaurant1.id})
+      .send({timeslotId: timeslot1.id, mealId: m1.id})
       .end((err, res) => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Menu successfully created');
         res.body.menu.should.have.property('id');
-        res.body.menu.should.have.property('date');
-        res.body.menu.should.have.property('restaurantId');
         res.body.menu.should.not.have.property('userId');
-        res.body.menu.should.not.have.property('restaurant');
+        res.body.menu.should.not.have.property('timeslot');
+        res.body.menu.should.not.have.property('meal');
         res.should.have.status(200);
+        done();
+      });
+  });
+
+  it('User with "restaurant" role should get their menus', (done) => {
+    chai.request(app)
+      .post('/api/rest/menus')
+      .set('Authorization', restaurantJWT1)
+      .send({timeslotId: timeslot2.id, mealId: m1.id})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.should.have.status(403);
+        done();
+      });
+  });
+
+  it('User with "restaurant" role should get their menus', (done) => {
+    chai.request(app)
+      .post('/api/rest/menus')
+      .set('Authorization', restaurantJWT1)
+      .send({timeslotId: timeslot1.id, mealId: m2.id})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.should.have.status(403);
         done();
       });
   });
@@ -181,19 +243,18 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   });
 
   it('User with "restaurant" role should should be able to update their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: false}).then((menu) => {
       chai.request(app)
         .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
-        .send({date: "2020-04-05T13:30:30Z"})
+        .send({finalized: true})
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully updated');
-          res.body.menu.should.have.property('id').eql(menu.id);
-          res.body.menu.should.have.property('date').eql("2020-04-05T13:30:30.000Z");
-          res.body.menu.should.have.property('restaurantId').eql(restaurant1.id);
+          res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
-          res.body.menu.should.not.have.property('restaurant');
+          res.body.menu.should.not.have.property('timeslot');
+          res.body.menu.should.not.have.property('meal');
           res.should.have.status(200);
           done();
         });
@@ -201,11 +262,11 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   });
 
   it('User with "restaurant" role should should be able to user other restaurants ID for their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: true}).then((menu) => {
       chai.request(app)
         .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
-        .send({date: "2020-04-05 13:30:30", restaurantId: restaurant2.id})
+        .send({finalized: false})
         .end((err, res) => {
           res.should.have.status(403);
           res.body.should.have.property('message');
@@ -215,13 +276,12 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
     });
   });
 
-
-  it('User with "restaurant" role who does not own restaurant/menu should NOT be able to update', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+  it('User with "restaurant" role should should be able to user other restaurants ID for their menu', (done) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: true}).then((menu) => {
       chai.request(app)
         .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
-        .send({date: "2020-04-05 13:30:30", id: restaurant1.id, restaurantId: restaurant2.id})
+        .send({finalized: false})
         .end((err, res) => {
           res.should.have.status(403);
           res.body.should.have.property('message');
@@ -241,18 +301,17 @@ describe('/GET /api/rest/menus/:menuId endpoint', () => {
   });
 
   it('User with "restaurant" role should should be able to get their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1}).then((menu) => {
       chai.request(app)
         .get('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully found');
-          res.body.menu.should.have.property('id').eql(menu.id);
-          res.body.menu.should.have.property('date').eql("2020-04-05T18:00:00.000Z");
-          res.body.menu.should.have.property('restaurantId').eql(menu.restaurantId);
+          res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
-          res.body.menu.should.not.have.property('restaurant');
+          res.body.menu.should.not.have.property('timeslot');
+          res.body.menu.should.not.have.property('meal');
           res.should.have.status(200);
           done();
         });
@@ -260,7 +319,7 @@ describe('/GET /api/rest/menus/:menuId endpoint', () => {
   });
 
   it('User with "restaurant" role should who doesnt own menu should NOT be able to get their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: true}).then((menu) => {
       chai.request(app)
         .get('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
@@ -272,6 +331,7 @@ describe('/GET /api/rest/menus/:menuId endpoint', () => {
         });
     });
   });
+
 });
 
 describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
@@ -282,24 +342,26 @@ describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
       .then(function(){done();});
   });
 
-  it('User with "restaurant" role should should be able to delete their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+  it('User with "restaurant" role should should be able to get their menu', (done) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: false}).then((menu) => {
       chai.request(app)
         .delete('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully deleted');
+          res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
-          res.body.menu.should.not.have.property('restaurant');
+          res.body.menu.should.not.have.property('timeslot');
+          res.body.menu.should.not.have.property('meal');
           res.should.have.status(200);
           done();
         });
     });
   });
 
-  it('User with "restaurant" role should who doesnt own menu should NOT be able to delete their menu', (done) => {
-    Menu.create({...menu, id: uuid(), restaurantId : restaurant1.id, userId: restaurantId1}).then((menu) => {
+  it('User with "restaurant" role should who doesnt own menu should NOT be able to get their menu', (done) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1}).then((menu) => {
       chai.request(app)
         .delete('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT2)
@@ -327,6 +389,12 @@ after(function(done) {
   Menu.destroy({where: {}})
   .then(function(){done()})
 });
+
+after(function(done) {
+  Meal.destroy({where: {}})
+  .then(function(){done()})
+});
+
 
 after(function(done) {
   stop();

@@ -31,8 +31,8 @@
  *          dropoffInfo:
  *            type: string
  * tags:
- *   name: Users
- *   description: User management
+ *   name: Hospitals
+ *   description: Hospital management
  * path:
  *  /hospitals/:
  *    get:

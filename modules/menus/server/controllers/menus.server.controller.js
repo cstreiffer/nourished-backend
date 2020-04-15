@@ -14,8 +14,11 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'date', 'restaurantId'];
-const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const retAttributes = ['id', 'mealId', 'timeslotId'];
+const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const mealRetAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId'];
+const mealinfoRetAttributes = ['id', 'type', 'price'];
+const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
 
 /**
  * Create a menu
@@ -25,16 +28,17 @@ exports.create = function(req, res) {
   req.body.id = uuid();
   req.body.userId = req.user.id;
   
-  if( !req.body.restaurantId) {
+  if( !req.body.timeslotId || !req.body.mealId) {
       return res.status(400).send({
-        message: "Please include restaurant id"
+        message: "Please include timeslot/meal id"
       });
   } else {
-    req.body.restaurantId = req.restaurant.id;
+    req.body.mealId = req.meal.id;
+    req.body.timeslotId = req.timeslot.id;
     Menu.create(req.body).then(function(menu) {
       if (!menu) {
-        return res.send('/', {
-          errors: 'Could not create the menu'
+        return res.status(400).send({
+          message: "Could not create the menu item"
         });
       } else {
         var ret = _.pick(menu, retAttributes);
@@ -62,11 +66,10 @@ exports.read = function(req, res) {
 exports.update = function(req, res) {
   delete req.body.id;
   delete req.body.userId;
-  delete req.body.restaurantId;
+  // delete req.body.restaurantId;
   var menu = req.menu;
-
   menu.update({
-    date: req.body.date
+    finalized: req.body.finalized
   }).then(function(menu) {
     var ret = _.pick(menu, retAttributes);
     res.jsonp({menu: ret, message: "Menu successfully updated"});
@@ -104,16 +107,31 @@ var formatDate = function(query) {
  * List of restaurant menus
  */
 exports.list = function(req, res) {
-  var query = {};
-  if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+  var query = {finalized: true};
+  // if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
+  // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+  var timeslotQuery = {};
+  if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
+  if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
 
   Menu.findAll({
     where: query,
     attributes: retAttributes,
     include: [{
-      model: db.restaurant,
-      attributes: restRetAttributes
+      model: db.meal,
+      attributes: mealRetAttributes,
+      include: {
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }
+    }, {
+      model: db.timeslot,
+      where: timeslotQuery,
+      attributes: timeslotRetAttributes,
+      include: {
+        model: db.restaurant,
+        attributes: restRetAttributes
+      }
     }]
   }).then(function(menus) {
     if (!menus) {
@@ -124,6 +142,7 @@ exports.list = function(req, res) {
       res.jsonp({menus: menus, message: "Menus successfully found"});
     }
   }).catch(function(err) {
+    console.log(err);
     res.jsonp(err);
   });
 };
@@ -133,13 +152,30 @@ exports.list = function(req, res) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
-  if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+  // 
+  var timeslotQuery = {};
+  if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
+  if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
 
   Menu.findAll({
     where: query,
     attributes: retAttributes,
-    // include: [db.restaurant]
+    include: [{
+      model: db.meal,
+      attributes: mealRetAttributes,
+      include: {
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
+      }
+    }, {
+      model: db.timeslot,
+      where: timeslotQuery,
+      attributes: timeslotRetAttributes,
+      include: {
+        model: db.restaurant,
+        attributes: restRetAttributes
+      }
+    }]
   }).then(function(menus) {
     if (!menus) {
       return res.status(404).send({
@@ -161,8 +197,7 @@ exports.menuByID = function(req, res, next, id) {
   Menu.findOne({
     where: {
       id: id
-    }, 
-    include: [db.restaurant]
+    },
   }).then(function(menu) {
     if (!menu) {
       return res.status(404).send({

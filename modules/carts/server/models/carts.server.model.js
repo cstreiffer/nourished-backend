@@ -24,7 +24,7 @@ module.exports = function(sequelize, DataTypes) {
     }
   }, {
     associate: function(models) {
-      Cart.belongsTo(models.meal, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Cart.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Cart.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });
