@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-var 
+var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
@@ -30,11 +30,20 @@ const calculateOrderAmount = orders => {
 exports.createPaymentIntent = function(req, res) {
   // const { currency } = req.body;
   // Create a PaymentIntent with the order amount and currency
+
+  // The restaurant's stripe connect id should be stored on the restaurant model.
+  // TODO: follow the order to the restaurant
+  var restaurantStripeAccountId = 'something';
+
+
   var orderAmount = calculateOrderAmount(req.orders);
   stripe.paymentIntents.create({
     amount: calculateOrderAmount(req.orders),
     currency: 'usd',
     payment_method_types: ['card'],
+    transfer_data: {
+      destination: restaurantStripeAccountId,
+    },
     metadata: {
       userId: req.user.id,
       email: req.user.email,
