@@ -163,12 +163,23 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Menu'
- *  /user/timeslots/:
+ *  /rest/timeslots/:
  *    get:
  *      summary: Get all menu timeslots associated with user
  *      tags: [Menus]
  *      security:
  *        - bearerAuth: []
+ *      responses:
+ *        "200":
+ *          description: Get menu timeslots
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/TimeSlot'
+ *  /timeslots/:
+ *    get:
+ *      summary: Get all menu timeslots 
+ *      tags: [Menus]
  *      responses:
  *        "200":
  *          description: Get menu timeslots

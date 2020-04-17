@@ -19,6 +19,30 @@ const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress'
 /**
  * List of restaurant menus
  */
+exports.list = function(req, res) {
+  TimeSlot.findAll({
+    attributes: retAttributes,
+    include: {
+      model: db.restaurant,
+      attributes: restRetAttributes
+    }
+  }).then(function(timeslots) {
+    if (!timeslots) {
+      return res.status(404).send({
+        message: 'No timeslots found'
+      });
+    } else {
+      res.jsonp({timeslots: timeslots, message: "Timeslots successfully found"});
+    }
+  }).catch(function(err) {
+    res.jsonp(err);
+  });
+};
+
+
+/**
+ * List of restaurant menus
+ */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
 
