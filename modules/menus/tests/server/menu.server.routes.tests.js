@@ -89,7 +89,23 @@ describe('/GET /api/timeslots endpoint', () => {
 
   it('User with "user" role should get menus', (done) => {
     chai.request(app)
-      .get('/api/user/timeslots')
+      .get('/api/timeslots')
+      .end((err, res) => {
+       res.body.timeslots.should.be.a('array');
+       res.body.timeslots[0].should.not.have.property('userId');
+       res.body.timeslots.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Timeslots successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+});
+
+describe('/GET /api/rest/timeslots endpoint', () => {
+
+  it('User with "user" role should get menus', (done) => {
+    chai.request(app)
+      .get('/api/rest/timeslots')
       .set('Authorization', restaurantJWT1)
       .end((err, res) => {
        res.body.timeslots.should.be.a('array');
@@ -373,6 +389,11 @@ describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
         });
     });
   });
+});
+
+after(function(done) {
+  TimeSlot.destroy({where: {}})
+  .then(function(){done()})
 });
 
 after(function(done) {

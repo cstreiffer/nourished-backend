@@ -30,7 +30,7 @@ exports.read = function(req, res) {
       res.json({
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
         clientSecret: paymentIntent.client_secret,
-        stripeorder: ret,
+        stripeOrder: ret,
         message: "Payment intent successfully created"
       });
     }).catch(function(err) {
@@ -54,7 +54,7 @@ exports.userList = function(req, res) {
         message: 'No stripe entries found'
       });
     } else {
-      res.json({stripeorders: stripe, message: "Stripe entries successfully found"});
+      res.json({stripeOrders: stripe, message: "Stripe entries successfully found"});
     }
   }).catch(function(err) {
     res.jsonp(err);

@@ -51,6 +51,7 @@ exports.createPaymentIntent = function(req, res) {
       timeslotid: timeslotid, 
       amount: calculateOrderAmount(orders[timeslotid]), 
       restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
+      restaurantStripeAccountId: orders[timeslotid][0].menu.timeslot.restaurant.restaurantStripeAccountId,
       metadata: {
         email: req.user.email.substring(0, 450),
         phoneNumber: req.user.phoneNumber.substring(0, 450),
@@ -61,6 +62,11 @@ exports.createPaymentIntent = function(req, res) {
       }
     });
   });
+
+  // TO DO: GRAB THE RESTAURANT STRIPE ID ------------------------------------
+  // transfer_data: {
+  //   destination: order.restaurantStripeAccountId,
+  // },
 
   Promise.all(ret.map((order) => {
       return stripe.paymentIntents.create({
@@ -85,7 +91,8 @@ exports.createPaymentIntent = function(req, res) {
           amount: order[0].amount,
         })
       })
-    ).then(function() {
+    ).then(function(stripeOrders) {
+      var ret = stripeOrders.map((order) => _.pick(order, retAttributes));
       res.json({
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
         stripeData: retMod.map(function(order) {
@@ -96,7 +103,7 @@ exports.createPaymentIntent = function(req, res) {
             timeslotId: order[0].timeslotid
           }
         }),
-        stripeorders: ret,
+        stripeOrders: ret,
         totalAmount: retMod.map((order) => order[0].ammount).reduce((a,b) => a + b, 0),
         message: "Payment intents successfully created"
       });

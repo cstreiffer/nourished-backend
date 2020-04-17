@@ -33,7 +33,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     associate: function(models) {
       Stripe.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
-      Stripe.belongsTo(models.timeslot, { foreignKey: { allowNull: true, unique: true }, onDelete: 'SET NULL' });
+      Stripe.belongsTo(models.timeslot, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });
 

@@ -14,6 +14,8 @@ var
   Menu = db.menu,
   Order = db.order,
   MealInfo = db.mealinfo,
+  TimeSlot = db.timeslot,
+  Restaurant = db.restaurant,
   Stripe = db.stripe,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
@@ -26,12 +28,16 @@ var
   user1 = {id: uuid(), fullName: "Test User", email: "test@gmail.com", phoneNumber: "504-504-5004"},
   userJWT2 = '',
   user2 = {id: uuid()},
-  mealInfo1 = {type: "lunch", price: 5.552, time: "1:00", id: uuid()},
-  mealInfo2 = {type: "dinner", price: 10.30, time: "7:00", id: uuid()},
+  restaurant1 = {id: uuid(), name: "Goldie 1", phoneNumber: "5046137325"},
+  restaurant2 = {id: uuid(), name: "Goldie 2", phoneNumber: "5046137325"},
+  timeslot1 = {id: uuid(), restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
+  timeslot2 = {id: uuid(), restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  mealInfo1 = {type: "lunch", price: 10, time: "1:00", id: uuid()},
+  mealInfo2 = {type: "dinner", price: 10, time: "7:00", id: uuid()},
   meal1 = {name: "Chicken 1", finalized: true, mealinfoId: mealInfo1.id, id: uuid()},
   meal2 = {name: "Chicken 1", finalized: true, mealinfoId: mealInfo2.id, id: uuid()},
-  menu1 = {id: uuid(), mealId: meal1.id},
-  menu2 = {id: uuid(), mealId: meal2.id},
+  menu1 = {id: uuid(), mealId: meal1.id, timeslotId: timeslot1.id},
+  menu2 = {id: uuid(), mealId: meal2.id, timeslotId: timeslot2.id},
   group1 = {id: uuid()},
   group2 = {id: uuid()},
   group3 = {id: uuid()},
@@ -54,6 +60,24 @@ before((done) => {
     .then((res) => {
       userJWT2 = "bearer " + res.body.token;
       done();
+    });
+});
+
+before((done) => {
+  Restaurant.destroy({where: {}})
+    .then(function(){
+      Restaurant.bulkCreate([restaurant1, restaurant2]).then(()=> {
+        done();
+      });
+    });
+});
+
+before((done) => {
+  TimeSlot.destroy({where: {}})
+    .then(function(){
+      TimeSlot.bulkCreate([timeslot1, timeslot2]).then(()=> {
+        done();
+      });
     });
 });
 
@@ -85,7 +109,7 @@ before((done) => {
 
 before(function(done) {
   var orders = [
-    {quantity: 2, menuId: menu1.id, userId: user1.id, id: uuid(), groupId: group1.id},
+    {quantity: 4, menuId: menu1.id, userId: user1.id, id: uuid(), groupId: group1.id},
     {quantity: 4, menuId: menu2.id, userId: user1.id, id: uuid(), groupId: group1.id},
     {quantity: 6, menuId: menu1.id, userId: user1.id, id: uuid(), groupId: group2.id},
     {quantity: 8, menuId: menu2.id, userId: user1.id, id: uuid(), groupId: group2.id},
@@ -112,15 +136,16 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Payment intent successfully created');
+        res.body.should.have.property('message').eql('Payment intents successfully created');
         res.body.should.not.have.property('userId');
         res.body.should.have.property('publishableKey');
-        res.body.should.have.property('clientSecret');
-        res.body.should.have.property('stripeorder');
-        res.body.stripeorder.should.not.have.property('userId');
-        res.body.stripeorder.should.not.have.property('paymentIntentId');
-        res.body.stripeorder.should.have.property('groupId');
-        res.body.stripeorder.should.have.property('amount').equal(5230);
+        res.body.should.have.property('stripeData');
+        res.body.should.have.property('stripeOrders');
+        res.body.stripeData[0].should.not.have.property('userId');
+        res.body.stripeData[0].should.have.property('amount').eql(4000);
+        res.body.stripeData[0].should.have.property('groupId');
+        res.body.stripeData[0].should.have.property('timeslotId');
+        res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
   });
@@ -164,11 +189,11 @@ describe('/GET /user/stripe', () => {
           res.should.have.status(200);
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Stripe entries successfully found');
-          res.body.stripeorders[0].should.not.have.property('userId');
-          res.body.stripeorders[0].should.have.property('groupId').eql(group1.id);
-          res.body.stripeorders[0].should.have.property('amount').eql(105);
-          res.body.stripeorders.should.be.a('array');
-          res.body.stripeorders.length.should.be.eql(2);
+          res.body.stripeOrders[0].should.not.have.property('userId');
+          res.body.stripeOrders[0].should.have.property('groupId').eql(group1.id);
+          res.body.stripeOrders[0].should.have.property('amount').eql(105);
+          res.body.stripeOrders.should.be.a('array');
+          res.body.stripeOrders.length.should.be.eql(2);
           done();
         });
     });
@@ -190,7 +215,7 @@ describe('/GET /api/user/stripe/:stripeId', () => {
       .send({groupId: group1.id})
       .end((err, res) => {
             chai.request(app)
-            .get('/api/user/stripe/' + res.body.stripeorder.id)
+            .get('/api/user/stripe/' + res.body.stripeOrders[0].id)
             .set('Authorization', userJWT1)
             .end((err, res) => {
               res.should.have.status(200);
@@ -199,11 +224,11 @@ describe('/GET /api/user/stripe/:stripeId', () => {
               res.body.should.not.have.property('userId');
               res.body.should.have.property('publishableKey');
               res.body.should.have.property('clientSecret');
-              res.body.should.have.property('stripeorder');
-              res.body.stripeorder.should.not.have.property('userId');
-              res.body.stripeorder.should.not.have.property('paymentIntentId');
-              res.body.stripeorder.should.have.property('groupId');
-              res.body.stripeorder.should.have.property('amount').equal(5230);
+              res.body.should.have.property('stripeOrder');
+              res.body.stripeOrder.should.not.have.property('userId');
+              res.body.stripeOrder.should.not.have.property('paymentIntentId');
+              res.body.stripeOrder.should.have.property('groupId');
+              res.body.stripeOrder.should.have.property('amount').equal(4000);
               done();
             });
       });
@@ -224,6 +249,10 @@ describe('/GET /api/user/stripe/:stripeId', () => {
   });
 });
 
+after(function(done) {
+  Restaurant.destroy({where: {}})
+  .then(function(){done()})
+});
 
 after(function(done) {
   Order.destroy({where: {}})
@@ -232,6 +261,11 @@ after(function(done) {
 
 after(function(done) {
   User.destroy({where: {}})
+  .then(function(){done()})
+});
+
+after(function(done) {
+  TimeSlot.destroy({where: {}})
   .then(function(){done()})
 });
 
