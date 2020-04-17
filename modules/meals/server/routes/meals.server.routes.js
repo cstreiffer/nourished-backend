@@ -39,22 +39,24 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
     .get(meals.userList) // Restaurant/User get (Good)
-    // .all(mealsPolicy.isValidMenu)
+    .all(mealsPolicy.isRestaurantRequired)
+    .all(mealsPolicy.isValidRestaurant)
     .post(meals.create); // Restaurant create (Good)
 
   // Restaurant 
   app.route('/api/rest/meals/:mealId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
-    // .get(meals.read)
+    .all(mealsPolicy.isFinalized)
     .delete(meals.delete) // Restaurant delete (Good)
-    .all(mealsPolicy.isValidMenu)
+    .all(mealsPolicy.isValidRestaurant)
     .put(meals.update); // Restaurant update (Good)
 
   // Restaurant profile picture update
   app.route('/api/rest/meals/:mealId/picture')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
+    .all(mealsPolicy.isFinalized)
     .post(meals.changeMealPicture); // Restaurant update (Untested)
 
   // Finish by binding the meal middleware

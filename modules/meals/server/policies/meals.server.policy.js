@@ -5,7 +5,7 @@ var
   config = require(path.resolve('./config/config')),
   acl = require('acl'),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  Menu = db.menu;
+  Restaurant = db.restaurant;
 
 /**
  * Module dependencies.
@@ -53,23 +53,39 @@ exports.invokeRolesPolicies = function() {
   }]);
 };
 
+exports.isRestaurantRequired = function(req, res, next) {
+  if(req.body.restaurantId) {
+    return next();
+  } else {
+    return res.status(400).json({
+      message: 'Please specify restaurant'
+    });
+  }
+}
+
 /**
  * Check if Meal belongs to User
  */
-exports.isValidMenu = function(req, res, next) {
-  if(req.body.menuId) {
-    Menu.findOne({
+exports.isValidRestaurant = function(req, res, next) {
+  if(req.body.restaurantId) {
+    Restaurant.findOne({
       where: {
-        id: req.body.menuId,
+        id: req.body.restaurantId,
         userId: req.user.id
       }
-    }).then((menu) => {
-      if(menu) {
-        req.menu = menu;
-        return next();
+    }).then((restaurant) => {
+      if(restaurant) {
+        if(restaurant.restaurantStripeAccountId) {
+          req.restaurant = restaurant;
+          return next();          
+        } else {
+          return res.status(400).json({
+            message: 'No attached restaurant stripe id'
+          });
+        }
       } else {
-        return res.status(403).json({
-          message: 'User is not authorized'
+        return res.status(400).json({
+          message: 'Restaurant not found'
         });
       }
     }).catch((err) => {
@@ -79,6 +95,19 @@ exports.isValidMenu = function(req, res, next) {
     });
   } else {
     return next();
+  }
+}
+
+/**
+ * Check if Meal is finalized
+ */
+exports.isFinalized = function(req, res, next) {
+  if(req.meal && !req.meal.finalized) {
+    return next()
+  } else {
+    return res.status(400).json({
+      message: 'Meal is finalized'
+    });
   }
 }
 

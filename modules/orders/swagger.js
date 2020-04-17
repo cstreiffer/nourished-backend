@@ -8,7 +8,6 @@
  *          - id
  *          - quantity
  *          - menuId
- *          - hospitalId
  *          - userId
  *          - groupId
  *        properties:
@@ -21,9 +20,6 @@
  *          menuId:
  *            type: string
  *            description: UUID of menu.
- *          hospitalId:
- *            type: string
- *            description: UUID of hospital location. 
  *          information:
  *            type: enum
  *            description: Any allergy/dietary information. 
@@ -71,14 +67,11 @@
  *                    required:
  *                      - menuId
  *                      - quantity
- *                      - hospitalId
  *                    properties:
  *                      menuId:
  *                        type: string
  *                      quantity:
  *                        type: integer
- *                      hospitalId:
- *                        type: string
  *                      information:
  *                        type: string
  *      responses:
@@ -127,8 +120,6 @@
  *                        type: string
  *                      quantity:
  *                        type: integer
- *                      hospitalId:
- *                        type: string
  *      responses:
  *        "200":
  *          description: Updates a batch order items

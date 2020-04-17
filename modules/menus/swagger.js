@@ -29,6 +29,7 @@
  *          - date
  *          - restaurantId
  *          - userId
+ *          - hospitalId
  *        properties:
  *          id:
  *            type: string
@@ -42,6 +43,9 @@
  *          userId:
  *            type: boolean
  *            description: UUID of the user who's been assigned the timeslot. 
+ *          hospitalId:
+ *            type: string
+ *            description: UUID of hospital location. 
  * tags:
  *   name: Menus
  *   description: Menu management
