@@ -7,6 +7,7 @@ var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
+  async = require('async'),
   stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
@@ -33,51 +34,81 @@ exports.createPaymentIntent = function(req, res) {
 
   // The restaurant's stripe connect id should be stored on the restaurant model.
   // TODO: follow the order to the restaurant
-  var restaurantStripeAccountId = 'something';
-
-
-  var orderAmount = calculateOrderAmount(req.orders);
-  stripe.paymentIntents.create({
-    amount: calculateOrderAmount(req.orders),
-    currency: 'usd',
-    payment_method_types: ['card'],
-    transfer_data: {
-      destination: restaurantStripeAccountId,
-    },
-    metadata: {
-      userId: req.user.id,
-      email: req.user.email,
-      phoneNumber: req.user.phoneNumber,
-      fullName: req.user.fullName,
-      orderId: req.groupId,
+  // var restaurantStripeAccountId = 'something';
+  var orders = req.orders.reduce(function(map, obj) {
+    var timeslotid = obj.menu.timeslot.id;
+    if(!(timeslotid in map)) {
+      map[timeslotid] = [];
     }
-  }).then(function(paymentIntent) {
-    // Store the order in the db
-    Stripe.create({
-      id: uuid(),
-      userId: req.user.id,
-      groupId: req.groupId,
-      paymentIntentId: paymentIntent.id,
-      amount: orderAmount,
-    }).then(function(stripeorder) {
-      var ret = _.pick(stripeorder, retAttributes);
+    map[timeslotid].push(obj);
+    return map;
+  }, {});
+
+  // Map the values to a new array
+  var ret = [];
+  Object.keys(orders).forEach(function(timeslotid) {
+    ret.push({
+      timeslotid: timeslotid, 
+      amount: calculateOrderAmount(orders[timeslotid]), 
+      restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
+      metadata: {
+        email: req.user.email.substring(0, 450),
+        phoneNumber: req.user.phoneNumber.substring(0, 450),
+        fullName: req.user.fullName.substring(0, 450),
+        groupId: req.groupId.substring(0, 450),
+        restaurantName: orders[timeslotid][0].menu.timeslot.restaurant.name.substring(0, 450),
+        menuDate: orders[timeslotid][0].menu.timeslot.date.toString().substring(0, 450),
+      }
+    });
+  });
+
+  Promise.all(ret.map((order) => {
+      return stripe.paymentIntents.create({
+        amount: order.amount,
+        currency: 'usd',
+        payment_method_types: ['card'],
+        metadata: order.metadata
+      })
+    })
+  ).then(function(paymentIntents) {
+    // Comnbine the arrays together
+    var retMod = ret.map(function(e, i) {
+      return [e, paymentIntents[i]];
+    });
+    Promise.all(retMod.map((order) => {
+      return Stripe.create({
+          id: uuid(),
+          userId: req.user.id,
+          groupId: req.groupId,
+          timeslotId: order[0].timeslotid,
+          paymentIntentId: order[1].id,
+          amount: order[0].amount,
+        })
+      })
+    ).then(function() {
       res.json({
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
-        clientSecret: paymentIntent.client_secret,
-        stripeorder: ret,
-        message: "Payment intent successfully created"
+        stripeData: retMod.map(function(order) {
+          return {
+            clientSecret: order[1].client_secret,
+            amount: order[0].amount,
+            groupId: req.groupId,
+            timeslotId: order[0].timeslotid
+          }
+        }),
+        stripeorders: ret,
+        totalAmount: retMod.map((order) => order[0].ammount).reduce((a,b) => a + b, 0),
+        message: "Payment intents successfully created"
       });
     }).catch(function(err) {
-      console.log(err);
       res.status(400).send({
         message: 'Error processing the order: ' + err
       });
     });
   }).catch(function(err) {
-    console.log(err);
-      res.status(400).send({
-        message: 'Error processing the order: ' + err
-      });
+    res.status(400).send({
+      message: 'Error processing the order: ' + err
+    });
   });
 };
 

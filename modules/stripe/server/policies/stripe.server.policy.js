@@ -82,10 +82,14 @@ exports.isOrderPaymentAllowed = function(req, res, next) {
       },
       include: {
         model: db.menu,
-        include: {
+        include: [{
           model: db.meal,
           include: db.mealinfo
-        }
+        },
+        {
+          model: db.timeslot,
+          include: db.restaurant
+        }]
       }
     }).then(function(orders) {
       if (!orders) {

@@ -83,6 +83,10 @@ module.exports = function(sequelize, DataTypes) {
     state: {
       type: DataTypes.STRING,
       defaultValue: ''
+    },
+    restaurantStripeAccountId: {
+      type: DataTypes.STRING,
+      defaultValue: ''
     }
   }, {
     associate: function(models) {
