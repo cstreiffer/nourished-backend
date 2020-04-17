@@ -11,20 +11,20 @@ var path = require('path'),
 module.exports = function(app) {
 
   // Restaurant 
-  // app.route('/api/user/carts')
-  //   .all(passport.authenticate('jwt', {session: false}))
-  //   .all(cartsPolicy.isAllowed)
-  //   .get(carts.userList) // Restaurant/User get (Good)
-  //   .post(carts.create) // Restaurant create (Good)
-  //   .delete(carts.destroy); // Testing
+  app.route('/api/user/carts')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(cartsPolicy.isAllowed)
+    .get(carts.userList) // Restaurant/User get (Good)
+    .post(carts.create) // Restaurant create (Good)
+    .delete(carts.destroy); // Testing
 
   // Restaurant 
-  // app.route('/api/user/carts/:cartId')
-  //   .all(passport.authenticate('jwt', {session: false}))
-  //   .all(cartsPolicy.isAllowed)
-  //   .delete(carts.delete) // Restaurant delete (Good)
-  //   .get(carts.read)
-  //   .put(carts.update); // Restaurant update (Good)
+  app.route('/api/user/carts/:cartId')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(cartsPolicy.isAllowed)
+    .delete(carts.delete) // Restaurant delete (Good)
+    .get(carts.read)
+    .put(carts.update); // Restaurant update (Good)
 
   // Finish by binding the cart middleware
   app.param('cartId', carts.cartByID);

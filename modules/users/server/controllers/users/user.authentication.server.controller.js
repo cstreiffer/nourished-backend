@@ -18,6 +18,7 @@ var
   User = db.user;
 
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
+const retAttributes = ['id', 'username', 'fullName', 'email', 'phoneNumber', 'roles'];
 
 // URLs for which user can't be redirected on signin
 var noReturnUrls = [
@@ -63,7 +64,7 @@ exports.signup = function(req, res) {
     //       message: errorHandler.getErrorMessage(err)
     //     });
     //   }
-      var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
+      var ret = _.pick(user || {}, retAttributes)
       var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
       res.jsonp({user: ret, token: token, message: "User successfully created"});
     // });
@@ -94,7 +95,7 @@ exports.signin = function(req, res, next) {
       //       message: errorHandler.getErrorMessage(err)
       //     });
       //   } else {
-        var ret = _.pick(user || {}, ['id', 'username', 'fullName', 'email', 'phoneNumber'])
+        var ret = _.pick(user || {}, retAttributes)
         var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
         res.json({user: ret, token: token, message: "User successfully logged-in"});
       //   }

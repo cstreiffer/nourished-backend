@@ -36,5 +36,11 @@ module.exports = {
         pass: process.env.MAILER_PASSWORD || ''
       }
     }
+  },
+  stripe: {
+    pubKey: process.env.STRIPE_PUBLIC || 'pk_12345',
+    // DO NOT COMMIT REAL SECRETS TO THIS FILE
+    secretKey: process.env.STRIPE_SECRET || 'sk_12345',
+    webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
   }
 };

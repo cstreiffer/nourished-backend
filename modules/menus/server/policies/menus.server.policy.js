@@ -5,7 +5,9 @@ var
   config = require(path.resolve('./config/config')),
   acl = require('acl'),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  Restaurant = db.restaurant;
+  Restaurant = db.restaurant,
+  Meal = db.meal,
+  TimeSlot = db.timeslot;
 
 /**
  * Module dependencies.
@@ -50,16 +52,16 @@ exports.invokeRolesPolicies = function() {
 /**
  * Check if Restaurant belongs to User
  */
-exports.isValidRestaurant = function(req, res, next) {
-  if(req.body.restaurantId) {
-    Restaurant.findOne({
+exports.isValidMeal = function(req, res, next) {
+  if(req.body.mealId) {
+    Meal.findOne({
       where: {
-        id: req.body.restaurantId,
+        id: req.body.mealId,
         userId: req.user.id
       }
-    }).then((restaurant) => {
-      if(restaurant) {
-        req.restaurant = restaurant;
+    }).then((meal) => {
+      if(meal) {
+        req.meal = meal;
         return next();
       } else {
         return res.status(403).json({
@@ -67,12 +69,58 @@ exports.isValidRestaurant = function(req, res, next) {
         });
       }
     }).catch((err) => {
-        return res.status(500).json({
-          message: 'Unexpected authorization error'
+        return res.status(403).json({
+          message: 'User is not authorized'
         });
     });
   } else {
-    return next();
+    return res.status(403).json({
+      message: 'User is not authorized'
+    });
+  }
+}
+
+/**
+ * Check if Restaurant belongs to User
+ */
+exports.isValidTimeSlot = function(req, res, next) {
+  if(req.body.timeslotId) {
+    TimeSlot.findOne({
+      where: {
+        id: req.body.timeslotId,
+        userId: req.user.id
+      }
+    }).then((timeslot) => {
+      if(timeslot) {
+        req.timeslot = timeslot;
+        return next();
+      } else {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+      }
+    }).catch((err) => {
+        return res.status(403).json({
+          message: 'User is not authorized'
+        });
+    });
+  } else {
+    return res.status(403).json({
+      message: 'User is not authorized'
+    });
+  }
+}
+
+/**
+ * Check if Restaurant belongs to User
+ */
+exports.isFinalized = function(req, res, next) {
+  if(req.menu && !req.menu.finalized) {
+    return next()
+  } else {
+    return res.status(403).json({
+      message: 'User is not authorized'
+    });
   }
 }
 

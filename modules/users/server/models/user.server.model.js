@@ -89,7 +89,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: '',
     },
     roles: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       defaultValue: ["user"],
       isArray: true
     },

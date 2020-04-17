@@ -49,7 +49,7 @@ module.exports = function(sequelize, DataTypes) {
   }, {
     associate: function(models) {
       Order.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
-      Order.belongsTo(models.meal, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Order.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Order.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });

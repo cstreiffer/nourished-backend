@@ -18,6 +18,12 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .get(user.getProfile) // (Good)
     .put(user.update); // (Good)
+
+
+  if(process.env.NODE_ENV === "development") {
+    app.route('/api/users')
+      .get(user.list); // (Good)
+  }
   
   // app.route('/api/user/accounts').delete(user.requiresLogin, user.removeOAuthProvider);
   // app.route('/api/user/password')

@@ -57,6 +57,7 @@
     "socket.io": "^2.3.0",
     "swagger-jsdoc": "^4.0.0",
     "swagger-ui-express": "^4.1.4",
+    "stripe": "^8.39.2",
     "swig": "^1.4.2",
     "uuid": "^7.0.2",
     "validator": "^13.0.0",

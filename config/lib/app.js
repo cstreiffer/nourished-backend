@@ -7,8 +7,8 @@ var config = require('../config'),
   express = require('./express'),
   chalk = require('chalk'),
   sequelize = require('./sequelize-connect'),
-  winston = require('./winston');
-
+  winston = require('./winston'),
+  stripe = require('./stripe');
 
 module.exports.init = function init(callback) {
   var app = express.init(sequelize);

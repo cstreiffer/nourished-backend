@@ -37,17 +37,21 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       defaultValue: ''
     },
-    category: {
+    dietaryRestrictions: {
       type: DataTypes.STRING,
       defaultValue: ''
     },
-    imageURL: {
+    allergens: {
       type: DataTypes.STRING,
       defaultValue: ''
     },
     price: {
-      type: DataTypes.DECIMAL(10, 2),
-      defaultValue: 0.00
+      type: DataTypes.DECIMAL,
+      defaultValue: 5.00
+    },
+    imageURL: {
+      type: DataTypes.STRING,
+      defaultValue: ''
     },
     minQuantity: {
       type: DataTypes.INTEGER,
@@ -59,16 +63,16 @@ module.exports = function(sequelize, DataTypes) {
     },
     visible: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: true
     },
     finalized: {
       type: DataTypes.BOOLEAN,
-      defaultValue: false
+      defaultValue: true
     }
   }, {
     associate: function(models) {
       Meal.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
-      Meal.belongsTo(models.menu, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Meal.belongsTo(models.mealinfo, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });
 

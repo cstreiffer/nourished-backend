@@ -12,8 +12,10 @@ var
   User = db.user,
   Restaurant = db.restaurant,
   Meal = db.meal,
+  MealInfo = db.mealinfo,
   Menu = db.menu,
   Cart = db.cart,
+  TimeSlot = db.timeslot,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
   should = chai.should();
@@ -36,24 +38,24 @@ var
   userCredentials2 = {id: uuid(), username: "testuser1", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7326", firstName: 'Chris', account_type: 'user'},
   restaurantCredentials1 = {id: uuid(), username: "testuser2", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7327", firstName: 'Chris', account_type: 'restaurant'},
   restaurantCredentials2 = {id: uuid(), username: "testuser3", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7328", firstName: 'Chris', account_type: 'restaurant'},
+  mealInfo1 = {type: "lunch", price: 5.00, time: "1:00", id: uuid()},
+  mealInfo2 = {type: "dinner", price: 5.00, time: "7:00", id: uuid()},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  menu1 = {date: "2021-04-01T18:00:00Z", id: uuid()},
-  menu2 = {date: "2021-04-02T18:00:00Z", id: uuid()},
-  menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
-  menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true},
-  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false},
-  ml1 = {...meal1, menuId: menu1.id, id: uuid(), userId: restaurantId1},
-  ml2 = {...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1},
-  ml3 = {...meal1, menuId: menu2.id, id: uuid(), userId: restaurantId1},
-  ml4 = {...meal2, menuId: menu2.id, id: uuid(), userId: restaurantId1},
-  ml5 = {...meal1, menuId: menu3.id, id: uuid(), userId: restaurantId2},
-  ml6 = {...meal2, menuId: menu3.id, id: uuid(), userId: restaurantId2},
-  ml7 = {...meal1, menuId: menu4.id, id: uuid(), userId: restaurantId2},
-  ml8 = {...meal2, menuId: menu4.id, id: uuid(), userId: restaurantId2};
+  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true, timeslotId: timeslot1.id},
+  meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false, timeslotId: timeslot1.id},
+  ml1 = {...meal1, id: uuid(), userId: restaurantCredentials1.id},
+  ml2 = {...meal2, id: uuid(), userId: restaurantCredentials1.id},
+  ml3 = {...meal1, id: uuid(), userId: restaurantCredentials2.id},
+  ml4 = {...meal2, id: uuid(), userId: restaurantCredentials2.id},
+  menu1 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml1.id, timeslotId: timeslot1.id, finalized: true},
+  menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: false},
+  menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot2.id,  finalized: true},
+  menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot2.id,  finalized: false};
 
 before(function(done) {
 User.destroy({where: {}})
@@ -119,6 +121,30 @@ before((done) =>{
 });
 
 before((done) => {
+  MealInfo.destroy({where: {}})
+    .then(function(){
+      MealInfo.bulkCreate([mealInfo1, mealInfo2]).then(()=> {
+        done()
+      })
+    })
+})
+
+before((done) =>{
+  TimeSlot.bulkCreate([timeslot1, timeslot2])
+    .then(() => {done();}).catch((err) => {console.log("One, " + err)});
+});
+
+// Create the meals
+before(function(done) {
+  Meal.destroy({where: {}})
+    .then(function(){
+      Meal.bulkCreate([ml1, ml2, ml3, ml4]).then(()=> {
+        done()
+      })
+    })
+});
+
+before((done) => {
   var m1 = {...menu1, restaurantId: restaurant1.id, userId: restaurantId1};
   var m2 = {...menu2, restaurantId: restaurant1.id, userId: restaurantId1};
   var m3 = {...menu3, restaurantId: restaurant2.id, userId: restaurantId2};
@@ -130,25 +156,6 @@ before((done) => {
           done();
         });
       });
-});
-
-// Create the meals
-before(function(done) {
-  var
-    _ml1 = {...ml1, menuId: menu1.id, userId: restaurantId1},
-    _ml2 = {...ml2, menuId: menu1.id, userId: restaurantId1},
-    _ml3 = {...ml3, menuId: menu2.id, userId: restaurantId1},
-    _ml4 = {...ml4, menuId: menu2.id, userId: restaurantId1},
-    _ml5 = {...ml5, menuId: menu3.id, userId: restaurantId2},
-    _ml6 = {...ml6, menuId: menu3.id, userId: restaurantId2},
-    _ml7 = {...ml7, menuId: menu4.id, userId: restaurantId2},
-    _ml8 = {...ml8, menuId: menu4.id, userId: restaurantId2};
-  Meal.destroy({where: {}})
-    .then(function(){
-      Meal.bulkCreate([_ml1, _ml2, _ml3, _ml4, _ml5, _ml6, _ml7, _ml8]).then(()=> {
-        done()
-      })
-    })
 });
 
 describe('/POST /api/user/carts endpoint', () => {
@@ -163,14 +170,16 @@ describe('/POST /api/user/carts endpoint', () => {
     chai.request(app)
       .post('/api/user/carts')
       .set('Authorization', userJWT1)
-      .send({mealId: ml1.id, quantity: 7})
+      .send({menuId: menu1.id, quantity: 7})
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully created');
         res.body.cart.should.have.property('id');
-        res.body.cart.should.have.property('mealId');
+        res.body.cart.should.have.property('menuId');
         res.body.cart.should.have.property('quantity').eql(7);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
         done();
       });
   });
@@ -181,10 +190,10 @@ describe('/GET /api/user/carts endpoint', () => {
   beforeEach(function(done) {
 
     var carts = [
-      {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
-      {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
+      {quantity: 5, menuId: menu1.id, userId: userId1, id: uuid()},
+      {quantity: 5, menuId: menu2.id, userId: userId2, id: uuid()},
+      {quantity: 5, menuId: menu3.id, userId: userId1, id: uuid()},
+      {quantity: 5, menuId: menu4.id, userId: userId2, id: uuid()},
     ];
     Cart.destroy({where: {}})
       .then(function(){
@@ -202,19 +211,25 @@ describe('/GET /api/user/carts endpoint', () => {
         res.body.should.have.property('message').eql('Cart items successfully found');
         res.body.carts.should.be.a('array');
         res.body.carts.length.should.be.eql(2);
+        res.body.carts[0].should.have.property('quantity');
+        res.body.carts[0].should.have.property('menuId');
+        res.body.carts[0].should.not.have.property('userId');
+        res.body.carts[0].menu.should.not.have.property('userId');
+        res.body.carts[0].menu.meal.should.not.have.property('userId');
+        res.body.carts[0].menu.timeslot.restaurant.should.not.have.property('userId');
         done();
       });
   });
 });
 
-describe('/GET /api/user/carts endpoint', () => {
+describe('/DELETE /api/user/carts endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     var carts = [
-      {quantity: 5, mealId: ml1.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml2.id, userId: userId2, id: uuid()},
-      {quantity: 5, mealId: ml3.id, userId: userId1, id: uuid()},
-      {quantity: 5, mealId: ml4.id, userId: userId2, id: uuid()},
+      {quantity: 5, menuId: menu1.id, userId: userId1, id: uuid()},
+      {quantity: 5, menuId: menu2.id, userId: userId2, id: uuid()},
+      {quantity: 5, menuId: menu3.id, userId: userId1, id: uuid()},
+      {quantity: 5, menuId: menu4.id, userId: userId2, id: uuid()},
     ];
     Cart.destroy({where: {}})
       .then(function(){
@@ -254,7 +269,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to update their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, menuId: menu4.id, userId: userId1, id: uuid()}).then(function(cart) {
       chai.request(app)
       .put('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -264,8 +279,10 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully updated');
         res.body.cart.should.have.property('id');
-        res.body.cart.should.have.property('mealId');
+        res.body.cart.should.have.property('menuId');
         res.body.cart.should.have.property('quantity').eql(100);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })
@@ -303,6 +320,8 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully deleted');
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })
@@ -339,6 +358,8 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Cart item successfully found');
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('meal');
         done();
       });
     })

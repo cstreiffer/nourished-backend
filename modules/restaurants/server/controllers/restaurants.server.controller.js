@@ -14,7 +14,7 @@ var
 
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
-const retAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 
 /**
  * Create a restaurant
@@ -64,7 +64,8 @@ exports.update = function(req, res) {
     streetAddress: req.body.streetAddress,
     zip: req.body.zip,
     city: req.body.city,
-    state: req.body.state
+    state: req.body.state,
+    restaurantStripeAccountId: req.body.restaurantStripeAccountId
   }).then(function(restaurant) {
     var ret = _.pick(req.restaurant, retAttributes);
     return res.jsonp({restaurant: ret, message: "Restaurant successfully updated"});
