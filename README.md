@@ -70,6 +70,26 @@ In your browser, go to http://localhost:3000/api/restaurants
 
 You can load the swagger testing framework by running the backend server, and then going to http://localhost:3000/api/v1/docs/
 
+## Testing with stripe webhooks
+
+First install the stripe command line tool
+
+    brew install stripe/stripe-cli/stripe
+
+Then login to your stripe account
+
+    stripe login
+
+Forward events
+
+    stripe listen --forward-to localhost:3000/api/stripe/webhook
+
+Trigger an event
+
+    stripe trigger payment_intent.created
+
+
+More information can be read here https://stripe.com/docs/webhooks/test
 
 # Tools
 

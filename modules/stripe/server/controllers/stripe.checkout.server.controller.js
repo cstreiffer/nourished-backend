@@ -48,8 +48,8 @@ exports.createPaymentIntent = function(req, res) {
   var ret = [];
   Object.keys(orders).forEach(function(timeslotid) {
     ret.push({
-      timeslotid: timeslotid, 
-      amount: calculateOrderAmount(orders[timeslotid]), 
+      timeslotid: timeslotid,
+      amount: calculateOrderAmount(orders[timeslotid]),
       restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
       restaurantStripeAccountId: orders[timeslotid][0].menu.timeslot.restaurant.restaurantStripeAccountId,
       metadata: {
@@ -122,6 +122,7 @@ exports.createPaymentIntent = function(req, res) {
 // Expose a endpoint as a webhook handler for asynchronous events.
 // Configure your webhook in the stripe developer dashboard
 // https://dashboard.stripe.com/test/webhooks
+// This route is /api/stripe/webhook
 exports.webhook = function(req, res) {
   let data, eventType;
 
@@ -149,12 +150,52 @@ exports.webhook = function(req, res) {
     eventType = req.body.type;
   }
 
-  if (eventType === "payment_intent.succeeded") {
+  let responseMessage = 'unknown';
+  // event types are here https://stripe.com/docs/api/events/types
+  // in data the 'metadata' object should be present from the payment_intent above
+  switch(eventType) {
+  case 'payment_intent.created':
+    // when an intent is created
+    console.log('  stripe.webhook payment_intent.created: ' + JSON.stringify(data.object.metadata, null, 2));
+    // see example_data.txt for what is sent
+    break;
+
+  case "charge.succeeded":
+    // logging the payment was charge.succeeded
+    console.log('charge.succeeded: ' + data.object.receipt_url);
+    responseMessage = 'charge.succeded';
+    break;
+
+  case "charge.failed":
+    // logging the payment was charge.failed
+    console.log('charge.failed: ' + data.object.receipt_url);
+    responseMessage = 'charge.failed';
+    break;
+
+  case "payment_intent.succeeded":
     // Funds have been captured
     // Fulfill any orders, e-mail receipts, etc
     // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds)
-    console.log("💰 Payment captured!");
-  } else if (eventType === "payment_intent.payment_failed") {
-    console.log("❌ Payment failed.");
+
+    // TODO: mark the order succeeded.
+
+    console.log('payment_intent.succeeded: ' + JSON.stringify(data.object.metadata));
+    responseMessage = 'payment success';
+
+    break;
+  case 'payment_intent.payment_failed':
+    // TODO: in this case mark the order failed - so the user knows they will not get their order
+    console.log('payment_intent.payment_failed: ' + JSON.stringify(data.object.metadata));
+    break;
+
+  default:
+    // log the event type is unknown and will be unprocessed.   If there are too many of these, stripe will
+    // disable the webhook - so monitor these error logs and act on them if you see them
+    console.log('stripe.webhook: Unknown event type ' + eventType);
+    responseMessage = 'payment failed';
+    return res.sendStatus(400);
   }
+
+  // respond with a 200 OK so stripe knows we processed the webhook and will not re-send the event.
+  return res.json({received: true, msg: responseMessage});
 };

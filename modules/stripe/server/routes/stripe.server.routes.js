@@ -25,7 +25,7 @@ module.exports = function(app) {
 
   app.param('stripeId', stripe.stripeByID);
 
-  // STRIPE CHECKOUT ROUTES ROUTES ---------------------------------- 
+  // STRIPE CHECKOUT ROUTES ROUTES ----------------------------------
 
 	// app.use(express.static(process.env.STATIC_DIR));
 	app.use(
@@ -57,9 +57,10 @@ module.exports = function(app) {
       .post(stripe.createPaymentIntent); // Good
   }
 
+  // the webhook route does not need authentication.  The signature is checked based on the data
+  // that is posted to the webhook.
   app.route('/api/stripe/webhook')
-    .all(passport.authenticate('jwt', {session: false}))
-    .post(stripe.webhook); // Goods  
+    .post(stripe.webhook); // Good
 
   // Finish by binding the stripe middleware
   // app.param('groupId', stripe.orderByGroupId);
