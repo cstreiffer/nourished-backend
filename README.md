@@ -56,8 +56,7 @@ List the tables:
 
 As a one time step, load the data.
 
-    docker-compose run db psql -h db -U postgres -f /usr/src/nourished-backend/seeders/local_dev.psql nourished_dev
-
+    docker-compose run backend node test_load.js
 
 ## Running the server
 
@@ -66,6 +65,10 @@ Running the server should be a simple:
     docker-compose up
 
 In your browser, go to http://localhost:3000/api/restaurants
+
+## Using swagger to test the running backend server
+
+You can load the swagger testing framework by running the backend server, and then going to http://localhost:3000/api/v1/docs/
 
 
 # Tools
