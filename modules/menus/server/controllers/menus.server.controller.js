@@ -18,8 +18,8 @@ const retAttributes = ['id', 'mealId', 'timeslotId'];
 const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealRetAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
-const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
-
+const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
+const hospRetAttributes = ['name', 'phoneNumber', 'email'];
 /**
  * Create a menu
  */
@@ -128,10 +128,14 @@ exports.list = function(req, res) {
       model: db.timeslot,
       where: timeslotQuery,
       attributes: timeslotRetAttributes,
-      include: {
+      include: [{
         model: db.restaurant,
         attributes: restRetAttributes
-      }
+      },
+      {
+        model: db.hospital,
+        attributes: hospRetAttributes,
+      }]
     }]
   }).then(function(menus) {
     if (!menus) {
@@ -171,10 +175,14 @@ exports.userList = function(req, res) {
       model: db.timeslot,
       where: timeslotQuery,
       attributes: timeslotRetAttributes,
-      include: {
+      include: [{
         model: db.restaurant,
         attributes: restRetAttributes
-      }
+      },
+      {
+        model: db.hospital,
+        attributes: hospRetAttributes,
+      }]
     }]
   }).then(function(menus) {
     if (!menus) {
@@ -210,5 +218,4 @@ exports.menuByID = function(req, res, next, id) {
   }).catch(function(err) {
     return next(err);
   });
-
 };

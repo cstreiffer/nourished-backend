@@ -47,8 +47,10 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z"},
-  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
+  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
+  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital2.id},
   meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true, timeslotId: timeslot1.id, mealinfoId: mealInfo1.id},
   meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false, timeslotId: timeslot1.id, mealinfoId: mealInfo2.id},
   ml1 = {...meal1, id: uuid(), userId: restaurantCredentials1.id},
@@ -59,8 +61,6 @@ var
   menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: true},
   menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot2.id,  finalized: true},
   menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot2.id,  finalized: true},
-  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
-  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   order = {quantity: 5, information: "Allergic to nuts."};
 
 before(function(done) {
@@ -113,13 +113,14 @@ before((done) => {
 });
 
 before((done) => {
-  MealInfo.destroy({where: {}})
-    .then(function(){
-      MealInfo.bulkCreate([mealInfo1, mealInfo2]).then(()=> {
-        done()
-      })
+  Hospital.destroy({where: {}})
+    .then(function() {
+      Hospital.bulkCreate([hospital1, hospital2])
+        .then(() => {
+          done();
+        });
     })
-})
+});
 
 before((done) =>{
   var r1 = {...restaurant1, userId: restaurantId1};
@@ -135,6 +136,11 @@ before((done) =>{
     })
 });
 
+before((done) =>{
+  TimeSlot.bulkCreate([timeslot1, timeslot2])
+    .then(() => {done();}).catch((err) => {console.log("One, " + err)});
+});
+
 before((done) => {
   MealInfo.destroy({where: {}})
     .then(function(){
@@ -143,11 +149,6 @@ before((done) => {
       })
     })
 })
-
-before((done) =>{
-  TimeSlot.bulkCreate([timeslot1, timeslot2])
-    .then(() => {done();}).catch((err) => {console.log("One, " + err)});
-});
 
 // Create the meals
 before(function(done) {
@@ -171,16 +172,6 @@ before((done) => {
           done();
         });
       });
-});
-
-before((done) => {
-  Hospital.destroy({where: {}})
-    .then(function() {
-      Hospital.bulkCreate([hospital1, hospital2])
-        .then(() => {
-          done();
-        });
-    })
 });
 
 describe('/POST /api/user/orders endpoint', () => {
@@ -210,7 +201,7 @@ describe('/POST /api/user/orders endpoint', () => {
         res.body.orders[0].should.have.property('groupId');
         res.body.orders[0].should.have.property('quantity');
         res.body.orders[0].should.have.property('menuId');
-        res.body.orders[0].should.have.property('hospitalId');
+        // res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -353,11 +344,13 @@ describe('/GET /api/orders/:orderId endpoint', () => {
         res.body.orders[0].should.have.property('groupId');
         res.body.orders[0].should.have.property('quantity');
         res.body.orders[0].should.have.property('menuId');
-        res.body.orders[0].should.have.property('hospitalId');
+        // res.body.orders[0].should.have.property('hospitalId');
         res.body.orders[0].should.not.have.property('userId');
         res.body.orders[0].menu.should.not.have.property('userId');
         res.body.orders[0].menu.meal.should.not.have.property('userId');
         res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+        res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+        res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
         res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
         res.body.orders.length.should.be.eql(2);
         done();
@@ -397,7 +390,6 @@ describe('/PUT /api/user/orders endpoint', () => {
         res.body.orders[0].should.have.property('groupId');
         res.body.orders[0].should.have.property('quantity');
         res.body.orders[0].should.have.property('menuId');
-        res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -460,7 +452,6 @@ describe('/DELETE /api/user/orders endpoint', () => {
         res.body.orders[0].should.have.property('groupId');
         res.body.orders[0].should.have.property('quantity');
         res.body.orders[0].should.have.property('menuId');
-        res.body.orders[0].should.have.property('hospitalId');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -600,7 +591,10 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.have.property('groupId');
       res.body.orders[0].should.have.property('quantity');
       res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurant');
+      res.body.orders[0].menu.timeslot.should.have.property('hospital');
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].menu.should.not.have.property('userId');
       res.body.orders[0].menu.meal.should.not.have.property('userId');
@@ -625,7 +619,8 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.have.property('groupId');
       res.body.orders[0].should.have.property('quantity');
       res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].menu.should.not.have.property('userId');
       res.body.orders[0].menu.meal.should.not.have.property('userId');
@@ -650,7 +645,8 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.have.property('groupId');
       res.body.orders[0].should.have.property('quantity');
       res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].menu.should.not.have.property('userId');
@@ -676,7 +672,8 @@ describe('/GET /api/rest/orders endpoint', () => {
       res.body.orders[0].should.have.property('groupId');
       res.body.orders[0].should.have.property('quantity');
       res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
       res.body.orders[0].should.not.have.property('userId');
       res.body.orders[0].menu.should.not.have.property('userId');
       res.body.orders[0].menu.meal.should.not.have.property('userId');
@@ -780,6 +777,12 @@ describe('/PUT /api/rest/orders/status endpoint', () => {
     });
   });
 });
+
+after((done) => {
+  TimeSlot.destroy({where: {}})
+    .then(function(){done()})
+});
+
 
 after(function(done) {
   Order.destroy({where: {}})

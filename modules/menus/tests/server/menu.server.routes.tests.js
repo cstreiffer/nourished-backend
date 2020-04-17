@@ -13,6 +13,7 @@ var
   Menu = db.menu,
   Meal = db.meal,
   Restaurant = db.restaurant,
+  Hospital = db.hospital,
   TimeSlot = db.timeslot,
   chai = require('chai'),
   chaiHttp = require('chai-http'),
@@ -32,8 +33,10 @@ var
   restaurantCredentials2 = {id: uuid(), username: "testuser1", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7327", firstName: 'Chris', account_type: 'restaurant'},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
-  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
+  hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
+  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital2.id},
   meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false},
   meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true},
   m1 = {...meal1, userId: restaurantCredentials1.id, id: uuid()},
@@ -66,6 +69,16 @@ before((done) => {
 	    restaurantJWT2 = "bearer " + res.body.token;
 	    done();
 	  }).catch((err) => {console.log(err)});
+});
+
+before((done) => {
+  Hospital.destroy({where: {}})
+    .then(function() {
+      Hospital.bulkCreate([hospital1, hospital2])
+        .then(() => {
+          done();
+        });
+    })
 });
 
 before((done) =>{
@@ -168,7 +181,7 @@ describe('/GET /api/rest/menus endpoint', () => {
     chai.request(app)
       .get('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
-      .query({startDate: "2020-04-01T06:30:00Z", endDate: "2020-04-05T18:40:00Z"})
+      .query({startDate: "2019-04-01T06:30:00Z", endDate: "2022-04-05T18:40:00Z"})
       .end((err, res) => {
        res.body.menus.should.be.a('array');
        res.body.menus[0].should.not.have.property('userId');
@@ -389,6 +402,11 @@ describe('/DELETE /api/rest/menus/:menuId endpoint', () => {
         });
     });
   });
+});
+
+after(function(done) {
+  Hospital.destroy({where: {}})
+  .then(function(){done()})
 });
 
 after(function(done) {

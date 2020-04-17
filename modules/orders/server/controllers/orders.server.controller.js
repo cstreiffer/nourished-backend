@@ -16,12 +16,13 @@ var
 const {Op} = require('sequelize');
 
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
-const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'hospitalId', 'menuId'];
+const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'menuId'];
 const menuRetAttributes = ['id', 'timeslotId', 'mealId'];
 const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
-const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
+const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
 const restRetAttributes = ['id', 'name', 'description', 'phoneNumber', 'email'];
+const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddress', 'zip', 'city', 'state', 'dropoffLocation', 'dropoffInfo'];
 
 /**
  * Create a order
@@ -242,10 +243,13 @@ exports.userList = function(req, res) {
       }, {
         model: db.timeslot,
         attributes: timeslotRetAttributes,
-        include: {
+        include: [{
           model: db.restaurant,
           attributes: restRetAttributes
-        }
+        }, {
+          model: db.hospital,
+          attributes: hospRetAttributes
+        }]
       }]
     }
   }).then(function(orders) {
@@ -293,10 +297,13 @@ exports.restList = function(req, res) {
       }, {
         model: db.timeslot,
         attributes: timeslotRetAttributes,
-        include: {
+        include: [{
           model: db.restaurant,
           attributes: restRetAttributes
-        }
+        }, {
+          model: db.hospital,
+          attributes: hospRetAttributes
+        }]
       }]
     }
   }).then(function(orders) {

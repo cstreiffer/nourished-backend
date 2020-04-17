@@ -24,6 +24,7 @@ module.exports = function(sequelize, DataTypes) {
     associate: function(models) {
       TimeSlot.belongsTo(models.restaurant, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       TimeSlot.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      TimeSlot.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });
 
