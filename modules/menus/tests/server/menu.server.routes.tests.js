@@ -225,7 +225,7 @@ describe('/POST /api/rest/menus endpoint', () => {
     chai.request(app)
       .post('/api/rest/menus')
       .set('Authorization', restaurantJWT1)
-      .send({timeslotId: timeslot1.id, mealId: m1.id})
+      .send({timeslotId: timeslot1.id, mealId: m3.id})
       .end((err, res) => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Menu successfully created');
@@ -245,7 +245,8 @@ describe('/POST /api/rest/menus endpoint', () => {
       .send({timeslotId: timeslot2.id, mealId: m1.id})
       .end((err, res) => {
         res.body.should.be.a('object');
-        res.should.have.status(403);
+        res.body.should.have.property('message').eql('Meal not finalized');
+        res.should.have.status(400);
         done();
       });
   });
@@ -257,7 +258,8 @@ describe('/POST /api/rest/menus endpoint', () => {
       .send({timeslotId: timeslot1.id, mealId: m2.id})
       .end((err, res) => {
         res.body.should.be.a('object');
-        res.should.have.status(403);
+        res.body.should.have.property('message').eql('Meal not found');
+        res.should.have.status(400);
         done();
       });
   });
