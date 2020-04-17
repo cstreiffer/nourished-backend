@@ -685,6 +685,55 @@ describe('/GET /api/rest/orders endpoint', () => {
   });
 });
 
+describe('/GET /api/rest/orders/itemized endpoint', () => {
+  // Clear the database
+  beforeEach(function(done) {
+    Order.destroy({where: {}})
+      .then(function(){
+        var orders = [
+          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
+          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
+        ];
+        Order.bulkCreate(orders).then(function() {
+          done();
+        });
+      });
+  });
+
+  it('User with "restaurant" role should be able get all orders belonging to them but itemized', (done) => {
+    chai.request(app)
+    .get('/api/rest/orders/itemized')
+    .set('Authorization', restaurantJWT1)
+    .end((err, res) => {
+      res.should.have.status(200);
+      res.body.should.be.a('object');
+      res.body.should.have.property('message').eql('Orders successfully found - itemized');
+      res.body.orders.should.be.a('array');
+      res.body.orders.length.should.be.eql(20);
+      res.body.orders[0].should.have.property('groupId');
+      res.body.orders[0].should.have.property('quantity');
+      res.body.orders[0].should.have.property('menuId');
+      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+      res.body.orders[0].menu.timeslot.should.have.property('restaurant');
+      res.body.orders[0].menu.timeslot.should.have.property('hospital');
+      res.body.orders[0].should.not.have.property('userId');
+      res.body.orders[0].menu.should.not.have.property('userId');
+      res.body.orders[0].menu.meal.should.not.have.property('userId');
+      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+      done();
+    });
+  });
+});
+
 describe('/PUT /api/rest/orders/status endpoint', () => {
   // Clear the database
   var orders;

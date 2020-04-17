@@ -323,6 +323,72 @@ exports.restList = function(req, res) {
 };
 
 /**
+ * List of restaurant orders itemized
+ */
+exports.restListItemized = function(req, res) {
+  var orderQuery = {};
+  if(req.query.menuId) orderQuery.menuId = req.query.menuId;
+  if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
+
+  var menuQuery = {userId: req.user.id};
+  if(req.query.mealId) menuQuery.mealId = req.query.mealId;
+
+  Order.findAll({
+    where: orderQuery,
+    attributes: retAttributes,
+    include: {
+      model: db.menu,
+      where: menuQuery,
+      attributes: menuRetAttributes,
+      include: [{
+        model: db.meal,
+        attributes: mealRetAttributes,        
+        include: {
+          model: db.mealinfo,
+          attributes: mealinfoRetAttributes
+        }
+      }, {
+        model: db.timeslot,
+        attributes: timeslotRetAttributes,
+        include: [{
+          model: db.restaurant,
+          attributes: restRetAttributes
+        }, {
+          model: db.hospital,
+          attributes: hospRetAttributes
+        }]
+      }]
+    }
+  }).then(function(orders) {
+    if (!orders) {
+      return res.status(404).send({
+        message: 'No orders found'
+      });
+    } else {
+      // Map out the orders
+      var ret = orders.map(function(order) {
+        var orderList = [];
+        var orderQuantity = Number(order.quantity);
+        for(var i=0; i < orderQuantity; i++) {
+          var toPush = order.toJSON();
+          toPush.quantity = 1;
+          orderList.push(toPush);
+        }
+        return orderList
+      });
+      // Flatten that bad boy
+      ret = ret.flat(1);
+      res.jsonp({orders: ret, message: "Orders successfully found - itemized"});
+    }
+  }).catch(function(err) {
+    console.log(err);
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
+    });
+  });
+};
+
+/**
  * Order middleware
  */
 exports.orderByID = function(req, res, next, id) {

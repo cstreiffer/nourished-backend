@@ -202,6 +202,19 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Order'
+ *  /rest/orders/itemized/:
+ *    get:
+ *      summary: Get all items in a user's order but itemized
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Orders]
+ *      responses:
+ *        "200":
+ *          description: Get orders
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Order'
  *  /rest/orders/status:
  *    put:
  *      summary: Updates restaurant status. Applies update to either orderIds or menuIds. 

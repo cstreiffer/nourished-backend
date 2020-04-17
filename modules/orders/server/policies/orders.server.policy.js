@@ -42,6 +42,9 @@ exports.invokeRolesPolicies = function() {
       resources: '/api/rest/orders',
       permissions: ['get']
     }, {
+      resources: '/api/rest/orders/itemized',
+      permissions: ['get']
+    },{
       resources: '/api/rest/orders/status',
       permissions: ['put']
     }]
