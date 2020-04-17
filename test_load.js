@@ -35,30 +35,32 @@ var
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   mealInfo1 = {type: "lunch", price: 5.00, time: "1:00", id: uuid()},
   mealInfo2 = {type: "dinner", price: 5.00, time: "7:00", id: uuid()},
+  hospital1 = {name:"Presby 1", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
+  hospital2 = {name:"Presby 2", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  timeslot1 = {id: uuid(), userId: rest1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
-  timeslot2 = {id: uuid(), userId: rest1.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z"},
-  timeslot3 = {id: uuid(), userId: rest2.id, restaurantId: restaurant3.id, date: "2020-04-05T18:00:00Z"},
-  timeslot4 = {id: uuid(), userId: rest2.id, restaurantId: restaurant4.id, date: "2021-04-05T18:00:00Z"},
+  timeslot1 = {id: uuid(), userId: rest1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital1.id},
+  timeslot2 = {id: uuid(), userId: rest1.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
+  timeslot3 = {id: uuid(), userId: rest2.id, restaurantId: restaurant3.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital2.id},
+  timeslot4 = {id: uuid(), userId: rest2.id, restaurantId: restaurant4.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital2.id},
   meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true, timeslotId: timeslot1.id, mealinfoId: mealInfo1.id},
   meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false, timeslotId: timeslot1.id, mealinfoId: mealInfo2.id},
-  meal3 = {name: "Chicken 3", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id, finalized: true},
+  meal3 = {name: "Chicken 3", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo1.id},
   meal4 = {name: "Chicken 4", description: "Its Chicken", category: "Meat", mealinfoId: mealInfo2.id, finalized: false},
-  ml1 = {...meal1, id: uuid(), userId: rest1.id},
-  ml2 = {...meal2, id: uuid(), userId: rest1.id},
-  ml3 = {...meal3, id: uuid(), userId: rest1.id},
-  ml4 = {...meal4, id: uuid(), userId: rest1.id},
-  ml5 = {...meal1, id: uuid(), userId: rest2.id},
-  ml6 = {...meal2, id: uuid(), userId: rest2.id},
-  ml7 = {...meal3, id: uuid(), userId: rest2.id},
-  ml8 = {...meal4, id: uuid(), userId: rest2.id},
-  ml9 = {...meal1, id: uuid(), userId: rest2.id},
-  ml10 = {...meal2, id: uuid(), userId: rest2.id},
-  ml11 = {...meal3, id: uuid(), userId: rest2.id},
-  ml12 = {...meal4, id: uuid(), userId: rest2.id},
+  ml1 = {...meal1, id: uuid(), userId: rest1.id, restaurantId: restaurant1.id},
+  ml2 = {...meal2, id: uuid(), userId: rest1.id, restaurantId: restaurant1.id},
+  ml3 = {...meal3, id: uuid(), userId: rest1.id, restaurantId: restaurant1.id},
+  ml4 = {...meal4, id: uuid(), userId: rest1.id, restaurantId: restaurant1.id},
+  ml5 = {...meal1, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml6 = {...meal2, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml7 = {...meal3, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml8 = {...meal4, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml9 = {...meal1, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml10 = {...meal2, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml11 = {...meal3, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
+  ml12 = {...meal4, id: uuid(), userId: rest2.id, restaurantId: restaurant2.id},
   menu1 = {id: uuid(), userId: rest1.id, mealId: ml1.id, timeslotId: timeslot1.id, finalized: true},
   menu2 = {id: uuid(), userId: rest1.id, mealId: ml2.id, timeslotId: timeslot1.id, finalized: true},
   menu3 = {id: uuid(), userId: rest1.id, mealId: ml3.id, timeslotId: timeslot1.id, finalized: true},
@@ -75,11 +77,18 @@ var
   menu14 = {id: uuid(), userId: rest1.id, mealId: ml6.id, timeslotId: timeslot4.id, finalized: true},
   menu15 = {id: uuid(), userId: rest1.id, mealId: ml7.id, timeslotId: timeslot4.id, finalized: true},
   menu16 = {id: uuid(), userId: rest1.id, mealId: ml8.id, timeslotId: timeslot4.id, finalized: true},
-  hospital1 = {name:"Presby 1", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
-  hospital2 = {name:"Presby 2", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   order = {quantity: 5, information: "Allergic to nuts."};
 
 async.waterfall([
+  function(done) {
+    Hospital.destroy({where: {}})
+      .then(function() {
+        Hospital.bulkCreate([hospital1, hospital2], {validate: true})
+          .then(() => {
+            done();
+          });
+      })
+  },
   function(done) {
     User.destroy({where: {}})
       .then(() => {
@@ -153,15 +162,6 @@ async.waterfall([
       .then(function(){
         Cart.bulkCreate(carts, {validate: true}).then(function(){done();});
       });
-  },
-  function(done) {
-    Hospital.destroy({where: {}})
-      .then(function() {
-        Hospital.bulkCreate([hospital1, hospital2], {validate: true})
-          .then(() => {
-            done();
-          });
-      })
   },
   function(done) {
     var groupId1 = '7dccd0eb-bbce-4977-839d-e303c8bee3df';
