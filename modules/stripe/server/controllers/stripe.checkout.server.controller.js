@@ -178,6 +178,7 @@ exports.webhook = function(req, res) {
     // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds)
 
     // TODO: mark the order succeeded.
+    const groupId = data.object.metadata.groupId;
 
     console.log('payment_intent.succeeded: ' + JSON.stringify(data.object.metadata));
     responseMessage = 'payment success';
