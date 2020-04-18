@@ -1,12 +1,7 @@
 'use strict';
 
 var 
-  _ = require('lodash'),
-  uuid = require('uuid/v4'),
   path = require('path'),
-  express = require(path.resolve('./config/lib/express')),
-  app = express.init(sequelize),
-  sequelize = require(path.resolve('./config/lib/sequelize-connect')),
   config = require(path.resolve('./config/config')),
   twilio = require(path.resolve('./config/lib/twilio')),
   async = require('async'),
@@ -40,13 +35,15 @@ var getEndDate = function() {
   return new Date(new Date().getTime() + 60*60000)
 }
 
-cron.schedule(config.cronConfigs.twilioDailyUpdate, () => {
-  cronDailyUpdate();
-});
+module.exports = function() {
+  cron.schedule(config.cronConfigs.twilioDailyUpdate, () => {
+    cronDailyUpdate();
+  });
 
-cron.schedule(config.cronConfigs.twilioWeeklyUpdate, () => {
-  cronWeeklyUpdate();
-});
+  cron.schedule(config.cronConfigs.twilioWeeklyUpdate, () => {
+    cronWeeklyUpdate();
+  });
+}
 
 var cronDailyUpdate = function() {
   async.waterfall([
