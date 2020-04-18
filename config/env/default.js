@@ -65,6 +65,6 @@ module.exports = {
   },
   cronConfigs: {
     twilioWeeklyUpdate: '* * * * *',
-    twilioOrderReminder: '* * * * *',
+    twilioDailyUpdate: '* * * * *',
   }
 };

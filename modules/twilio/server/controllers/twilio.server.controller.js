@@ -8,8 +8,6 @@ var
   path = require('path'),
   uuid = require('uuid/v4'),
   async = require('async'),
-  fs = require('fs'),
-  jwt = require('jsonwebtoken'),
   config = require(path.resolve('./config/config')),
   twilio = require(path.resolve('./config/lib/twilio')),
   MessagingResponse = require('twilio').twiml.MessagingResponse,
@@ -18,12 +16,11 @@ var
   TwilioUser = db.twiliouser,
   TwilioMessage = db.twiliomessage,
   User = db.user,
-  TinyUrl = require('tinyurl');
+  crypto = require('crypto');
 
 // Define return
 // id | status | userId 
 const retAttributes = ['id', 'status'];
-const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
 
 /**
  * Create a twilio user
@@ -144,21 +141,26 @@ exports.webhook = function(req, res) {
               phoneNumber: req.body.From.substring(2)
             }
           }).then(function(user) {
-            var token;
-            if(user && tm.token) url = url + '/' + jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-            TinyUrl.shorten(url)
-              .then(function(url) {
-                twiml.message(tm.messageBody + url);
-                res.writeHead(200, {'Content-Type': 'text/xml'});
-                res.end(twiml.toString());   
-              })
-              .catch(function(err) {
-                console.log(err)
-                res.status(400).send({message: "ERROR"});
-              });
+            if(tm.token) {
+              user.resetPasswordToken = crypto.randomBytes(20).toString('hex');;
+              user.resetPasswordExpires = Date.now() + 3600000*3; // 3 hours
+              user.save()
+                .then(function(user) {
+                  var url = config.app.webURL + '?token=' + user.resetPasswordToken;
+                  twiml.message(tm.messageBody + url);
+                  res.writeHead(200, {'Content-Type': 'text/xml'});
+                  res.end(twiml.toString());   
+                }).catch(function(err) {
+                  res.status(400).send({message: "ERROR"});
+                });
+
+            } else {
+              twiml.message(tm.messageBody + url);
+              res.writeHead(200, {'Content-Type': 'text/xml'});
+              res.end(twiml.toString());   
+            }
           }).catch(function(err) {
-            console.log(err);
-            res.status(400).send({message: "ERROR"});
+            res.status(400).send({message: "ERROR: " + err});
           });
         } else {
           twiml.message(tm.messageBody);
@@ -171,7 +173,6 @@ exports.webhook = function(req, res) {
       res.end(twiml.toString());
     }
   }).catch(function(err) {
-    console.log(err);
-    res.status(400).send({message: "ERROR"});
+    res.status(400).send({message: "ERROR: " + err});
   });
 };
