@@ -9,7 +9,6 @@ var
   uuid = require('uuid/v4'),
   async = require('async'),
   config = require(path.resolve('./config/config')),
-  twilio = require(path.resolve('./config/lib/twilio')),
   MessagingResponse = require('twilio').twiml.MessagingResponse,
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
