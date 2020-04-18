@@ -61,21 +61,27 @@ exports.isValidMeal = function(req, res, next) {
       }
     }).then((meal) => {
       if(meal) {
-        req.meal = meal;
-        return next();
+        if(meal.finalized) {
+          req.meal = meal;
+          return next();
+        } else {
+          return res.status(400).json({
+            message: 'Meal not finalized'
+          });
+        }
       } else {
-        return res.status(403).json({
-          message: 'User is not authorized'
+        return res.status(400).json({
+          message: 'Meal not found'
         });
       }
     }).catch((err) => {
         return res.status(403).json({
-          message: 'User is not authorized'
+          message: 'Unexpected authorization error'
         });
     });
   } else {
-    return res.status(403).json({
-      message: 'User is not authorized'
+    return res.status(400).json({
+      message: 'Please specify meal'
     });
   }
 }

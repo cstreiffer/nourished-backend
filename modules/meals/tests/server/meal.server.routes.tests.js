@@ -37,7 +37,7 @@ var
   userCredentials2 = {id: uuid(), username: "testuser1", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7326", firstName: 'Chris', account_type: 'user'},
   restaurantCredentials1 = {id: uuid(), username: "testuser2", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7327", firstName: 'Chris', account_type: 'restaurant'},
   restaurantCredentials2 = {id: uuid(), username: "testuser3", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7328", firstName: 'Chris', account_type: 'restaurant'},
-  restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
+  restaurant1 = {restaurantStripeAccountId: "test", name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
@@ -384,7 +384,7 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
     chai.request(app)
       .post('/api/rest/meals')
       .set('Authorization', restaurantJWT1)
-      .send({...meal1, menuId: menu1.id})
+      .send({...meal1, menuId: menu1.id, restaurantId: restaurant1.id})
       .end((err, res) => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Meal successfully created');
@@ -404,20 +404,59 @@ describe('/POST api/restaurants/:restaurantId/menus endpoint', () => {
       });
   });
 
-  // it('User with "restaurant" role should NOT be able to create meal if they dont own menu', (done) => {
-  //   chai.request(app)
-  //     .post('/api/rest/meals')
-  //     .set('Authorization', restaurantJWT2)
-  //     .send({...meal1})
-  //     .end((err, res) => {
-  //       res.should.have.status(403);
-  //       res.body.should.have.property('message');
-  //       res.body.message.should.be.eql("User is not authorized");
-  //       done();
-  //     });
-  // });
+  it('User with "restaurant" role should fail without proper restaurantId', (done) => {
+    chai.request(app)
+      .post('/api/rest/meals')
+      .set('Authorization', restaurantJWT1)
+      .send({...meal1, menuId: menu1.id})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Please specify restaurant');
+        res.should.have.status(400);
+        done();
+      });
+  });
 
-    it('User with "restaurant" role should NOT be able to create meal', (done) => {
+  it('User with "restaurant" role should fail without proper restaurantId', (done) => {
+    chai.request(app)
+      .post('/api/rest/meals')
+      .set('Authorization', restaurantJWT1)
+      .send({...meal1, menuId: menu1.id, restaurantId: restaurant2.id})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('No attached restaurant stripe id');
+        res.should.have.status(400);
+        done();
+      });
+  });
+
+  it('User with "restaurant" role should fail without proper restaurantId', (done) => {
+    chai.request(app)
+      .post('/api/rest/meals')
+      .set('Authorization', restaurantJWT1)
+      .send({...meal1, menuId: menu1.id, restaurantId: "doesn't exist"})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Unexpected authorization error');
+        res.should.have.status(500);
+        done();
+      });
+  });
+
+  it('User with "restaurant" role should fail without proper restaurantId', (done) => {
+    chai.request(app)
+      .post('/api/rest/meals')
+      .set('Authorization', restaurantJWT1)
+      .send({...meal1, menuId: menu1.id, restaurantId: "e205f838-57ea-4a60-9820-76574a31d24b"})
+      .end((err, res) => {
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Restaurant not found');
+        res.should.have.status(400);
+        done();
+      });
+  });
+
+  it('User with "restaurant" role should NOT be able to create meal', (done) => {
     chai.request(app)
       .post('/api/rest/meals')
       .set('Authorization', userJWT1)
@@ -444,14 +483,12 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
       chai.request(app)
         .put('/api/rest/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
-        .send({menuId: menu2.id, name: "Chicken 2.0", visible: true})
+        .send({name: "Chicken 2.0", visible: false})
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Meal successfully updated');
-          // res.body.meal.should.have.property('menuId').eql(menu2.id);
           res.body.meal.should.have.property('visible').eql(false);
           res.body.meal.should.have.property('name').eql("Chicken 2.0");
-          res.body.meal.should.not.have.property('menu');
           res.body.meal.should.not.have.property('userId');
           res.should.have.status(200);
           done();
@@ -464,11 +501,11 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
       chai.request(app)
         .put('/api/rest/meals/' + meal.id)
         .set('Authorization', restaurantJWT1)
-        .send({menuId: menu3.id, name: "Chicken 2.0", visible: true})
+        .send({restaurantId: restaurant3.id, name: "Chicken 2.0", visible: true})
         .end((err, res) => {
-          res.should.have.status(403);
+          res.should.have.status(400);
           res.body.should.have.property('message');
-          res.body.message.should.be.eql("User is not authorized");
+          res.body.message.should.be.eql("Restaurant not found");
           done();
         });
     });
@@ -482,14 +519,8 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
         .send({menuId: menu2.id, visible: true, name: "Chicken 2.0"})
         .end((err, res) => {
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Meal successfully updated');
-          // res.body.meal.should.have.property('menuId').eql(menu1.id);
-          res.body.meal.should.have.property('visible').eql(true);
-          res.body.meal.should.have.property('name').eql("Chicken 2.0");
-          res.body.meal.should.have.property('mealinfoId');
-          res.body.meal.should.not.have.property('menu');
-          res.body.meal.should.not.have.property('userId');
-          res.should.have.status(200);
+          res.body.should.have.property('message').eql('Meal is finalized');
+          res.should.have.status(400);
           done();
         });
     });
@@ -526,11 +557,12 @@ describe('/DELETE /api/meals/:mealId endpoint', () => {
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.have.property('message');
-          res.body.message.should.be.eql("Cannot delete finalized meal");
+          res.body.message.should.be.eql("Meal is finalized");
           done();
         });
     });
   });
+
 });
 
 describe('/POST /api/meals/:mealId/picture endpoint', () => {

@@ -13,8 +13,9 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   TimeSlot = db.timeslot;
 
-const retAttributes = ['id', 'date', 'restaurantId'];
+const retAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
 const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const hospRetAttributes = ['name', 'phoneNumber', 'email'];
 
 /**
  * List of restaurant menus
@@ -22,10 +23,14 @@ const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress'
 exports.list = function(req, res) {
   TimeSlot.findAll({
     attributes: retAttributes,
-    include: {
+    include: [{
       model: db.restaurant,
       attributes: restRetAttributes
-    }
+    },
+    {
+      model: db.hospital,
+      attributes: hospRetAttributes
+    }]
   }).then(function(timeslots) {
     if (!timeslots) {
       return res.status(404).send({
@@ -49,10 +54,14 @@ exports.userList = function(req, res) {
   TimeSlot.findAll({
     where: query,
     attributes: retAttributes,
-    include: {
+    include: [{
       model: db.restaurant,
       attributes: restRetAttributes
-    }
+    },
+    {
+      model: db.hospital,
+      attributes: hospRetAttributes
+    }]
   }).then(function(timeslots) {
     if (!timeslots) {
       return res.status(404).send({

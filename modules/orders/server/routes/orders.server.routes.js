@@ -52,6 +52,11 @@ module.exports = function(app) {
     .all(ordersPolicy.isUserAllowed)
     .get(orders.restList); // User only get orders
 
+  app.route('/api/rest/orders/itemized')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(ordersPolicy.isUserAllowed)
+    .get(orders.restListItemized); // User only get orders
+
   // Single order routes
   app.route('/api/rest/orders/status')
     .all(passport.authenticate('jwt', {session: false}))

@@ -8,6 +8,7 @@
  *          - id
  *          - name
  *          - mealinfoId 
+ *          - restaurantId 
  *          - userId 
  *        properties:
  *          id:
@@ -43,6 +44,9 @@
  *          mealinfoId:
  *            type: string
  *            description: ID of the menu the meal is attached to. Menu contains the timeslot information. 
+ *          restaurantId:
+ *            type: boolean
+ *            description: UUID of the restaurant who's been assigned the timeslot.  
  *      MealInfo:
  *        type: object
  *        required:
@@ -126,7 +130,12 @@
  *              required:
  *                - name
  *                - mealinfoId
+ *                - restaurantId
  *              properties:
+ *                mealinfoId:
+ *                  type: string
+ *                restaurantId:
+ *                  type: string
  *                name:
  *                  type: string
  *                description:
@@ -139,8 +148,6 @@
  *                  type: boolean
  *                finalized:
  *                  type: boolean
- *                mealinfoId:
- *                  type: string
  *      responses:
  *        "200":
  *          description: Creates a meal
