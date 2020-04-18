@@ -250,6 +250,33 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/User'
+ *  /user/password:
+ *    post:
+ *      summary: Updates user profile
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Users]
+ *      requestBody:
+ *        required: false
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                 - newPassword
+ *                 - verifyPassword
+ *              properties:
+ *                newPassword:
+ *                  type: string
+ *                verifyPassword:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
  *  /users:
  *    get:
  *      summary: Gets all user profiles. Only available in dev.

@@ -131,11 +131,24 @@ describe('/GET api/auth/forgot/test endpoint', () => {
       });
   });
 
+  it('User should NOT be able to updated password with weak password', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + resetToken)
+      .send({newPassword: "password", verifyPassword: "password"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Password not strong enough');
+        done();
+      });
+  });
+
   it('User should be able to verify reset password token', (done) => {
     chai.request(app)
       .post('/api/auth/reset/' + resetToken)
       .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
       .end((err, res) => {
+
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Password successfully reset');

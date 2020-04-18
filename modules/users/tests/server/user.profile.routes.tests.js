@@ -198,6 +198,19 @@ describe('/POST /api/user/password', () => {
       });
   });
 
+  it('User should NOT be able to change their password if no massing passwords', (done) => {
+    chai.request(app)
+      .post('/api/user/password')
+      .set('Authorization', userJWT1)
+      .send({currentPassword: "h4dm322i8!!ssfSS", newPassword: "password", verifyPassword: "password"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql("Password not strong enough")
+        done();
+      });
+  });
+
   it('User should be able to change their password', (done) => {
     chai.request(app)
       .post('/api/user/password')

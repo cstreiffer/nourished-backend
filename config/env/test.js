@@ -25,10 +25,9 @@ module.exports = {
     title: defaultEnvConfig.app.title + ' - Test Environment'
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'penn.chci.nourished@gmail.com',
+    from: process.env.MAILER_FROM || 'Nourished',
     options: {
-      service: 'gmail',
-      host: 'smtp.gmail.com',
+      host: process.env.MAILER_HOST || 'smtp.gmail.com',
       port: 465,
       secure: true,
       auth: {

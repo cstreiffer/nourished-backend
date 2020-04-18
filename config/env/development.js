@@ -38,14 +38,14 @@ module.exports = {
     title: defaultEnvConfig.app.title + ' - Development Environment'
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'Nourished',
+    email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
+    from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {
-      service: 'gmail',
-      host: 'smtp.gmail.com',
+      host: process.env.MAILER_HOST || '',
       port: 465,
       secure: true,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'penn.chci.nourished@gmail.com',
+        user: process.env.MAILER_EMAIL_ID || '',
         pass: process.env.MAILER_PASSWORD || ''
       }
     }
