@@ -25,10 +25,10 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  user1 = {id: "e205f838-57ea-4a60-9820-76574a31d24b", username: "testuser", email: 'testUser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137325", firstName: 'Chris', roles: ['user']},
-  user2 = {id: "76bd12c8-4be3-4fef-9782-f69db274a872", username: "testuser1", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', firstName: 'Chris', roles: ['user']},
-  rest1 = {id: uuid(), username: "testuser2", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137325", firstName: 'Chris', roles: ['restaurant']},
-  rest2 = {id: uuid(), username: "testuser3", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', firstName: 'Chris', roles: ['restaurant']},
+  user1 = {id: "e205f838-57ea-4a60-9820-76574a31d24b", username: "testuser1", email: 'testUser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137325", firstName: 'Chris', roles: ['user']},
+  user2 = {id: "76bd12c8-4be3-4fef-9782-f69db274a872", username: "testuser2", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137326", firstName: 'Chris', roles: ['user']},
+  rest1 = {id: uuid(), username: "testuser3", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', firstName: 'Chris', phoneNumber:"5046137327", roles: ['restaurant']},
+  rest2 = {id: uuid(), username: "testuser4", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', firstName: 'Chris', phoneNumber:"5046137328", roles: ['restaurant']},
   restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
@@ -83,7 +83,7 @@ async.waterfall([
   function(done) {
     Hospital.destroy({where: {}})
       .then(function() {
-        Hospital.bulkCreate([hospital1, hospital2], {validate: true})
+        Hospital.bulkCreate([hospital1, hospital2])
           .then(() => {
             done();
           });
@@ -92,7 +92,7 @@ async.waterfall([
   function(done) {
     User.destroy({where: {}})
       .then(() => {
-        User.bulkCreate([user1, user2, rest1, rest2], {validate: true})
+        User.bulkCreate([user1, user2, rest1, rest2])
           .then(() => {
             done();
           });
