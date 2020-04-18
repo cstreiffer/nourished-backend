@@ -15,10 +15,13 @@ var
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   passport = require('passport'),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  User = db.user;
+  User = db.user,
+  owasp = require('owasp-password-strength-test');
+
+owasp.config(config.shared.owasp);
 
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
-const retAttributes = ['id', 'username', 'fullName', 'email', 'phoneNumber', 'roles'];
+const retAttributes = ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber', 'roles'];
 
 // URLs for which user can't be redirected on signin
 var noReturnUrls = [
@@ -30,49 +33,52 @@ var noReturnUrls = [
  * Signup
  */
 exports.signup = function(req, res) {
-  // For security measurement we remove the roles from the req.body object
-  delete req.body.roles;
-  // delete req.body.id;
-  // req.body.id = uuid();
-  if (req.body.email) req.body.email = req.body.email.toLowerCase();
-  if (req.body.phoneNumber) req.body.phoneNumber = req.body.phoneNumber.replace(/-|\(|\)| /g, '');
-  
-  // var message = null;
-  var user = User.build(req.body);
+  // Check request is properly formatted
+  if ((req.body.email) && req.body.phoneNumber) {
+    // Format the model
+    delete req.body.roles;
+    delete req.body.id;
+    if (!req.body.username) req.body.username = req.body.email;
+    
+    var result = owasp.test(req.body.password);
+    if (!result.errors.length) {
+      // Let's build the user!
+      req.body.id = uuid();
+      req.body.email = req.body.email.toLowerCase();
+      req.body.phoneNumber = req.body.phoneNumber.replace(/-|\(|\)| /g, '');
+     
+      // Build the user
+      var user = User.build(req.body);
+      user.salt = user.makeSalt();
+      user.hashedPassword = user.encryptPassword(req.body.password, user.salt);
 
-  if(req.body.password) {
-    user.salt = user.makeSalt();
-    user.hashedPassword = user.encryptPassword(req.body.password, user.salt);
-  }
+      // Set the roles
+      if (req.body.account_type === "provider") user.roles = ["user"];
+      else if (req.body.account_type === "restaurant") user.roles = ["restaurant"];
+      else user.roles = ["user"];
 
-  if (req.body.account_type === "provider") {
-    user.roles = ["user"];
-  } else if (req.body.account_type === "restaurant") {
-    user.roles = ["restaurant"];
+      // Let's save the model!
+      user.save().then(function(user) {
+        user.password = undefined;
+        user.salt = undefined;
+        var ret = _.pick(user || {}, retAttributes)
+        var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+        res.jsonp({user: ret, token: token, message: "User successfully created"});
+      }).catch(function(err) {
+        res.status(400).send({
+          message: errorHandler.getErrorMessage(err)
+        });
+      });
+    } else {
+      res.status(400).send({
+        message: "Password not strong enough"
+      });        
+    }
   } else {
-    user.roles = ["user"];
-  }
-
-  user.save().then(function(user) {
-    // req.login(user, function(err) {
-
-      user.password = undefined;
-      user.salt = undefined;
-
-    //   if (err) {
-    //     res.status(400).send({
-    //       message: errorHandler.getErrorMessage(err)
-    //     });
-    //   }
-      var ret = _.pick(user || {}, retAttributes)
-      var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-      res.jsonp({user: ret, token: token, message: "User successfully created"});
-    // });
-  }).catch(function(err) {
     res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
-    });
-  });
+      message: "Please include email and phone number"
+    });   
+  }
 };
 
 /**
@@ -88,18 +94,9 @@ exports.signin = function(req, res, next) {
       // Remove sensitive data before login
       user.password = undefined;
       user.salt = undefined;
-
-      // req.login(user, function(err) {
-      //   if (err) {
-      //     res.status(400).send({
-      //       message: errorHandler.getErrorMessage(err)
-      //     });
-      //   } else {
-        var ret = _.pick(user || {}, retAttributes)
-        var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-        res.json({user: ret, token: token, message: "User successfully logged-in"});
-      //   }
-      // });
+      var ret = _.pick(user || {}, retAttributes)
+      var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+      res.json({user: ret, token: token, message: "User successfully logged-in"});
     }
   })(req, res, next);
 };

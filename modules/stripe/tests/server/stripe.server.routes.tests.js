@@ -23,11 +23,15 @@ var
 
 chai.use(chaiHttp);
 
-var
+var 
   userJWT1 = '',
-  user1 = {id: uuid(), fullName: "Test User", email: "test@gmail.com", phoneNumber: "504-504-5004"},
   userJWT2 = '',
-  user2 = {id: uuid()},
+  userId1 = '',
+  userId2 = '';
+
+var
+  user1 = {id: uuid(), username: "testuser", email: 'testUser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'},
+  user2 = {id: uuid(), username: "testuser1", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7326", firstName: 'Chris', account_type: 'user'},
   restaurant1 = {id: uuid(), name: "Goldie 1", phoneNumber: "5046137325"},
   restaurant2 = {id: uuid(), name: "Goldie 2", phoneNumber: "5046137325"},
   timeslot1 = {id: uuid(), restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
@@ -48,6 +52,7 @@ before((done) => {
     .post('/api/auth/signup')
     .send(user1)
     .then((res) => {
+      userId1 = res.body.user.id;
       userJWT1 = "bearer " + res.body.token;
       done();
     });
@@ -58,6 +63,7 @@ before((done) => {
     .post('/api/auth/signup')
     .send(user2)
     .then((res) => {
+      userId2 = res.body.user.id;
       userJWT2 = "bearer " + res.body.token;
       done();
     });
@@ -109,10 +115,10 @@ before((done) => {
 
 before(function(done) {
   var orders = [
-    {quantity: 4, menuId: menu1.id, userId: user1.id, id: uuid(), groupId: group1.id},
-    {quantity: 4, menuId: menu2.id, userId: user1.id, id: uuid(), groupId: group1.id},
-    {quantity: 6, menuId: menu1.id, userId: user1.id, id: uuid(), groupId: group2.id},
-    {quantity: 8, menuId: menu2.id, userId: user1.id, id: uuid(), groupId: group2.id},
+    {quantity: 4, menuId: menu1.id, userId: userId1, id: uuid(), groupId: group1.id},
+    {quantity: 4, menuId: menu2.id, userId: userId1, id: uuid(), groupId: group1.id},
+    {quantity: 6, menuId: menu1.id, userId: userId1, id: uuid(), groupId: group2.id},
+    {quantity: 8, menuId: menu2.id, userId: userId1, id: uuid(), groupId: group2.id},
   ];
   Order.destroy({where: {}})
     .then(function(){
@@ -151,7 +157,7 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
-    Stripe.create({id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
+    Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
       chai.request(app)
         .post('/api/stripe/create-payment-intent')
         .set('Authorization', userJWT1)
@@ -176,10 +182,10 @@ describe('/GET /user/stripe', () => {
 
   it('User with "user" role should be able to create payment intent for their order', (done) => {
     var stripes = [
-      {id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 105},
-      {id: uuid(), userId: user2.id, groupId: group2.id, paymentIntentId: "test", amount: 106},
-      {id: uuid(), userId: user1.id, groupId: group3.id, paymentIntentId: "test", amount: 105},
-      {id: uuid(), userId: user2.id, groupId: group4.id, paymentIntentId: "test", amount: 106},
+      {id: uuid(), userId: userId1, groupId: group1.id, paymentIntentId: "test", amount: 105},
+      {id: uuid(), userId: userId2, groupId: group2.id, paymentIntentId: "test", amount: 106},
+      {id: uuid(), userId: userId1, groupId: group3.id, paymentIntentId: "test", amount: 105},
+      {id: uuid(), userId: userId2, groupId: group4.id, paymentIntentId: "test", amount: 106},
     ];
     Stripe.bulkCreate(stripes).then(function(stripes) {
       chai.request(app)
@@ -235,7 +241,7 @@ describe('/GET /api/user/stripe/:stripeId', () => {
   });
 
   it('User with "user" role should NOT be able to get payment they didnt create', (done) => {
-    Stripe.create({id: uuid(), userId: user1.id, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
+    Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
       chai.request(app)
         .get('/api/user/stripe/' + stripe.id)
         .set('Authorization', userJWT2)
@@ -254,10 +260,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-after(function(done) {
-  Order.destroy({where: {}})
-  .then(function(){done()})
-});
+// after(function(done) {
+//   Order.destroy({where: {}})
+//   .then(function(){done()})
+// });
 
 after(function(done) {
   User.destroy({where: {}})

@@ -268,6 +268,7 @@ exports.reset = function(req, res, next) {
     ],
     function(err) {
       if (err) {
+        console.log(err);
         return next(err);
       }
     });

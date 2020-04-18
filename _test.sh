@@ -7,6 +7,6 @@ node_modules/mocha/bin/mocha modules/carts/tests/server/cart.server.routes.tests
 node_modules/mocha/bin/mocha modules/stripe/tests/server/stripe.server.routes.tests.js --exit
 
 node_modules/mocha/bin/mocha modules/users/tests/server/user.server.routes.tests.js --exit
-# node_modules/mocha/bin/mocha modules/users/tests/server/user.password.routes.tests.js --exit
+node_modules/mocha/bin/mocha modules/users/tests/server/user.password.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/users/tests/server/user.profile.routes.tests.js --exit
 

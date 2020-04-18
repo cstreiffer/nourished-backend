@@ -16,7 +16,7 @@ var _ = require('lodash'),
 
 const {Op} = require('sequelize');
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
-const retAttributes = ['id', 'username', 'fullName', 'email', 'phoneNumber', 'roles'];
+const retAttributes = ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber', 'roles'];
 
 exports.update = function(req, res, next) {
   var userInfo = req.body;
@@ -28,83 +28,83 @@ exports.update = function(req, res, next) {
   if (userInfo) {
 
     async.waterfall([
-      // function(done) {
-      //   if (username && username !== req.user.username) {
-      //     User.findOne({
-      //       where: {
-      //         username: username,
-      //         id: {
-      //           [Op.ne]: req.user.id
-      //         }
-      //       }
-      //     }).then(function(user) {
-      //       if (user && user.username === username) {
-      //         return res.status(400).send({
-      //           message: 'Username already exists'
-      //         });
-      //       }
-      //       done(null);
-      //     }).catch(function(err) {
-      //       return res.status(400).send({
-      //         message: errorHandler.getErrorMessage(err)
-      //       });
-      //     });
-      //   } else {
-      //     done(null);
-      //   }
-      // },
-      // function(done) {
-      //   if (email && email !== req.user.email.toLowerCase()) {
-      //     User.findOne({
-      //       where: {
-      //         email: {
-      //           [Op.iLike]: email
-      //         },
-      //         id: {
-      //           [Op.ne]: req.user.id
-      //         }
-      //       }
-      //     }).then(function(user) {
-      //       if (user && user.email.toLowerCase() === email) {
-      //         return res.status(400).send({
-      //           message: 'Email already exists'
-      //         });
-      //       }
-      //       done(null);
-      //     }).catch(function(err) {
-      //       return res.status(400).send({
-      //         message: errorHandler.getErrorMessage(err)
-      //       });
-      //     });
-      //   } else {
-      //     done(null);
-      //   }
-      // },
-      // function(done) {
-      //   if (phoneNumber && phoneNumber !== req.user.phoneNumber.replace(/-|\(|\)| /g, '')) {
-      //     User.findOne({
-      //       where: {
-      //         phoneNumber: phoneNumber,
-      //         id: {
-      //           [Op.ne]: req.user.id
-      //         }
-      //       }
-      //     }).then(function(user) {
-      //       if (user && user.phoneNumber.replace(/-|\(|\)| /g, '') === phoneNumber) {
-      //         return res.status(400).send({
-      //           message: 'Phone number already exists'
-      //         });
-      //       }
-      //       done(null);
-      //     }).catch(function(err) {
-      //       return res.status(400).send({
-      //         message: errorHandler.getErrorMessage(err)
-      //       });
-      //     });
-      //   } else {
-      //     done(null);
-      //   }
-      // },
+      function(done) {
+        if (username && username !== req.user.username) {
+          User.findOne({
+            where: {
+              username: username,
+              id: {
+                [Op.ne]: req.user.id
+              }
+            }
+          }).then(function(user) {
+            if (user && user.username === username) {
+              return res.status(400).send({
+                message: 'Username already exists'
+              });
+            }
+            done(null);
+          }).catch(function(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          });
+        } else {
+          done(null);
+        }
+      },
+      function(done) {
+        if (email && email !== req.user.email.toLowerCase()) {
+          User.findOne({
+            where: {
+              email: {
+                [Op.iLike]: email
+              },
+              id: {
+                [Op.ne]: req.user.id
+              }
+            }
+          }).then(function(user) {
+            if (user && user.email.toLowerCase() === email) {
+              return res.status(400).send({
+                message: 'Email already exists'
+              });
+            }
+            done(null);
+          }).catch(function(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          });
+        } else {
+          done(null);
+        }
+      },
+      function(done) {
+        if (phoneNumber && phoneNumber !== req.user.phoneNumber.replace(/-|\(|\)| /g, '')) {
+          User.findOne({
+            where: {
+              phoneNumber: phoneNumber,
+              id: {
+                [Op.ne]: req.user.id
+              }
+            }
+          }).then(function(user) {
+            if (user && user.phoneNumber.replace(/-|\(|\)| /g, '') === phoneNumber) {
+              return res.status(400).send({
+                message: 'Phone number already exists'
+              });
+            }
+            done(null);
+          }).catch(function(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          });
+        } else {
+          done(null);
+        }
+      },
       function(done) {
         User.findOne({
           where: {
@@ -112,7 +112,8 @@ exports.update = function(req, res, next) {
           }
         }).then(function(user) {
 
-          if (userInfo.fullName) user.fullName = userInfo.fullName;
+          if (userInfo.firstName) user.firstName = userInfo.firstName;
+          if (userInfo.lastName) user.lastName = userInfo.lastName;
           if (phoneNumber) user.phoneNumber = phoneNumber
           if (email) user.email = email;
           if (username) user.username = username;
