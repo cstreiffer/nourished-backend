@@ -263,9 +263,12 @@
  *            schema:
  *              type: object
  *              required:
+ *                 - currentPassword
  *                 - newPassword
  *                 - verifyPassword
  *              properties:
+ *                currentPassword:
+ *                  type: string
  *                newPassword:
  *                  type: string
  *                verifyPassword:

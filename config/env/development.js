@@ -53,9 +53,9 @@ module.exports = {
   livereload: true,
   stripe: {
     // fill this in from https://dashboard.stripe.com/test/apikeys
-    pubKey: process.env.STRIPE_PUBLIC || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET || 'sk_12345',
+    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
     // fill this in by configuring the webhook url https://devserver.example.com/api/stripe/webhook
     // at https://dashboard.stripe.com/test/webhooks
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'

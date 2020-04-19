@@ -37,9 +37,9 @@ module.exports = {
     }
   },
   stripe: {
-    pubKey: process.env.STRIPE_PUBLIC || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET || 'sk_12345',
+    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
   }
 };
