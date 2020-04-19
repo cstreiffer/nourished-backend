@@ -209,9 +209,14 @@ module.exports.initHelmetHeaders = function(app) {
         }
       }
     };
-    var corsConfigured = cors(corsOptions);
-    app.use(corsConfigured);
-    app.options('*', corsConfigured);
+    if(process.env.NODE_ENV === 'production') {
+        var corsConfigured = cors(corsOptions);
+        app.use(corsConfigured);
+        app.options('*', corsConfigured);
+    } else {
+        app.use(cors());
+        app.options('*', cors());
+    }
  };
 
 
