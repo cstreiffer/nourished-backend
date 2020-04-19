@@ -29,6 +29,7 @@
     "connect-redis": "^4.0.4",
     "consolidate": "^0.15.1",
     "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "crypto": "^1.0.1",
     "csurf": "^1.11.0",
     "dotenv": "^8.2.0",

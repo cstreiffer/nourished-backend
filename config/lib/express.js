@@ -15,6 +15,7 @@ var config = require('../config'),
     compress = require('compression'),
     methodOverride = require('method-override'),
     cookieParser = require('cookie-parser'),
+    cors = require('cors'),
     csurf = require('csurf'),
     helmet = require('helmet'),
     flash = require('connect-flash'),
@@ -196,6 +197,27 @@ module.exports.initHelmetHeaders = function(app) {
 /**
  * Configure CSRF and add the token to the XSRF cookie
  */
+ module.exports.initCors = function(app) {
+    // Enable CSRF protection if running in production
+    var whitelist = config.cors.whitelist;
+    var corsOptions = {
+      origin: function (origin, callback) {
+        if ((whitelist.indexOf(origin) !== -1) || !origin) {
+          callback(null, true)
+        } else {
+          callback(new Error('Not allowed by CORS'))
+        }
+      }
+    };
+    var corsConfigured = cors(corsOptions);
+    app.use(corsConfigured);
+    app.options('*', corsConfigured);
+ };
+
+
+/**
+ * Configure CSRF and add the token to the XSRF cookie
+ */
  module.exports.initCSRF = function(app) {
     // Enable CSRF protection if running in production
     if (process.env.NODE_ENV === 'production') {
@@ -314,6 +336,9 @@ module.exports.init = function(db) {
 
     // Initialize Helmet security headers
     this.initHelmetHeaders(app);
+
+    // Initialize cors
+    this.initCors(app);
 
     // Initialize CSRF
     // this.initCSRF(app);
