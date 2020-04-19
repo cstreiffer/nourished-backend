@@ -54,26 +54,6 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Cart'
- *  /user/carts/{cartId}:
- *    get:
- *      summary: Get a cart by id
- *      tags: [Carts]
- *      security:
- *        - bearerAuth: []
- *      parameters:
- *        - in: path
- *          name: cartId
- *          schema:
- *            type: string
- *          required: true
- *          description: Id of the cart
- *      responses:
- *        "200":
- *          description: Get cart
- *          content:
- *            application/json:
- *              schema:
- *                $ref: '#/components/schemas/Cart'
  *    post:
  *      summary: Creates a cart attached to the user
  *      tags: [Carts]
@@ -96,6 +76,26 @@
  *      responses:
  *        "200":
  *          description: Updates a cart
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Cart'
+ *  /user/carts/{cartId}:
+ *    get:
+ *      summary: Get a cart by id
+ *      tags: [Carts]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: cartId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the cart
+ *      responses:
+ *        "200":
+ *          description: Get cart
  *          content:
  *            application/json:
  *              schema:
