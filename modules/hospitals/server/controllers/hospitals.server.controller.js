@@ -18,8 +18,8 @@ exports.create = function(req, res) {
 
   Hospital.create(req.body).then(function(hospital) {
     if (!hospital) {
-      return res.send('/', {
-        errors: 'Could not create the hospital'
+      return res.status(404).send({
+        message: "Could not create the hospital"
       });
     } else {
       return res.jsonp({hospital: hospital, message: "Hospital successfully created"});
@@ -86,7 +86,7 @@ exports.delete = function(req, res) {
       });
 
     } else {
-      return res.status(400).send({
+      return res.status(404).send({
         message: 'Unable to find the hospital'
       });
     }

@@ -260,7 +260,9 @@ module.exports.initErrorRoutes = function(app) {
         console.error(err.stack);
 
         // Redirect to error page
-        res.redirect('/server-error');
+        res.status(404).send({
+            message: 'Error within the server'
+        });
     });
 };
 
@@ -304,8 +306,8 @@ module.exports.init = function(db) {
     // Initialize Express view engine
     this.initViewEngine(app);
 
-    // Initialize Express session
-    this.initSession(app, db);
+    // Initialize Express session (UNSURE IF NEEDED)
+    // this.initSession(app, db);
 
     // Initialize Modules configuration
     this.initModulesConfiguration(app);
@@ -314,7 +316,7 @@ module.exports.init = function(db) {
     this.initHelmetHeaders(app);
 
     // Initialize CSRF
-    this.initCSRF(app);
+    // this.initCSRF(app);
 
     // Initialize modules static client routes
     // this.initModulesClientRoutes(app);

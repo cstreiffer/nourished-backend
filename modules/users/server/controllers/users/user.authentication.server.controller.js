@@ -92,7 +92,7 @@ exports.signin = function(req, res, next) {
       });
     } else {
       // Remove sensitive data before login
-      user.password = undefined;
+      user.hashedPassword = undefined;
       user.salt = undefined;
       var ret = _.pick(user || {}, retAttributes)
       var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
@@ -105,7 +105,7 @@ exports.signin = function(req, res, next) {
  * Signout
  */
 exports.signout = function(req, res) {
-  req.logout();
+  // req.logout();
   res.redirect('/');
 };
 

@@ -27,8 +27,8 @@ exports.create = function(req, res) {
 
   Restaurant.create(req.body).then(function(restaurant) {
     if (!restaurant) {
-      return res.send('/', {
-        errors: 'Could not create the restaurant'
+      return res.status(404).send({
+        message: 'Could not create the restaurant'
       });
     } else {
       var ret = _.pick(restaurant, retAttributes);

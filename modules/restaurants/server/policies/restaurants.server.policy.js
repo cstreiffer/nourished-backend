@@ -81,7 +81,7 @@ exports.isValidRestaurant = function(req, res, next) {
         req.restaurant = restaurant;
         return next();
       } else {
-        return res.status(400).json({
+        return res.status(404).json({
           message: 'Restaurant not found'
         });
       }

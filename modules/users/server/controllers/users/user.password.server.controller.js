@@ -19,6 +19,7 @@ const {Op} = require('sequelize');
 
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
+var url = config.app.webURL || 'https://nourished-dev.uphs.upenn.edu/'
 /**
  * Forgot for reset password (forgot POST)
  */
@@ -69,7 +70,7 @@ exports.forgot = function(req, res, next) {
       res.render(path.resolve('modules/users/server/templates/password-recovery'), {
         name: user.displayName,
         emailAddress: config.mailer.email,
-        url: 'http://' + req.headers.host + '/api/auth/reset/' + token
+        url: url + '?passwordToken=' + token
       }, function(err, emailHTML) {
         done(err, emailHTML, user);
       });

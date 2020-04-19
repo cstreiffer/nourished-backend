@@ -138,7 +138,14 @@ exports.update = function(req, res, next) {
         });
         done(null);
       }
-    ]);
+    ],
+    function(err) {
+      if(err) {
+        res.status(400).send({
+          message: errorHandler.getErrorMessage(err)
+        });
+      }
+    });
   } else {
     res.status(401).send({
       message: 'User is not signed in'
@@ -163,7 +170,13 @@ exports.getProfile = function(req, res) {
       id: req.user.id
     }
   }).then(function(user) {
-    res.json({user: user, message: "User successfully found"});
+    if(!user) {
+      return res.status(404).send({
+        message: 'Could not find the user'
+      });
+    } else {
+      res.json({user: user, message: "User successfully found"});
+    }
   }).catch(function(err) {
     res.status(400).send(err);
   });

@@ -45,12 +45,10 @@ exports.create = function(req, res) {
     return ret;
   });
 
-  console.log("Made it here?" + orders);
-
   Order.bulkCreate(orders, {validate: true}).then(function() {
     if (!orders) {
-      return res.send('/', {
-        errors: 'Could not create the order'
+      return res.status(404).send({
+        message: 'Could not create the order'
       });
     } else {
       var menuIds = orders.map(order => order.menuId);

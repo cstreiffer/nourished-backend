@@ -41,8 +41,8 @@ exports.create = function(req, res) {
   } else {
     Meal.create(req.body).then(function(meal) {
       if (!meal) {
-        return res.send('/', {
-          errors: 'Could not create the meal'
+        return res.status(404).send({
+          message: "Could not create the meal"
         });
       } else {
         var ret = _.pick(meal, retAttributes);
@@ -125,7 +125,7 @@ var _changeMealPicture = function(req, res) {
         return res.status(422).send(err);
       });
   } else {
-    return res.status(401).send({
+    return res.status(404).send({
       message: 'Meal not found'
     });
   }
