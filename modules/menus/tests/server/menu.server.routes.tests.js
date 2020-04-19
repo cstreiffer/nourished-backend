@@ -72,6 +72,17 @@ before((done) => {
 });
 
 before((done) => {
+  m1.userId = restaurantId1;
+  m2.userId = restaurantId2;
+  m3.userId = restaurantId1;
+  m4.userId = restaurantId2;
+
+  timeslot1.userId = restaurantId1;
+  timeslot2.userId = restaurantId2;
+  done();
+});
+
+before((done) => {
   Hospital.destroy({where: {}})
     .then(function() {
       Hospital.bulkCreate([hospital1, hospital2])
@@ -82,6 +93,7 @@ before((done) => {
 });
 
 before((done) =>{
+  console.log("Here?");
   var r1 = {...restaurant1, ...{userId: restaurantId1}};
   var r2 = {...restaurant2, ...{userId: restaurantId2}};
   Restaurant.bulkCreate([r1, r2])

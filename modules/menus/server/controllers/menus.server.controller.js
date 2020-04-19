@@ -37,7 +37,7 @@ exports.create = function(req, res) {
     req.body.timeslotId = req.timeslot.id;
     Menu.create(req.body).then(function(menu) {
       if (!menu) {
-        return res.status(400).send({
+        return res.status(404).send({
           message: "Could not create the menu item"
         });
       } else {

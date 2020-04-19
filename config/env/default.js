@@ -63,6 +63,12 @@ module.exports = {
       }
     }
   },
+  cors: {
+    whitelist: [
+      'https://nourished-dev.uphs.upenn.edu', 'https://nourished.uphs.upenn.edu',
+      'http://nourished-dev.uphs.upenn.edu', 'http://nourished.uphs.upenn.edu'
+    ]
+  },
   cronConfigs: {
     twilioWeeklyUpdate: '* * * * *',
     twilioDailyUpdate: '* * * * *',

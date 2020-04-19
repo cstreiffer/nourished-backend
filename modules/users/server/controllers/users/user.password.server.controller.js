@@ -10,12 +10,16 @@ var path = require('path'),
   async = require('async'),
   crypto = require('crypto'),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  User = db.user;
+  User = db.user,
+  owasp = require('owasp-password-strength-test');
+
+owasp.config(config.shared.owasp);
 
 const {Op} = require('sequelize');
 
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
+var url = config.app.webURL || 'https://nourished-dev.uphs.upenn.edu/'
 /**
  * Forgot for reset password (forgot POST)
  */
@@ -65,8 +69,8 @@ exports.forgot = function(req, res, next) {
     function(token, user, done) {
       res.render(path.resolve('modules/users/server/templates/password-recovery'), {
         name: user.displayName,
-        emailAddress: config.mailer.from,
-        url: 'http://' + req.headers.host + '/api/auth/reset/' + token
+        emailAddress: config.mailer.email,
+        url: url + '?passwordToken=' + token
       }, function(err, emailHTML) {
         done(err, emailHTML, user);
       });
@@ -195,31 +199,38 @@ exports.reset = function(req, res, next) {
         }).then(function(user) {
           if (user) {
             if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
-              user.password = passwordDetails.newPassword;
-              user.resetPasswordToken = undefined;
-              user.resetPasswordExpires = undefined;
+              var result = owasp.test(passwordDetails.newPassword);
+              if (!result.errors.length) { 
+                user.salt = user.makeSalt();
+                user.hashedPassword = user.encryptPassword(passwordDetails.newPassword, user.salt);
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpires = undefined;
 
-              user.save().then(function(saved) {
-                if (!saved) {
-                  return res.status(400).send({
-                    message: 'Unable to save the reset the password'
-                  });
-                } else {
-                  req.login(user, function(err) {
-                    if (err) {
-                      res.status(400).send(err);
-                    } else {
-                      // Remove sensitive data before return authenticated user
-                      user.password = undefined;
-                      user.salt = undefined;
-                      done(err, user);
-                    }
-                  });
-                }
-
-              }).catch(function(err) {
-                res.status(400).send(err);
-              });
+                user.save().then(function(saved) {
+                  if (!saved) {
+                    return res.status(400).send({
+                      message: 'Unable to save the reset the password'
+                    });
+                  } else {
+                    req.login(user, function(err) {
+                      if (err) {
+                        res.status(400).send(err);
+                      } else {
+                        // Remove sensitive data before return authenticated user
+                        user.hashedPassword = undefined;
+                        user.salt = undefined;
+                        done(err, user);
+                      }
+                    });
+                  }
+                }).catch(function(err) {
+                  res.status(400).send(err);
+                });
+              } else {
+                return res.status(400).send({
+                  message: 'Password not strong enough'
+                });                
+              }
             } else {
               return res.status(400).send({
                 message: 'Passwords do not match'
@@ -235,7 +246,7 @@ exports.reset = function(req, res, next) {
       function(user, done) {
         res.render(path.resolve('modules/users/server/templates/password-reset-confirm'), {
           appName: config.app.title,
-          emailAddress: config.mailer.from
+          emailAddress: config.mailer.email
         }, function(err, emailHTML) {
           done(err, emailHTML, user);
         });
@@ -258,10 +269,12 @@ exports.reset = function(req, res, next) {
             res.send({
               message: 'Password successfully reset'
             });
+            done(null);
           } else {
             return res.status(400).send({
               message: 'Failure sending email'
             });
+            done(err);
           }
         });
       }
@@ -288,27 +301,39 @@ exports.changePassword = function(req, res, next) {
           if (user.authenticate(passwordDetails.currentPassword)) {
             if (passwordDetails.newPassword === passwordDetails.verifyPassword) {
               user.password = passwordDetails.newPassword;
-              user.save().then(function(user) {
-                if (!user) {
-                  return res.status(400).send({
-                    message: "Password not updated"
-                  });
-                } else {
-                  req.login(user, function(err) {
-                    if (err) {
-                      res.status(400).send(err);
-                    } else {
-                      res.send({
-                        message: 'Password changed successfully'
-                      });
-                    }
-                  });
-                }
-              }).catch(function(err) {
-                res.status(400).send({
-                  message: err
+
+              var result = owasp.test(passwordDetails.newPassword);
+              if (!result.errors.length) { 
+                user.salt = user.makeSalt();
+                user.hashedPassword = user.encryptPassword(passwordDetails.newPassword, user.salt);
+                user.resetPasswordToken = undefined;
+                user.resetPasswordExpires = undefined;
+                user.save().then(function(user) {
+                  if (!user) {
+                    return res.status(400).send({
+                      message: "Password not updated"
+                    });
+                  } else {
+                    req.login(user, function(err) {
+                      if (err) {
+                        res.status(400).send(err);
+                      } else {
+                        res.send({
+                          message: 'Password changed successfully'
+                        });
+                      }
+                    });
+                  }
+                }).catch(function(err) {
+                  res.status(400).send({
+                    message: err
+                  });   
+                });
+              } else {
+                return res.status(400).send({
+                  message: 'Password not strong enough'
                 });   
-              });
+              }
             } else {
               res.status(400).send({
                 message: 'Passwords do not match'

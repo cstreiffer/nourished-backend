@@ -33,7 +33,7 @@ var validationWrapper = function(name) {
  */
 var validateLocalStrategyPassword = function(password) {
   var result = owasp.test(password);
-  if (result.errors.length) {
+  if (!result.errors.length) {
     throw new Error('Password not strong enough');
   }
   if ((password && password.length > 6) === false) {
@@ -45,7 +45,7 @@ var validateLocalStrategyPassword = function(password) {
  * A validation function for phone numbers
  */
 var validatePhoneNumber = function(phoneNumber) {
-  if(phoneNumber && !phoneNumber.match(pr)) {
+  if(!phoneNumber || !phoneNumber.match(pr)) {
     throw new Error('Invalid phone number');
   }
 }
@@ -54,7 +54,7 @@ var validatePhoneNumber = function(phoneNumber) {
  * A validation function for phone numbers
  */
 var validateEmail = function(email) {
-  if(email && !email.match(er)) {
+  if(!email || !email.match(er)) {
     throw new Error('Invalid email address');
   }
 }
@@ -68,23 +68,31 @@ module.exports = function(sequelize, DataTypes) {
     },
     username: {
       type: DataTypes.STRING,
-      defaultValue: ''
+      allowNull: false,
+      unique: true
     },
     email: {
       type: DataTypes.STRING,
-      defaultValue: '',
       validate: {
         isValid: validateEmail
-      }
+      },
+      allowNull: false,
+      unique: true
     },
     phoneNumber: {
       type: DataTypes.STRING,
       defaultValue: '',
       validate: {
         isValid: validatePhoneNumber
-      }
+      },
+      allowNull: false,
+      unique: true
     },
-    fullName: {
+    firstName: {
+      type: DataTypes.STRING,
+      defaultValue: '',
+    },
+    lastName: {
       type: DataTypes.STRING,
       defaultValue: '',
     },
@@ -93,16 +101,12 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ["user"],
       isArray: true
     },
-    hashedPassword: {
-      type: DataTypes.STRING,
-      default: '',
-      validate: {
-        isValid: validationWrapper("Password")
-      }
-    },
+    hashedPassword: DataTypes.STRING,
     salt: DataTypes.STRING,
     resetPasswordToken: DataTypes.STRING,
-    resetPasswordExpires: DataTypes.BIGINT
+    resetPasswordExpires: DataTypes.BIGINT,
+    magicLinkToken: DataTypes.STRING,
+    magicLinkExpires: DataTypes.BIGINT
   }, {
     associate: function(models) {
       User.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
@@ -118,11 +122,7 @@ module.exports = function(sequelize, DataTypes) {
   };
 
   User.prototype.encryptPassword = function(password, salt) {
-    if (salt && password) {
-      return crypto.pbkdf2Sync(password, new Buffer(salt, 'base64'), 10000, 64, 'SHA1').toString('base64');
-    } else {
-      return password;
-    }
+    return crypto.pbkdf2Sync(password, new Buffer(salt, 'base64'), 10000, 64, 'SHA1').toString('base64');
   };
   
   return User;

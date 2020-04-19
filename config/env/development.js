@@ -40,14 +40,14 @@ module.exports = {
     }
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'Nourished',
+    email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
+    from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {
-      service: 'gmail',
-      host: 'smtp.gmail.com',
+      host: process.env.MAILER_HOST || '',
       port: 465,
       secure: true,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'penn.chci.nourished@gmail.com',
+        user: process.env.MAILER_EMAIL_ID || '',
         pass: process.env.MAILER_PASSWORD || ''
       }
     }
@@ -55,9 +55,9 @@ module.exports = {
   livereload: true,
   stripe: {
     // fill this in from https://dashboard.stripe.com/test/apikeys
-    pubKey: process.env.STRIPE_PUBLIC || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET || 'sk_12345',
+    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
     // fill this in by configuring the webhook url https://devserver.example.com/api/stripe/webhook
     // at https://dashboard.stripe.com/test/webhooks
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'

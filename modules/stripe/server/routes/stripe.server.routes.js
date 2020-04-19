@@ -40,6 +40,7 @@ module.exports = function(app) {
 	  })
 	);
 
+
   app.route('/api/stripe/checkout')
     .all(passport.authenticate('jwt', {session: false}))
     .get(stripe.checkout); // Good

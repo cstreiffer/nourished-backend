@@ -7,6 +7,10 @@ var app;
 
 process.env.NODE_ENV = 'test';
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 var 
   path = require('path'),
   sequelize = require(path.resolve('./config/lib/sequelize-connect')),

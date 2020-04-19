@@ -113,6 +113,24 @@ before((done) => {
 });
 
 before((done) => {
+  ml1.userId = restaurantId1;
+  ml2.userId = restaurantId1;
+  ml3.userId = restaurantId2;
+  ml4.userId = restaurantId2;
+
+  timeslot1.userId = restaurantId1;
+  timeslot2.userId = restaurantId2;
+
+  menu1.userId = restaurantId1;
+  menu2.userId = restaurantId1;
+  menu3.userId = restaurantId2;
+  menu4.userId = restaurantId2;
+
+  done();
+});
+
+
+before((done) => {
   Hospital.destroy({where: {}})
     .then(function() {
       Hospital.bulkCreate([hospital1, hospital2])

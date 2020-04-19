@@ -19,16 +19,15 @@ module.exports = function(app) {
     .get(user.getProfile) // (Good)
     .put(user.update); // (Good)
 
-
   if(process.env.NODE_ENV === "development") {
     app.route('/api/users')
       .get(user.list); // (Good)
   }
   
   // app.route('/api/user/accounts').delete(user.requiresLogin, user.removeOAuthProvider);
-  // app.route('/api/user/password')
-  //   .all(passport.authenticate('jwt', {session: false}))
-  //   .post(user.changePassword);
+  app.route('/api/user/password')
+    .all(passport.authenticate('jwt', {session: false}))
+    .post(user.changePassword);
 
   // Finish by binding the user middleware
   app.param('userId', user.userByID);

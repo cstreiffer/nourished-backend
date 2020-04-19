@@ -70,7 +70,6 @@ exports.invokeRolesPolicies = function() {
  * Check if Restaurant belongs to User
  */
 exports.isValidRestaurant = function(req, res, next) {
-  console.log("Checking the validity of the restaurant!");
   if(req.body.restaurantId) {
     Restaurant.findOne({
       where: {
@@ -82,8 +81,8 @@ exports.isValidRestaurant = function(req, res, next) {
         req.restaurant = restaurant;
         return next();
       } else {
-        return res.status(403).json({
-          message: 'User is not authorized'
+        return res.status(404).json({
+          message: 'Restaurant not found'
         });
       }
     }).catch((err) => {
@@ -101,7 +100,7 @@ exports.isValidRestaurant = function(req, res, next) {
  */
 exports.isAllowed = function(req, res, next) {
   var roles = (req.user) ? req.user.roles : ['guest'];
-
+  
   // If restaurant is being processed and the current user created it then allow any manipulation
   if (req.restaurant && req.user && req.restaurant.userId === req.user.id) {
     return next();

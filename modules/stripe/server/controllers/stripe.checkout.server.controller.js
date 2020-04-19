@@ -53,12 +53,14 @@ exports.createPaymentIntent = function(req, res) {
       restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
       restaurantStripeAccountId: orders[timeslotid][0].menu.timeslot.restaurant.restaurantStripeAccountId,
       metadata: {
-        email: req.user.email.substring(0, 450),
-        phoneNumber: req.user.phoneNumber.substring(0, 450),
-        fullName: req.user.fullName.substring(0, 450),
         groupId: req.groupId.substring(0, 450),
-        restaurantName: orders[timeslotid][0].menu.timeslot.restaurant.name.substring(0, 450),
-        menuDate: orders[timeslotid][0].menu.timeslot.date.toString().substring(0, 450),
+        timeslotId: timeslotid,
+        email: req.user.email ? req.user.email .substring(0, 450) : '',
+        phoneNumber: req.user.phoneNumber ? req.user.phoneNumber.substring(0, 450) : '',
+        firstName: req.user.firstName ? req.user.firstName.substring(0, 450) : '',
+        lastName: req.user.lastName ? req.user.lastName.substring(0, 450) : '',
+        restaurantName: orders[timeslotid][0].menu.timeslot.restaurant.name ? orders[timeslotid][0].menu.timeslot.restaurant.name.substring(0, 450) : '',
+        menuDate: orders[timeslotid][0].menu.timeslot.date ? orders[timeslotid][0].menu.timeslot.date.toString().substring(0, 450) : '',
       }
     });
   });

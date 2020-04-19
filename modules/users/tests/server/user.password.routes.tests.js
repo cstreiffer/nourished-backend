@@ -69,81 +69,94 @@ describe('/POST api/auth/forgot endpoint', () => {
 
 var resetToken = '';
 
-// describe('/GET api/auth/forgot/test endpoint', () => {
+describe('/GET api/auth/forgot/test endpoint', () => {
 
-  // it('User should be able to get reset password token', (done) => {
-  //   chai.request(app)
-  //     .post('/api/auth/forgot/test')
-  //     .send({email: userCredentials1.email})
-  //     .end((err, res) => {
-  //       resetToken = res.body.user.resetPasswordToken;
-  //       res.should.have.status(200);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Token generated');
-  //       done();
-  //     });
-  // });
+  it('User should be able to get reset password token', (done) => {
+    chai.request(app)
+      .post('/api/auth/forgot/test')
+      .send({email: userCredentials1.email})
+      .end((err, res) => {
+        resetToken = res.body.user.resetPasswordToken;
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Token generated');
+        done();
+      });
+  });
 
-  // it('User should be able to verify reset password token', (done) => {
-  //   chai.request(app)
-  //     .get('/api/auth/reset/' + resetToken)
-  //     .end((err, res) => {
-  //       res.should.have.status(200);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Valid reset token');
-  //       done();
-  //     });
-  // });
+  it('User should be able to verify reset password token', (done) => {
+    chai.request(app)
+      .get('/api/auth/reset/' + resetToken)
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Valid reset token');
+        done();
+      });
+  });
 
-  // it('User should NOT be able to updated password with missing verify password', (done) => {
-  //   chai.request(app)
-  //     .post('/api/auth/reset/' + resetToken)
-  //     .send({newPassword: "h4dm322i8!!ssfSt"})
-  //     .end((err, res) => {
-  //       res.should.have.status(400);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Passwords do not match');
-  //       done();
-  //     });
-  // });
+  it('User should NOT be able to updated password with missing verify password', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + resetToken)
+      .send({newPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Passwords do not match');
+        done();
+      });
+  });
 
-  // it('User should NOT be able to updated password with invalid verify password', (done) => {
-  //   chai.request(app)
-  //     .post('/api/auth/reset/' + resetToken)
-  //     .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "jssjsjsjsjs"})
-  //     .end((err, res) => {
-  //       res.should.have.status(400);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Passwords do not match');
-  //       done();
-  //     });
-  // });
+  it('User should NOT be able to updated password with invalid verify password', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + resetToken)
+      .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "jssjsjsjsjs"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Passwords do not match');
+        done();
+      });
+  });
 
-  // it('User should NOT be able to updated password with invalid password reset token', (done) => {
-  //   chai.request(app)
-  //     .post('/api/auth/reset/' + "invalid")
-  //     .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
-  //     .end((err, res) => {
-  //       res.should.have.status(400);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Password reset token is invalid or has expired.');
-  //       done();
-  //     });
-  // });
+  it('User should NOT be able to updated password with invalid password reset token', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + "invalid")
+      .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Password reset token is invalid or has expired.');
+        done();
+      });
+  });
 
-  // it('User should be able to verify reset password token', (done) => {
-  //   chai.request(app)
-  //     .post('/api/auth/reset/' + resetToken)
-  //     .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
-  //     .end((err, res) => {
-  //       res.should.have.status(200);
-  //       res.body.should.be.a('object');
-  //       res.body.should.have.property('message').eql('Password successfully reset');
-  //       done();
-  //     });
-  // }).timeout(5000);
+  it('User should NOT be able to updated password with weak password', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + resetToken)
+      .send({newPassword: "password", verifyPassword: "password"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Password not strong enough');
+        done();
+      });
+  });
 
-// });
+  it('User should be able to verify reset password token', (done) => {
+    chai.request(app)
+      .post('/api/auth/reset/' + resetToken)
+      .send({newPassword: "h4dm322i8!!ssfSt", verifyPassword: "h4dm322i8!!ssfSt"})
+      .end((err, res) => {
+
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Password successfully reset');
+        done();
+      });
+  }).timeout(5000);
+
+});
 
 after(function(done) {
   User.destroy({where: {}})

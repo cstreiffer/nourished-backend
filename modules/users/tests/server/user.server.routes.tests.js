@@ -22,7 +22,8 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  userCredentials = {id: uuid(), username: "testuser", email: 'testUser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", fullName: 'Chris Streiffer', account_type: 'user'};
+  user1 = {id: uuid(), username: "testuser", email: 'testuser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137325", fullName: 'Chris Streiffer', account_type: 'user'},
+  rest1 = {id: uuid(), username: "testuser1", email: 'testuser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5056137325", fullName: 'Chris Streiffer', account_type: 'restaurant'};
 
 describe('/POST api/auth/signup endpoint', () => {
   // Clear the database
@@ -34,15 +35,18 @@ describe('/POST api/auth/signup endpoint', () => {
   it('User should be able to signup', (done) => {
     chai.request(app)
       .post('/api/auth/signup')
-      .send(userCredentials)
+      .send(user1)
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('User successfully created');
         res.body.should.have.property('token');
-        res.body.user.should.have.property('fullName');
+        res.body.user.should.have.property('firstName');
+        res.body.user.should.have.property('lastName');
         res.body.user.should.have.property('phoneNumber');
         res.body.user.should.have.property('email');
+        res.body.user.should.have.property('roles');
+        res.body.user.roles[0].should.eql('user');
         res.body.user.should.not.have.property('hashedPassword');
         res.body.user.should.not.have.property('salt');
         res.body.user.should.not.have.property('resetPasswordExpires');
@@ -51,11 +55,34 @@ describe('/POST api/auth/signup endpoint', () => {
       });
   });
 
-  it('User should not be able to signup if username exists', (done) => {
-    User.create(userCredentials).then((user) => {
+  it('User should be able to signup', (done) => {
+    chai.request(app)
+      .post('/api/auth/signup')
+      .send(rest1)
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('User successfully created');
+        res.body.should.have.property('token');
+        res.body.user.should.have.property('firstName');
+        res.body.user.should.have.property('lastName');
+        res.body.user.should.have.property('phoneNumber');
+        res.body.user.should.have.property('email');
+        res.body.user.should.have.property('roles');
+        res.body.user.roles[0].should.eql('restaurant');
+        res.body.user.should.not.have.property('hashedPassword');
+        res.body.user.should.not.have.property('salt');
+        res.body.user.should.not.have.property('resetPasswordExpires');
+        res.body.user.should.not.have.property('resetPasswordToken');
+        done();
+      });
+  });
+
+  it('User should not be able to signup if email/phoneNumber exists', (done) => {
+    User.create(user1).then((user) => {
       chai.request(app)
         .post('/api/auth/signup')
-        .send(userCredentials)
+        .send(user1)
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.be.a('object');
@@ -70,29 +97,77 @@ describe('/POST api/auth/signin endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     User.destroy({where: {}})
-      .then(function(){done();});
+      .then(function(){
+        var user = User.build(user1);
+        user.id = uuid();
+        user.salt = user.makeSalt();
+        user.hashedPassword = user.encryptPassword(user1.password, user.salt);
+        user.save()
+          .then((user))
+          .then(function() {done();});
+    });
   });
 
-  it('User should be able to signup', (done) => {
-    var user = User.build(userCredentials);
-    user.id = uuid();
-    user.salt = user.makeSalt();
-    user.hashedPassword = user.encryptPassword(userCredentials.password, user.salt);
+  it('User should be able to signin - email', (done) => {
+    chai.request(app)
+      .post('/api/auth/signin')
+      .send({id: user1.email, password: user1.password})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('User successfully logged-in');
+        res.body.should.have.property('token');
+        res.body.user.should.have.property('firstName');
+        res.body.user.should.have.property('lastName');
+        res.body.user.should.have.property('phoneNumber');
+        res.body.user.should.have.property('email');
+        done();
+      });
+  });
 
-    user.save().then((user) => {
-      chai.request(app)
-        .post('/api/auth/signin')
-        .send({id: user.id})
-        .end((err, res) => {
-          res.should.have.status(200);
-          res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('User successfully logged-in');
-          res.body.should.have.property('token');
-          res.body.user.should.have.property('fullName');
-          res.body.user.should.have.property('phoneNumber');
-          res.body.user.should.have.property('email');
-          done();
-        });
+  it('User should be able to signin - phoneNumber', (done) => {
+    chai.request(app)
+      .post('/api/auth/signin')
+      .send({id: user1.phoneNumber, password: user1.password})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('User successfully logged-in');
+        res.body.should.have.property('token');
+        res.body.user.should.have.property('firstName');
+        res.body.user.should.have.property('lastName');
+        res.body.user.should.have.property('phoneNumber');
+        res.body.user.should.have.property('email');
+        done();
+      });
+  });
+
+  it('User should be able to signin - username', (done) => {
+    chai.request(app)
+      .post('/api/auth/signin')
+      .send({id: user1.username, password: user1.password})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('User successfully logged-in');
+        res.body.should.have.property('token');
+        res.body.user.should.have.property('firstName');
+        res.body.user.should.have.property('lastName');
+        res.body.user.should.have.property('phoneNumber');
+        res.body.user.should.have.property('email');
+        done();
+      });
+  });
+
+  it('User signing should fail', (done) => {
+    chai.request(app)
+      .post('/api/auth/signin')
+      .send({id: user1.username, password: "wrong password"})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Invalid username or password');
+        done();
       });
   });
 });
