@@ -51,18 +51,21 @@ exports.invokeRolesPolicies = function() {
 
  exports.isNewOrder = function(req, res, next) {
   if(req.body.groupId) {
-    Stripe.findOne({
+    Stripe.findAll({
       where: {
         groupId: req.body.groupId,
+        userId: req.user.id
       }
     }).then(function(stripeOrder) {
-      if (stripeOrder) {
-        return res.status(404).send({
-          message: 'Payment intent already exists'
-        });
-      } else {
-        return next();
-      }
+      req.stripeorders = stripeOrder;
+      next();
+      // if (stripeOrder) {
+      //   return res.status(404).send({
+      //     message: 'Payment intent already exists'
+      //   });
+      // } else {
+      //   return next();
+      // }
     }).catch(function(err) {
       return res.status(400).send({message: err});
     });

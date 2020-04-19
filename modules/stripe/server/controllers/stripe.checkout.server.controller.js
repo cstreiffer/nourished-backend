@@ -35,12 +35,20 @@ exports.createPaymentIntent = function(req, res) {
   // The restaurant's stripe connect id should be stored on the restaurant model.
   // TODO: follow the order to the restaurant
   // var restaurantStripeAccountId = 'something';
+
+  // Remap the orders
   var orders = req.orders.reduce(function(map, obj) {
     var timeslotid = obj.menu.timeslot.id;
     if(!(timeslotid in map)) {
       map[timeslotid] = [];
     }
     map[timeslotid].push(obj);
+    return map;
+  }, {});
+
+  // Remap the striper orders by timeslot
+  var stripeorders = req.stripeorders.reduce(function(map, obj) {
+    map[obj.timeslotId] = obj;
     return map;
   }, {});
 
@@ -70,13 +78,24 @@ exports.createPaymentIntent = function(req, res) {
   //   destination: order.restaurantStripeAccountId,
   // },
 
+  // Check if payment exists 
+
   Promise.all(ret.map((order) => {
-      return stripe.paymentIntents.create({
-        amount: order.amount,
-        currency: 'usd',
-        payment_method_types: ['card'],
-        metadata: order.metadata
-      })
+      if(order.timeslotid in stripeorders) {
+        return stripe.paymentIntents.retrieve(stripeorders[order.timeslotid].paymentIntentId)
+      } 
+      else {
+        var payload = {
+          amount: order.amount,
+          currency: 'usd',
+          payment_method_types: ['card'],
+          metadata: order.metadata
+        }
+        if (order.restaurantStripeAccountId && process.env.NODE_ENV === 'production') {
+          payload.transfer_data = {destination: order.restaurantStripeAccountId}
+        }
+        return stripe.paymentIntents.create(payload);
+      }
     })
   ).then(function(paymentIntents) {
     // Comnbine the arrays together
@@ -84,16 +103,21 @@ exports.createPaymentIntent = function(req, res) {
       return [e, paymentIntents[i]];
     });
     Promise.all(retMod.map((order) => {
-      return Stripe.create({
-          id: uuid(),
-          userId: req.user.id,
-          groupId: req.groupId,
-          timeslotId: order[0].timeslotid,
-          paymentIntentId: order[1].id,
-          amount: order[0].amount,
-        })
+        if(order[0].timeslotid in stripeorders) {
+          return stripeorders[order.timeslotid];
+        } else {
+          return Stripe.create({
+            id: uuid(),
+            userId: req.user.id,
+            groupId: req.groupId,
+            timeslotId: order[0].timeslotid,
+            paymentIntentId: order[1].id,
+            amount: order[0].amount,
+          }); 
+        }
       })
     ).then(function(stripeOrders) {
+      // console.log(stripeOrders);
       var ret = stripeOrders.map((order) => _.pick(order, retAttributes));
       res.json({
         publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
@@ -110,11 +134,13 @@ exports.createPaymentIntent = function(req, res) {
         message: "Payment intents successfully created"
       });
     }).catch(function(err) {
+      console.log(err);
       res.status(400).send({
         message: 'Error processing the order: ' + err
       });
     });
   }).catch(function(err) {
+    console.log(err);
     res.status(400).send({
       message: 'Error processing the order: ' + err
     });
