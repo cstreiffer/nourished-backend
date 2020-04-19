@@ -1,6 +1,11 @@
 'use strict';
 
 module.exports = {
+  app: {
+    title: defaultEnvConfig.app.title + ' - Production Environment',
+    webURL: 'https://nourished.uphs.upenn.edu/',
+    restURL: 'https://nourished.uphs.upenn.edu/api/'
+  },
   secure: {
     ssl: Boolean(process.env.ssl) || false,
     privateKey: './config/sslcerts/key.pem',
@@ -48,5 +53,9 @@ module.exports = {
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
     secretKey: process.env.STRIPE_SECRET || 'sk_12345',
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+  },
+  twilio: {
+    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234'
   }
 };

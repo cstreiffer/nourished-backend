@@ -3,6 +3,11 @@
 var defaultEnvConfig = require('./default');
 
 module.exports = {
+  app: {
+    title: defaultEnvConfig.app.title + ' - Development Environment',
+    webURL: 'https://nourished-dev.uphs.upenn.edu/',
+    restURL: 'https://nourished-dev.uphs.upenn.edu/api/'
+  },
   secure: {
     ssl: Boolean(process.env.ssl) || false,
     privateKey: './config/sslcerts/key.pem',
@@ -34,9 +39,6 @@ module.exports = {
       //stream: 'access.log'
     }
   },
-  app: {
-    title: defaultEnvConfig.app.title + ' - Development Environment'
-  },
   mailer: {
     from: process.env.MAILER_FROM || 'Nourished',
     options: {
@@ -59,5 +61,10 @@ module.exports = {
     // fill this in by configuring the webhook url https://devserver.example.com/api/stripe/webhook
     // at https://dashboard.stripe.com/test/webhooks
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+  },
+  twilio: {
+    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234',
+    phoneNumber: '+19893738621'
   }
 };

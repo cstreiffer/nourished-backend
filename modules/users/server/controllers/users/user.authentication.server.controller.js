@@ -19,6 +19,7 @@ var
 
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
 const retAttributes = ['id', 'username', 'fullName', 'email', 'phoneNumber', 'roles'];
+const {Op} = require('sequelize');
 
 // URLs for which user can't be redirected on signin
 var noReturnUrls = [
@@ -72,6 +73,29 @@ exports.signup = function(req, res) {
     res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
+  });
+};
+
+/**
+ * Magic Link authentication
+ */
+exports.validateLoginToken = function(req, res) {
+  User.findOne({
+    where: {
+      resetPasswordToken: req.params.token,
+      resetPasswordExpires: {
+        [Op.gt]: Date.now()
+      }
+    }
+  }).then(function(user) {
+    if (!user) {
+      return res.status(400).send({
+        message: 'Password reset token is invalid or has expired.'
+      });
+    }
+    var ret = _.pick(user || {}, retAttributes)
+    var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+    res.json({user: ret, token: token, message: "User successfully logged-in"});
   });
 };
 
