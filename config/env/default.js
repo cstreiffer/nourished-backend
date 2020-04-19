@@ -6,7 +6,9 @@ module.exports = {
     description: 'Full-Stack Javascript with SequelizeJS, ExpressJS, AngularJS, and Node.js',
     keywords: 'sequelizejs, expressjs, angularjs, nodejs, postgresql, mysql, sqlite3, passport, redis, socket.io',
     googleAnalyticsTrackingID: process.env.GOOGLE_ANALYTICS_TRACKING_ID || '',
-    reCaptchaSecret: process.env.RECAPTCHA_SECRET || ''
+    reCaptchaSecret: process.env.RECAPTCHA_SECRET || '',
+    webURL: 'http://localhost:3000',
+    devURL: 'http://localhost:3000'
   },
   port: process.env.PORT || 3000,
   templateEngine: 'swig',
@@ -41,11 +43,11 @@ module.exports = {
   },
   jwt : {
     signOptions : {
-      expiresIn:  7 * 60 * 60 * 24,
+      expiresIn:  0.5 * 60 * 60 * 24,
       algorithm: "RS256"
     },
     verifyOptions : {
-      expiresIn:  7 * 60 * 60 * 24,
+      expiresIn:  0.5 * 60 * 60 * 24,
       algorithm: ["RS256"]
     },
     privateKey : 'config/jwttokens/jwt_rsa',
@@ -66,5 +68,9 @@ module.exports = {
       'https://nourished-dev.uphs.upenn.edu', 'https://nourished.uphs.upenn.edu',
       'http://nourished-dev.uphs.upenn.edu', 'http://nourished.uphs.upenn.edu'
     ]
+  },
+  cronConfigs: {
+    twilioWeeklyUpdate: '* * * * *',
+    twilioDailyUpdate: '* * * * *',
   }
 };

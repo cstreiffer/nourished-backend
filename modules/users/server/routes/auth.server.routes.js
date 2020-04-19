@@ -20,6 +20,7 @@ module.exports = function(app) {
   // Setting up the users authentication api
   app.route('/api/auth/signup').post(users.signup); // (Good)
   app.route('/api/auth/signin').post(users.signin); // (Good)
+  app.route('/api/auth/signin/:token').post(users.validateLoginToken); // (Good)
   app.route('/api/auth/signout').get(users.signout); // (Good)
 
 };

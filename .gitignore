@@ -6,6 +6,7 @@ Icon?
 Thumbs.db
 _modules_dep
 .env
+ngrok
 
 # Node and related ecosystem
 # ==========================

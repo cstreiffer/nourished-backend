@@ -3,6 +3,9 @@
 var defaultEnvConfig = require('./default');
 
 module.exports = {
+  app: {
+    title: defaultEnvConfig.app.title + ' - Test Environment'
+  },
   port: process.env.PORT || 3001,
   db: {
     name: process.env.DB_NAME || "nourished_test",
@@ -21,9 +24,6 @@ module.exports = {
     database: process.env.REDIS_DATABASE || 0,
     password: process.env.REDIS_PASSWORD || "",
   },
-  app: {
-    title: defaultEnvConfig.app.title + ' - Test Environment'
-  },
   mailer: {
     from: process.env.MAILER_FROM || 'Nourished',
     options: {
@@ -41,5 +41,9 @@ module.exports = {
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
     secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
     webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+  },
+  twilio: {
+    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234'
   }
 };

@@ -193,6 +193,24 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/User'
+ *  /auth/signin/{token}:
+ *    post:
+ *      summary: Signs a user in using a token
+ *      tags: [Users]
+ *      parameters:
+ *        - in: path
+ *          name: token
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Magic link token 
+ *      responses:
+ *        "200":
+ *          description: A user schema
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/User'
  *  /user/me:
  *    get:
  *      summary: Gets user profile
