@@ -1,5 +1,9 @@
 "use strict";
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 var
   path = require('path'),
   config = require(path.resolve('./config/config')),

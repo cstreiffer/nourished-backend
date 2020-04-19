@@ -16,7 +16,7 @@ var
 const {Op} = require('sequelize');
 
 var sendMessage = function(tm, user) {
-  var url = config.app.webURL + '?token=' + user.resetPasswordToken;
+  var url = config.app.webURL + '?token=' + user.magicLinkToken;
   var to = '+1' + user.phoneNumber;
   var from = config.twilio.phoneNumber;
   return twilio.messages
@@ -36,11 +36,11 @@ var getEndDate = function() {
 }
 
 module.exports = function() {
-  cron.schedule(config.cronConfigs.twilioDailyUpdate, () => {
+  cron.schedule(config.cronConfigs.twilio.twilioDailyUpdate, () => {
     cronDailyUpdate();
   });
 
-  cron.schedule(config.cronConfigs.twilioWeeklyUpdate, () => {
+  cron.schedule(config.cronConfigs.twilio.twilioWeeklyUpdate, () => {
     cronWeeklyUpdate();
   });
 }
@@ -101,8 +101,8 @@ var cronDailyUpdate = function() {
     },
     function(users, done) {
       Promise.all(users.map((user) => {
-          user.resetPasswordToken = crypto.randomBytes(20).toString('hex');;
-          user.resetPasswordExpires = Date.now() + 3600000*3; // 3 hours
+          user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
+          user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
           return user.save();
       }))
       .then(function(users) {
@@ -159,8 +159,8 @@ var cronWeeklyUpdate = function() {
     },
     function(users, done) {
       Promise.all(users.map((user) => {
-          user.resetPasswordToken = crypto.randomBytes(20).toString('hex');;
-          user.resetPasswordExpires = Date.now() + 3600000*3; // 3 hours
+          user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
+          user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
           return user.save();
       }))
       .then(function(users) {

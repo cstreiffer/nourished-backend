@@ -141,11 +141,11 @@ exports.webhook = function(req, res) {
             }
           }).then(function(user) {
             if(tm.token) {
-              user.resetPasswordToken = crypto.randomBytes(20).toString('hex');;
-              user.resetPasswordExpires = Date.now() + 3600000*3; // 3 hours
+              user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
+              user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
               user.save()
                 .then(function(user) {
-                  var url = config.app.webURL + '?token=' + user.resetPasswordToken;
+                  var url = config.app.webURL + '?token=' + user.magicLinkToken;
                   twiml.message(tm.messageBody + url);
                   res.writeHead(200, {'Content-Type': 'text/xml'});
                   res.end(twiml.toString());   
