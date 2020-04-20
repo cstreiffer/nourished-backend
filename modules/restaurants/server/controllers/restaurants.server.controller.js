@@ -14,7 +14,7 @@ var
 
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
-const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
+const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
 
 /**
  * Create a restaurant
