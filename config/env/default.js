@@ -70,7 +70,15 @@ module.exports = {
     ]
   },
   cronConfigs: {
-    twilioWeeklyUpdate: '* * * * *',
-    twilioDailyUpdate: '* * * * *',
+    twilio: {
+      twilioWeeklyUpdate: '* * * * *',
+      twilioDailyUpdate: '* * * * *',
+    }
+  },
+  twilio: {
+    tokenExpiry : 3600000*3
+  },
+  user : {
+    tokenExpiry: 3600000
   }
 };

@@ -88,8 +88,8 @@ exports.signup = function(req, res) {
 exports.validateLoginToken = function(req, res) {
   User.findOne({
     where: {
-      resetPasswordToken: req.params.token,
-      resetPasswordExpires: {
+      magicLinkToken: req.params.token,
+      magicLinkExpires: {
         [Op.gt]: Date.now()
       }
     }
