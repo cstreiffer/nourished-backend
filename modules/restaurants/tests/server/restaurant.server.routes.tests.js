@@ -241,6 +241,7 @@ describe('/GET api/restaurants/:restaurantId endpoint', () => {
 	      	res.body.restaurant.should.have.property('phoneNumber');
 	      	res.body.restaurant.should.have.property('email');
 	      	res.body.restaurant.should.have.property('streetAddress');
+          res.body.restaurant.should.have.property('restaurantStripeAccountId');
 	      	res.body.restaurant.should.have.property('zip');
 	      	res.body.restaurant.should.have.property('city');
 	      	res.body.restaurant.should.have.property('state');

@@ -17,6 +17,7 @@ var
   Menu = db.menu,
   Order = db.order,
   Cart = db.cart,
+  Stripe = db.stripe,
   MealInfo = db.mealinfo,
   TimeSlot = db.timeslot,
   chai = require('chai'),
@@ -37,7 +38,7 @@ var
 
 // Let's set up the data we need to pass to the login method
 var 
-  userCredentials1 = {id: uuid(), username: "testuser", email: 'testUser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'},
+  userCredentials1 = {id: uuid(), username: "testuser", email: 'ccstreiffer@gmail.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', lastName: 'Streiffer', account_type: 'user'},
   userCredentials2 = {id: uuid(), username: "testuser1", email: 'testUser2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7326", firstName: 'Chris', account_type: 'user'},
   restaurantCredentials1 = {id: uuid(), username: "testuser2", email: 'testRestaurant1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7327", firstName: 'Chris', account_type: 'restaurant'},
   restaurantCredentials2 = {id: uuid(), username: "testuser3", email: 'testRestaurant2@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7328", firstName: 'Chris', account_type: 'restaurant'},
@@ -377,67 +378,67 @@ describe('/GET /api/orders/:orderId endpoint', () => {
 });
 
 
-describe('/PUT /api/user/orders endpoint', () => {
-  // Clear the database
-  beforeEach(function(done) {
-    Order.destroy({where: {}})
-      .then(function(){done();});
-  });
+// describe('/PUT /api/user/orders endpoint', () => {
+//   // Clear the database
+//   beforeEach(function(done) {
+//     Order.destroy({where: {}})
+//       .then(function(){done();});
+//   });
 
-  it('User with "user" role should be able to get their orders', (done) => {
-    var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-    ];
-    Order.bulkCreate(orders).then(function() {
-      chai.request(app)
-      .put('/api/user/orders')
-      .set('Authorization', userJWT1)
-      .send({orders: [
-          {...orders[0], quantity: 8},
-          {...orders[1], quantity: 9, hospitalId: hospital2.id}
-        ]})
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Orders successfully updated');
-        res.body.orders.should.be.a('array');
-        res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].should.not.have.property('menu');
-        res.body.orders[0].should.not.have.property('hospital');
-        res.body.orders[0].should.have.property('groupId');
-        res.body.orders[0].should.have.property('quantity');
-        res.body.orders[0].should.have.property('menuId');
-        res.body.orders.length.should.be.eql(2);
-        done();
-      });
-    })
-  });
+//   it('User with "user" role should be able to get their orders', (done) => {
+//     var orders = [
+//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+//     ];
+//     Order.bulkCreate(orders).then(function() {
+//       chai.request(app)
+//       .put('/api/user/orders')
+//       .set('Authorization', userJWT1)
+//       .send({orders: [
+//           {...orders[0], quantity: 8},
+//           {...orders[1], quantity: 9, hospitalId: hospital2.id}
+//         ]})
+//       .end((err, res) => {
+//         res.should.have.status(200);
+//         res.body.should.be.a('object');
+//         res.body.should.have.property('message').eql('Orders successfully updated');
+//         res.body.orders.should.be.a('array');
+//         res.body.orders[0].should.not.have.property('userId');
+//         res.body.orders[0].should.not.have.property('menu');
+//         res.body.orders[0].should.not.have.property('hospital');
+//         res.body.orders[0].should.have.property('groupId');
+//         res.body.orders[0].should.have.property('quantity');
+//         res.body.orders[0].should.have.property('menuId');
+//         res.body.orders.length.should.be.eql(2);
+//         done();
+//       });
+//     })
+//   });
 
-  it('User with "user" role should NOT be able to update order thats not theirs', (done) => {
-    var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
-    ];
-    Order.bulkCreate(orders).then(function() {
-      chai.request(app)
-      .put('/api/user/orders')
-      .set('Authorization', userJWT1)
-      .send({orders: [
-          {...orders[0], quantity: 8},
-          {...orders[1], quantity: 9, hospitalId: hospital2.id},
-          {...orders[2], quantity: 8}
-        ]})
-      .end((err, res) => {
-        res.should.have.status(400);
-        res.body.should.have.property('message');
-        res.body.message.should.be.eql("Invalid order");
-        done();
-      });
-    })
-  });
-});
+//   it('User with "user" role should NOT be able to update order thats not theirs', (done) => {
+//     var orders = [
+//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
+//     ];
+//     Order.bulkCreate(orders).then(function() {
+//       chai.request(app)
+//       .put('/api/user/orders')
+//       .set('Authorization', userJWT1)
+//       .send({orders: [
+//           {...orders[0], quantity: 8},
+//           {...orders[1], quantity: 9, hospitalId: hospital2.id},
+//           {...orders[2], quantity: 8}
+//         ]})
+//       .end((err, res) => {
+//         res.should.have.status(400);
+//         res.body.should.have.property('message');
+//         res.body.message.should.be.eql("Invalid order");
+//         done();
+//       });
+//     })
+//   });
+// });
 
 describe('/DELETE /api/user/orders endpoint', () => {
   // Clear the database
@@ -446,35 +447,75 @@ describe('/DELETE /api/user/orders endpoint', () => {
       .then(function(){done();});
   });
 
+  beforeEach(function(done) {
+    Stripe.destroy({where: {}})
+      .then(function(){done();});
+  });
+
   it('User with "user" role should be able to delete their orders', (done) => {
     var orders = [
       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+    ];
+    Order.bulkCreate(orders).then(function() {
+    chai.request(app)
+      .post('/api/stripe/create-payment-intent')
+      .set('Authorization', userJWT1)
+      .send({groupId: userId1})
+      .end((err, res) => {
+          chai.request(app)
+            .delete('/api/user/orders')
+            .set('Authorization', userJWT1)
+            .send({orders: [
+                {...orders[0]},
+                {...orders[1]}
+              ], 
+              groupId: userId1})
+            .end((err, res) => {
+              res.should.have.status(200);
+              res.body.should.be.a('object');
+              res.body.should.have.property('message').eql('Orders markerd as deleted');
+              res.body.orders.should.be.a('array');
+              res.body.orders[0].should.not.have.property('userId');
+              res.body.orders[0].should.not.have.property('menu');
+              res.body.orders[0].should.not.have.property('hospital');
+              res.body.orders[0].should.have.property('groupId');
+              res.body.orders[0].should.have.property('quantity');
+              res.body.orders[0].should.have.property('menuId');
+              res.body.orders.length.should.be.eql(2);
+              done();
+            });
+          });
+      });
+  }).timeout(7000);
+
+  it('User with "user" role should be able to delete their orders', (done) => {
+    var orders = [
+      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
     ];
     Order.bulkCreate(orders).then(function() {
       chai.request(app)
-      .delete('/api/user/orders')
-      .set('Authorization', userJWT1)
-      .send({orders: [
-          {...orders[0]},
-          {...orders[1]}
-        ]})
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Orders markerd as deleted');
-        res.body.orders.should.be.a('array');
-        res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].should.not.have.property('menu');
-        res.body.orders[0].should.not.have.property('hospital');
-        res.body.orders[0].should.have.property('groupId');
-        res.body.orders[0].should.have.property('quantity');
-        res.body.orders[0].should.have.property('menuId');
-        res.body.orders.length.should.be.eql(2);
-        done();
+        .delete('/api/user/orders')
+        .set('Authorization', userJWT1)
+        .send({orders: [
+            {...orders[0]},
+            {...orders[1]}
+          ], 
+          groupId: userId1})
+        .end((err, res) => {
+          res.should.have.status(402);
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Orders marked as deleted but no associated payment intents');
+          done();
+        });
       });
-    })
-  });
+  }).timeout(7000);
+
 
   it('User with "user" role should NOT be able to delete order thats not theirs', (done) => {
     var orders = [
@@ -495,6 +536,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
       });
     })
   });
+
 });
 
 describe('/PUT /api/user/orders/status endpoint', () => {

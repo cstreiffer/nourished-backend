@@ -25,13 +25,15 @@ module.exports = {
     password: process.env.REDIS_PASSWORD || "",
   },
   mailer: {
-    from: process.env.MAILER_FROM || 'Nourished',
+    errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com'],
+    email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
+    from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {
-      host: process.env.MAILER_HOST || 'smtp.gmail.com',
+      host: process.env.MAILER_HOST || '',
       port: 465,
       secure: true,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'penn.chci.nourished@gmail.com',
+        user: process.env.MAILER_EMAIL_ID || '',
         pass: process.env.MAILER_PASSWORD || ''
       }
     }

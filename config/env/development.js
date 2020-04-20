@@ -40,6 +40,7 @@ module.exports = {
     }
   },
   mailer: {
+    errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com', 'nourished@pennmedicine.upenn.edu'],
     email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
     from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {

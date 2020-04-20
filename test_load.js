@@ -8,7 +8,7 @@ var
   path = require('path'),
   express = require(path.resolve('./config/lib/express')),
   sequelize = require(path.resolve('./config/lib/sequelize-connect')),
-  app = express.init(sequelize),
+  // app = express.init(sequelize),
   // app = require(path.resolve('./server.js')),
   chalk = require('chalk'),
   db = require(path.resolve('./config/lib/sequelize')).models,

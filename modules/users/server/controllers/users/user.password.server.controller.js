@@ -3,10 +3,14 @@
 /**
  * Module dependencies.
  */
-var path = require('path'),
+var
+  _ = require('lodash'), 
+  path = require('path'),
   config = require(path.resolve('./config/config')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   nodemailer = require('nodemailer'),
+  fs = require('fs'),
+  jwt = require('jsonwebtoken'),
   async = require('async'),
   crypto = require('crypto'),
   db = require(path.resolve('./config/lib/sequelize')).models,
@@ -15,6 +19,9 @@ var path = require('path'),
 
 owasp.config(config.shared.owasp);
 const {Op} = require('sequelize');
+
+const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
+const retAttributes = ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber', 'roles'];
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 var url = config.app.webURL;
 
@@ -210,16 +217,17 @@ exports.reset = function(req, res, next) {
                       message: 'Unable to save the reset the password'
                     });
                   } else {
-                    req.login(user, function(err) {
-                      if (err) {
-                        res.status(400).send(err);
-                      } else {
-                        // Remove sensitive data before return authenticated user
-                        user.hashedPassword = undefined;
-                        user.salt = undefined;
-                        done(err, user);
-                      }
-                    });
+                    done(null, user);
+                    // req.login(user, function(err) {
+                    //   if (err) {
+                    //     res.status(400).send(err);
+                    //   } else {
+                    //     // Remove sensitive data before return authenticated user
+                    //     user.hashedPassword = undefined;
+                    //     user.salt = undefined;
+                    //     done(err, user);
+                    //   }
+                    // });
                   }
                 }).catch(function(err) {
                   res.status(400).send(err);
@@ -263,10 +271,12 @@ exports.reset = function(req, res, next) {
           }]
         };
         smtpTransport.sendMail(mailOptions, function(err) {
+          console.log("Here we hit an error" + err);
+
           if (!err) {
-            res.send({
-              message: 'Password successfully reset'
-            });
+            var ret = _.pick(user || {}, retAttributes)
+            var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+            res.jsonp({user: ret, token: token, message: "Password successfully reset"});
             done(null);
           } else {
             return res.status(400).send({
@@ -312,15 +322,16 @@ exports.changePassword = function(req, res, next) {
                       message: "Password not updated"
                     });
                   } else {
-                    req.login(user, function(err) {
-                      if (err) {
-                        res.status(400).send(err);
-                      } else {
-                        res.send({
-                          message: 'Password changed successfully'
-                        });
-                      }
-                    });
+                      var ret = _.pick(user || {}, retAttributes)
+                      var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+                      res.jsonp({user: ret, token: token, message: "Password changed successfully"});
+                    // req.login(user, function(err) {
+                    //   if (err) {
+                    //     res.status(400).send(err);
+                    //   } else {
+
+                    //   }
+                    // });
                   }
                 }).catch(function(err) {
                   res.status(400).send({

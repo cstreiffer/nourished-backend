@@ -129,7 +129,7 @@ before(function(done) {
 describe('/POST /stripe/create-payment-intent endpoint', () => {
   
   // Clear the database
-  beforeEach(function(done) {
+  before(function(done) {
     Stripe.destroy({where: {}})
       .then(function(){done()})
   });
@@ -156,20 +156,41 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
       });
   });
 
-  it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
-    Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
-      chai.request(app)
-        .post('/api/stripe/create-payment-intent')
-        .set('Authorization', userJWT1)
-        .send({groupId: group1.id})
-        .end((err, res) => {
-          res.should.have.status(404);
-          res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Payment intent already exists');
-          done();
-        });
-    });
+  it('User with "user" role should be able to create payment intent for their order (again)', (done) => {
+    chai.request(app)
+      .post('/api/stripe/create-payment-intent')
+      .set('Authorization', userJWT1)
+      .send({groupId: group1.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Payment intents successfully created');
+        res.body.should.not.have.property('userId');
+        res.body.should.have.property('publishableKey');
+        res.body.should.have.property('stripeData');
+        res.body.should.have.property('stripeOrders');
+        res.body.stripeData[0].should.not.have.property('userId');
+        res.body.stripeData[0].should.have.property('amount').eql(4000);
+        res.body.stripeData[0].should.have.property('groupId');
+        res.body.stripeData[0].should.have.property('timeslotId');
+        res.body.stripeData[0].should.have.property('clientSecret');
+        done();
+      });
   });
+  // it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
+  //   Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, timeslotId: timeslot1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
+  //     chai.request(app)
+  //       .post('/api/stripe/create-payment-intent')
+  //       .set('Authorization', userJWT1)
+  //       .send({groupId: group1.id})
+  //       .end((err, res) => {
+  //         res.should.have.status(404);
+  //         res.body.should.be.a('object');
+  //         res.body.should.have.property('message').eql('Payment intent already exists');
+  //         done();
+  //       });
+  //   });
+  // });
 });
 
 describe('/GET /user/stripe', () => {
@@ -285,10 +306,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-after(function(done) {
-  Stripe.destroy({where: {}})
-  .then(function(){done()})
-});
+// after(function(done) {
+//   Stripe.destroy({where: {}})
+//   .then(function(){done()})
+// });
 
 after((done) => {
   MealInfo.destroy({where: {}})

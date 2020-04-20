@@ -119,13 +119,27 @@ exports.isUpdateOrderAllowed = function(req, res, next) {
 }
 
 exports.isUserOrderAllowed = function(req, res, next) {
-  if(req.body.orders) {
+  if(req.body.orders && req.body.groupId) {
     var orderIds = req.body.orders.map((order) => order.id);
     Order.findAll({
       where: {
-        id: orderIds
+        id: orderIds,
+        userId: req.user.id,
+        groupId: req.body.groupId
       },
-      include: {model: db.menu, include: db.timeslot}
+      include: {
+        model: db.menu, 
+        include: [
+          {
+            model: db.timeslot,
+            include: db.restaurant
+          },
+          {
+            model: db.meal,
+            include: db.mealinfo
+          }
+        ]
+      }
     }).then((orders) => {
       if(orders && orders.length === new Set(orderIds).size) {
         var validation = orders.map((order) => order.userId === req.user.id);
