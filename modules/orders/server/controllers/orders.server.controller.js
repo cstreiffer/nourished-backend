@@ -6,14 +6,20 @@
 var 
   _ = require('lodash'),
   path = require('path'),
+  config = require(path.resolve('./config/config')),
   uuid = require('uuid/v4'),
+  async = require('async'),
+  nodemailer = require('nodemailer'),
+  stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Order = db.order,
   Cart = db.cart,
-  Menu = db.menu;
+  Menu = db.menu,
+  Stripe = db.stripe;
 
 const {Op} = require('sequelize');
+var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
 const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'menuId'];
@@ -184,26 +190,225 @@ exports.restStatusUpdate = function(req, res) {
   }
 };
 
+
+const calculateOrderAmount = orders => {
+  if(orders) {
+    var sum = orders.map((order) => Number(order.quantity) * Number(order.menu.meal.mealinfo.price)).reduce((a,b) => a + b, 0)
+    return Math.floor(sum * 100);
+  } else {
+    return 0;
+  }
+};
+
+const calculateTotalAmount = orders => {
+  var sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0)
+  return sum
+}
+
 /**
  * Delete an order
  */
 exports.delete = function(req, res) {
   var orderIds = req.orders.map((order) => order.id);
+  var groupId = req.body.groupId;
 
-  Order.update({deleted: true}, {
-    where: {
-      userId: req.user.id,
-      id: orderIds
-    }
-  }).then(function(orders) {
-    var ret = req.orders.map((order)=> _.pick(order, retAttributes));
-    return res.jsonp({orders: ret, message: "Orders markerd as deleted"});
-  }).catch(function(err) {
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
+  async.waterfall([
+      function(done) {
+        // Sort the orders by
+        Order.findAll({
+          where: {
+            userId: req.user.id,
+            groupId: groupId,
+            deleted: false
+          },
+          include: {
+            model: db.menu,
+            include: {
+              model: db.meal,
+              include: db.mealinfo
+            }
+          }
+        }).then(function(ordersRet) {
+          var orders = ordersRet.reduce(function(map, obj) {
+            var timeslotid = obj.menu.timeslotId;
+            if(!(timeslotid in map)) {
+              map[timeslotid] = [];
+            }
+            if(!(orderIds.includes(obj.id))) {
+              map[timeslotid].push(obj);
+            }
+            return map;
+          }, {});
+          done(null, orders);
+        }).catch(function(err) {
+          done(err);
+        });
+      },
+      function(orders, done) {
+        // Find the striperorders
+        Stripe.findAll({
+          where: {
+            userId: req.user.id,
+            groupId: groupId,
+            refundId: {
+              [Op.ne] : null
+            }
+          }
+        }).then(function(stripeorders) {
+          // console.log(stripeorders);
+          // Remap the stripe orders by timeslot
+          var stripeorders = stripeorders.reduce(function(map, obj) {
+            map[obj.timeslotId] = obj;
+            return map;
+          }, {});
+          var refunds = [];
+          Object.keys(orders).map(function(key) {
+            console.log("Here is the key: " + key);
+            refunds.push({
+              oldAmount: stripeorders[key].amount,
+              newAmount: calculateOrderAmount(orders[key]),
+              stripePaymentId: stripeorders[key].paymentIntentId,
+              timeslotid: key
+            });
+          });
+          done(null, refunds);
+        }).catch(function(err) {
+          done(err);
+        })
+      },
+      function(refunds, done) {
+        console.log(refunds);
+        res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
+          emailAddress: config.mailer.email,
+          totalAmount: calculateTotalAmount(refunds),
+          referenceId: req.groupId
+        }, function(err, emailHTML) {
+          done(err, emailHTML, refunds);
+        });
+      },
+      function(emailHTML, refunds, done) {
+        var mailOptions = {
+          to: req.user.email,
+          from: config.mailer.from,
+          subject: 'Order Cancelled - Confirmation',
+          html: emailHTML,
+          attachments: [{
+            filename: 'nourished_logo.png',
+            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+            cid: 'nourishedlogo' //same cid value as in the html img src
+          }]
+        };
+        smtpTransport.sendMail(mailOptions)
+          .then(function(){
+            done(null);
+          }).catch(function(err) {
+            done(err);
+          })
+      },
+      // // Issue the refunds
+      // function(refunds, done) {
+      //   console.log(refunds);
+
+      //   Promise.all(refunds.map(function(refund) {
+      //       stripe.refunds.create({
+      //         payment_intent: refund.paymentIntentId,
+      //         amount: refund.oldAmount - refund.newAmount
+      //       })
+      //     })
+      //   ).then(function(refundResponses) {
+      //     var refs = refundResponses.map(function(e, i) {
+      //       return [e, refunds[i]];
+      //     });
+      //     done(null, refs);
+      //   }).catch(function(err) {
+      //     done(err);
+      //   })
+      // },
+      // function(refunds, done) {
+      //   Promise.all(refunds.map((refund) => {
+      //     Stripe.update({refundId : refund[0].id}, {
+      //       where: {
+      //         paymentIntentId: refund[1].paymentIntentId,
+      //       }
+      //     })
+      //   })).then(function(stripes) {
+      //     done(null);
+      //   }).catch(function(err) {
+      //     done(err);
+      //   })
+      // },
+      // Mark the orders as deleted
+      function(done) {
+        Order.update({deleted: true, payStatus: 'REFUNDED'}, {
+          where: {
+            userId: req.user.id,
+            id: orderIds
+          }
+        }).then(function(orders) {
+          var ret = req.orders.map((order)=> _.pick(order, retAttributes));
+          res.jsonp({orders: ret, message: "Orders markerd as deleted"});
+          done(null);
+        }).catch(function(err) {
+          done(err);
+        });
+      }
+    ],
+    function(err) {
+      if(err) {
+        console.log(err);
+        return res.status(404).send({
+          message: 'Broke something'
+        });
+      }
     });
-  });
 };
+
+
+// exports.forgot = function(req, res, next) {
+//   async.waterfall([
+//     // Send the email
+    // function(token, user, done) {
+    //   res.render(path.resolve('modules/users/server/templates/password-recovery'), {
+    //     name: user.displayName,
+    //     emailAddress: config.mailer.email,
+    //     url: url + '?passwordToken=' + token
+    //   }, function(err, emailHTML) {
+    //     done(err, emailHTML, user);
+    //   });
+    // },
+//     // If valid email, send reset email using service
+    // function(emailHTML, user, done) {
+    //   var mailOptions = {
+    //     to: user.email,
+    //     from: config.mailer.from,
+    //     subject: 'Password Reset',
+    //     html: emailHTML,
+    //     attachments: [{
+    //       filename: 'nourished_logo.png',
+    //       path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+    //       cid: 'nourishedlogo' //same cid value as in the html img src
+    //     }]
+    //   };
+    //   smtpTransport.sendMail(mailOptions, function(err) {
+    //     if (!err) {
+    //       res.send({
+    //         message: 'An email has been sent to the provided email with further instructions.'
+    //       });
+    //     } else {
+    //       return res.status(400).send({
+    //         message: 'Failure sending email'
+    //       });
+    //     }
+    //     done(err);
+    //   });
+//     }
+//   ], function(err) {
+//     if (err) {
+//       return next(err);
+//     }
+//   });
+// };
+
 
 var formatDate = function(query) {
   if (query.startDate && query.endDate) return{[Op.gte]: query.startDate, [Op.lte] : query.endDate};

@@ -123,7 +123,8 @@ exports.isUserOrderAllowed = function(req, res, next) {
     var orderIds = req.body.orders.map((order) => order.id);
     Order.findAll({
       where: {
-        id: orderIds
+        id: orderIds,
+        userId: req.user.id
       },
       include: {model: db.menu, include: db.timeslot}
     }).then((orders) => {
