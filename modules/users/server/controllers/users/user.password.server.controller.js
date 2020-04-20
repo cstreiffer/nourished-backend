@@ -18,12 +18,13 @@ var
   owasp = require('owasp-password-strength-test');
 
 owasp.config(config.shared.owasp);
-
 const {Op} = require('sequelize');
+
 const jwtSecret = fs.readFileSync(path.resolve(config.jwt.privateKey), 'utf8');
 const retAttributes = ['id', 'username', 'firstName', 'lastName', 'email', 'phoneNumber', 'roles'];
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
-var url = config.app.webURL || 'https://nourished-dev.uphs.upenn.edu/';
+var url = config.app.webURL;
+
 /**
  * Forgot for reset password (forgot POST)
  */
@@ -138,7 +139,7 @@ exports.forgotTest = function(req, res, next) {
             });
           } else {
             user.resetPasswordToken = token;
-            user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+            user.resetPasswordExpires = Date.now() + config.user.tokenExpiry; // 1 hour
 
             user.save().then(function(saved) {
               return res.json({user: saved, message: "Token generated"});
