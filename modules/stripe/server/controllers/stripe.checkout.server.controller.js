@@ -13,9 +13,12 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   Stripe = db.stripe,
   Order = db.order,
-  uuid = require('uuid/v4');
+  Menu = db.menu,
+  Restaurant = db.restaurant;
 
-const retAttributes = ['id', 'groupId', 'amount'];
+const {Op} = require('sequelize');
+const retAttributes = ['id', 'groupId', 'amount', 'paymentIntentId'];
+const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
 
 exports.checkout = function(req, res) {
   // Display checkout page
@@ -28,13 +31,13 @@ const calculateOrderAmount = orders => {
   return Math.floor(sum * 100);
 };
 
+const substr = (value) => {
+  return (value ? String(value).substring(0, 450) : '');
+}
+
 exports.createPaymentIntent = function(req, res) {
   // const { currency } = req.body;
   // Create a PaymentIntent with the order amount and currency
-
-  // The restaurant's stripe connect id should be stored on the restaurant model.
-  // TODO: follow the order to the restaurant
-  // var restaurantStripeAccountId = 'something';
 
   // Remap the orders
   var orders = req.orders.reduce(function(map, obj) {
@@ -61,14 +64,14 @@ exports.createPaymentIntent = function(req, res) {
       restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
       restaurantStripeAccountId: orders[timeslotid][0].menu.timeslot.restaurant.restaurantStripeAccountId,
       metadata: {
-        groupId: req.groupId.substring(0, 450),
-        timeslotId: timeslotid,
-        email: req.user.email ? req.user.email .substring(0, 450) : '',
-        phoneNumber: req.user.phoneNumber ? req.user.phoneNumber.substring(0, 450) : '',
-        firstName: req.user.firstName ? req.user.firstName.substring(0, 450) : '',
-        lastName: req.user.lastName ? req.user.lastName.substring(0, 450) : '',
-        restaurantName: orders[timeslotid][0].menu.timeslot.restaurant.name ? orders[timeslotid][0].menu.timeslot.restaurant.name.substring(0, 450) : '',
-        menuDate: orders[timeslotid][0].menu.timeslot.date ? orders[timeslotid][0].menu.timeslot.date.toString().substring(0, 450) : '',
+        groupId: substr(req.groupId),
+        timeslotId: substr(timeslotid),
+        email: substr(req.user.email),
+        phoneNumber: substr(req.user.phoneNumber),
+        firstName: substr(req.user.firstName),
+        lastName: substr(req.user.lastName),
+        restaurantName: substr(orders[timeslotid][0].menu.timeslot.restaurant.name),
+        menuDate: substr(orders[timeslotid][0].menu.timeslot.date),
       }
     });
   });
@@ -104,7 +107,7 @@ exports.createPaymentIntent = function(req, res) {
     });
     Promise.all(retMod.map((order) => {
         if(order[0].timeslotid in stripeorders) {
-          return stripeorders[order.timeslotid];
+          return stripeorders[order[0].timeslotid];
         } else {
           return Stripe.create({
             id: uuid(),
@@ -130,32 +133,127 @@ exports.createPaymentIntent = function(req, res) {
           }
         }),
         stripeOrders: ret,
-        totalAmount: retMod.map((order) => order[0].ammount).reduce((a,b) => a + b, 0),
+        totalAmount: (retMod.map((order) => order[0].amount).reduce((a,b) => a + b, 0)/100.0).toFixed(2),
         message: "Payment intents successfully created"
       });
     }).catch(function(err) {
       console.log(err);
       res.status(400).send({
-        message: 'Error processing the order: ' + err
+        message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
       });
     });
   }).catch(function(err) {
     console.log(err);
     res.status(400).send({
-      message: 'Error processing the order: ' + err
+      message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
     });
   });
 };
 
-// Expose a endpoint as a webhook handler for asynchronous events.
-// Configure your webhook in the stripe developer dashboard
-// https://dashboard.stripe.com/test/webhooks
-// This route is /api/stripe/webhook
+exports.oauth = function(req, res) {
+  var user = req.user;
+  const { code, state } = req.query;
+
+  // Assert the state matches the state you provided in the OAuth link (optional).
+  if(!stateMatches(state)) {
+    return res.status(403).json({ error: 'Incorrect state parameter: ' + state });
+  }
+
+  // Send the authorization code to Stripe's API.
+  stripe.oauth.token({
+    grant_type: 'authorization_code',
+    code
+  }).then(
+    (response) => {
+      var connected_account_id = response.stripe_user_id;
+
+      Restaurant.findOne({
+        where : {
+          id: req.user.id,
+          restaurantStripeAccountId: {
+            [Op.ne] : null
+          }
+        }
+      }).then(function(rest) {
+        if(!rest) {
+          return res.status(404).json({message: 'No restaurant attached to user'});
+        } else {
+          restaurant.restaurantStripeAccountId = connected_account_id;
+          restaurant.save()
+            .then(function(rest) {
+              var ret = _.pick(order, retAttributes);
+              return res.status(200).json({message: 'Stripe ID attached to restaurant'});
+            })
+            .catch(function(err) {
+              return res.status(500).json({message: 'Restaurant failed to save'});
+            });  
+        }
+      }).catch(function(err) {
+        return res.status(500).json({message: 'An unknown error occurred'});
+      });
+    },
+    (err) => {
+      if (err.type === 'StripeInvalidGrantError') {
+        return res.status(400).json({message: 'Invalid authorization code: ' + code});
+      } else {
+        return res.status(500).json({message: 'An unknown error occurred'});
+      }
+    }
+  );
+};
+
+const stateMatches = (state_parameter) => {
+  // Load the same state value that you randomly generated for your OAuth link.
+  const saved_state = process.env.STRIPE_STATE;
+  return saved_state == state_parameter;
+};
+
+/**
+ * Updates orders attached to paymentIntentId
+ */
+
+const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
+    Stripe.findOne({
+      where: {
+        paymentIntentId: paymentIntentId
+      }
+    }).then(function(stripeorder) {
+      Order.findAll({
+        where: {
+          groupId: stripeorder.groupId,
+        },
+        include: db.menu,
+      }).then(function(orders) {
+        var orders = orders.filter((order) => order.menu.timeslotId === stripeorder.timeslotId);
+        var orderIds = orders.map((order) => order.id);
+        Order.update(statusUpdate, {
+          where: {
+            id: orderIds
+          }
+        }).then(function(orders) {
+          return res.status(200).json({received: true, message: "Orders updated"});
+        });
+      }).catch(function(err) {
+        console.log(err);
+        return res.status(400).send({
+          message: errorHandler.getErrorMessage(err)
+        });
+      })
+    }).catch(function(err) {
+      console.log(err);
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    });
+};
+
+// Expose a endpoint as a webhook handler for asynchronous events. https://dashboard.stripe.com/test/webhooks
 exports.webhook = function(req, res) {
   let data, eventType;
 
   // Check if webhook signing is configured.
-  if (process.env.STRIPE_WEBHOOK_SECRET) {
+  // if (process.env.STRIPE_WEBHOOK_SECRET || process.env.NODE_ENV === 'production') {
+   if (process.env.NODE_ENV === 'production') {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event;
     let signature = req.headers["stripe-signature"];
@@ -172,59 +270,45 @@ exports.webhook = function(req, res) {
     data = event.data;
     eventType = event.type;
   } else {
-    // Webhook signing is recommended, but if the secret is not configured in `config.js`,
-    // we can retrieve the event data directly from the request body.
     data = req.body.data;
     eventType = req.body.type;
   }
 
-  let responseMessage = 'unknown';
   // event types are here https://stripe.com/docs/api/events/types
-  // in data the 'metadata' object should be present from the payment_intent above
   switch(eventType) {
-  case 'payment_intent.created':
-    // when an intent is created
-    console.log('  stripe.webhook payment_intent.created: ' + JSON.stringify(data.object.metadata, null, 2));
-    // see example_data.txt for what is sent
-    break;
 
-  case "charge.succeeded":
-    // logging the payment was charge.succeeded
-    console.log('charge.succeeded: ' + data.object.receipt_url);
-    responseMessage = 'charge.succeded';
-    break;
+    case 'payment_intent.created':
+      console.log('stripe.webhook payment_intent.created: ' + JSON.stringify(data, null, 2));
+      return res.json({received: true, msg: 'Payment intent created'});
+      break;
 
-  case "charge.failed":
-    // logging the payment was charge.failed
-    console.log('charge.failed: ' + data.object.receipt_url);
-    responseMessage = 'charge.failed';
-    break;
+    case 'payment_intent.amount_capturable_updated':
+      console.log('stripe.webhook payment_intent.amount_capturable_updated: ' + JSON.stringify(data, null, 2));
+      return res.json({received: true, msg: 'Payment intent updated'});
+      break;
 
-  case "payment_intent.succeeded":
-    // Funds have been captured
-    // Fulfill any orders, e-mail receipts, etc
-    // To cancel the payment after capture you will need to issue a Refund (https://stripe.com/docs/api/refunds)
+    case 'payment_intent.processing':
+      console.log('stripe.webhook payment_intent.processing: ' + JSON.stringify(data, null, 2));
+      return res.json({received: true, msg: 'Payment intent processing'});
+      break;
 
-    // TODO: mark the order succeeded.
-    const groupId = data.object.metadata.groupId;
+    case 'payment_intent.payment_failed':
+      console.log('payment_intent.payment_failed: ' + JSON.stringify(data, null, 2));
+      updateOrderStatus(data.id, {payStatus: 'ERROR'}, res);
+      break;
 
-    console.log('payment_intent.succeeded: ' + JSON.stringify(data.object.metadata));
-    responseMessage = 'payment success';
+    case "payment_intent.succeeded":
+      console.log('payment_intent.succeeded: ' + JSON.stringify(data, null, 2));
+      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res);
+      break;
 
-    break;
-  case 'payment_intent.payment_failed':
-    // TODO: in this case mark the order failed - so the user knows they will not get their order
-    console.log('payment_intent.payment_failed: ' + JSON.stringify(data.object.metadata));
-    break;
+    case 'payment_intent.canceled':
+      console.log('stripe.webhook payment_intent.canceled: ' + JSON.stringify(data, null, 2));
+      updateOrderStatus(data.id, {payStatus: 'REFUNDED'}, res);
+      break;
 
-  default:
-    // log the event type is unknown and will be unprocessed.   If there are too many of these, stripe will
-    // disable the webhook - so monitor these error logs and act on them if you see them
-    console.log('stripe.webhook: Unknown event type ' + eventType);
-    responseMessage = 'payment failed';
-    return res.sendStatus(400);
+    default:
+      console.log('stripe.webhook: Unknown event type ' + eventType);
+      return res.status(400).json({message: "Error unknown"});
   }
-
-  // respond with a 200 OK so stripe knows we processed the webhook and will not re-send the event.
-  return res.json({received: true, msg: responseMessage});
 };

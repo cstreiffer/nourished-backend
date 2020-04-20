@@ -271,8 +271,6 @@ exports.reset = function(req, res, next) {
           }]
         };
         smtpTransport.sendMail(mailOptions, function(err) {
-          console.log("Here we hit an error" + err);
-
           if (!err) {
             var ret = _.pick(user || {}, retAttributes)
             var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);

@@ -154,7 +154,7 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
-  });
+  }).timeout(7000);
 
   it('User with "user" role should be able to create payment intent for their order (again)', (done) => {
     chai.request(app)
@@ -176,7 +176,8 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
-  });
+  }).timeout(7000);
+
   // it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
   //   Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, timeslotId: timeslot1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
   //     chai.request(app)
@@ -191,6 +192,36 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
   //       });
   //   });
   // });
+});
+
+describe('/POST /stripe/create-payment-intent endpoint', () => {
+  
+  // Clear the database
+  before(function(done) {
+    Stripe.destroy({where: {}})
+      .then(function(){done()})
+  });
+
+  it('User with "user" role should be able to create payment intent for their order', (done) => {
+    chai.request(app)
+      .post('/api/stripe/create-payment-intent')
+      .set('Authorization', userJWT1)
+      .send({groupId: group1.id})
+      .end((err, res) => {
+        var stripeorder = res.body.stripeOrders[0];
+        var payload = {data: {id: stripeorder.paymentIntentId}, type: 'payment_intent.canceled'};
+        chai.request(app)
+          .post('/api/stripe/webhook')
+          .send(payload)
+          .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.be.a('object');
+            res.body.should.have.property('message').eql('Orders updated');
+            done();
+          });
+      });
+  }).timeout(7000);
+
 });
 
 describe('/GET /user/stripe', () => {
@@ -281,10 +312,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-// after(function(done) {
-//   Order.destroy({where: {}})
-//   .then(function(){done()})
-// });
+after(function(done) {
+  Order.destroy({where: {}})
+  .then(function(){done()})
+});
 
 after(function(done) {
   User.destroy({where: {}})
@@ -306,10 +337,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-// after(function(done) {
-//   Stripe.destroy({where: {}})
-//   .then(function(){done()})
-// });
+after(function(done) {
+  Stripe.destroy({where: {}})
+  .then(function(){done()})
+});
 
 after((done) => {
   MealInfo.destroy({where: {}})

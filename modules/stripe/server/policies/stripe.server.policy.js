@@ -95,7 +95,7 @@ exports.isOrderPaymentAllowed = function(req, res, next) {
         }]
       }
     }).then(function(orders) {
-      if (!orders) {
+      if (!orders || !orders.length) {
         return res.status(404).send({
           message: 'No orders with that identifier has been found'
         });

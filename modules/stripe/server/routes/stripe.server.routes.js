@@ -48,6 +48,7 @@ module.exports = function(app) {
   if (process.env.NODE_ENV === 'development') {
     app.route('/api/stripe/create-payment-intent')
     .all(passport.authenticate('jwt', {session: false}))
+      .all(stripePolicy.isNewOrder)
       .all(stripePolicy.isOrderPaymentAllowed)
       .post(stripe.createPaymentIntent); // Good
   } else {
@@ -61,6 +62,10 @@ module.exports = function(app) {
   // the webhook route does not need authentication.  The signature is checked based on the data
   // that is posted to the webhook.
   app.route('/api/stripe/webhook')
+    .post(stripe.webhook); // Good
+
+  app.route('/api/stripe/oauth')
+    .all(passport.authenticate('jwt', {session: false}))
     .post(stripe.webhook); // Good
 
   // Finish by binding the stripe middleware
