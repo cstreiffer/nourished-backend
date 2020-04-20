@@ -66,7 +66,7 @@ module.exports = function(app) {
 
   app.route('/api/stripe/oauth')
     .all(passport.authenticate('jwt', {session: false}))
-    .post(stripe.webhook); // Good
+    .post(stripe.oauth); // Good
 
   // Finish by binding the stripe middleware
   // app.param('groupId', stripe.orderByGroupId);

@@ -155,7 +155,8 @@ exports.oauth = function(req, res) {
   const { code, state } = req.query;
 
   // Assert the state matches the state you provided in the OAuth link (optional).
-  if(!stateMatches(state)) {
+  // Turn on when in production
+  if(process.env.NODE_ENV === 'production' && !stateMatches(state)) {
     return res.status(403).json({ error: 'Incorrect state parameter: ' + state });
   }
 
