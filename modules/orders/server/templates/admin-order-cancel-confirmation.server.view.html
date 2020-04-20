@@ -119,12 +119,12 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
       <td align="center" valign="top" class="em_aside5">
         <table align="center" width="650" border="0" cellspacing="0" cellpadding="0" class="em_main_table" style="width:750px; table-layout:fixed;">
           <tr>
-            <td align="center" valign="top" style="padding:0 25px; background-color:#ffffff;" class="em_aside10"><table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+            <td align="center" valign="top" style="padding:0 25px; background-color:#D3D3D3;" class="em_aside10"><table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
               <tr>
                 <td height="5" style="height:5px;" class="em_h20">&nbsp;</td>
               </tr>
               <tr>
-                <td class="em_blue em_font_22" align="center" valign="top" style="font-family: Arial, sans-serif; font-size: 26px; line-height: 29px; color:#264780; font-weight:bold;">Order Cancellation Confirmation</td>
+                <td class="em_blue em_font_22" align="center" valign="top" style="font-family: Arial, sans-serif; font-size: 26px; line-height: 29px; color:#000000; font-weight:bold;">Order Cancellation Report</td>
               </tr>
               <tr>
                 <td height="5" style="height:5px;" class="em_h20">&nbsp;</td>
@@ -144,36 +144,31 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
             <td align="center" valign="top" style="padding:0 25px;" class="em_aside10">
               <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <th width=25% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Restaurant</th>
-                  <th width=25% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Meal</th>
-                  <th width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Quantity</th>
-                  <th width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Refund Amount</th>
+                  <th width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Stripe Payment Intent ID</th>
+                  <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Payment Amount</th>
+                  <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Refund Amount</th>
                 </tr>
                 <tr> 
                   <td> <hr /> </td>
                   <td> <hr /> </td> 
-                  <td> <hr /> </td>  
                   <td> <hr /> </td>                  
                 </tr>
-                {% for x in orders %}
+                {% for x in refunds %}
                   <tr>
-                    <td width=25% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.restaurant}}</td>
-                    <td width=25% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.name}}</td>
-                    <td width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.quantity}}</td>
-                    <td width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{x.totalPrice.toFixed(2)}}</td>
+                    <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.stripePaymentId}}</td>
+                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">${{(x.oldAmount/100.0).toFixed(2)}}</td>
+                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{(x.refundAmount/100.0).toFixed(2)}}</td>
                   </tr>
                 {% endfor %}
                 <tr> 
                   <td> <hr /> </td>
                   <td> <hr /> </td> 
-                  <td> <hr /> </td>    
-                  <td> <hr /> </td>                
+                  <td> <hr /> </td>                  
                 </tr>
                 <tr> 
-                  <td width=25% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=25% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
+                 <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
+                  <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
+                  <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
                 </tr>
               </table>
             </td>
@@ -185,7 +180,7 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
             <td align="center" valign="top" style="padding:0 25px;" class="em_aside10">
               <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <td width=100% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 26px; color:#434343;">You have requested a refund for the above orders for a total amount of <b>${{totalAmount.toFixed(2)}}</b>. Please allow for <b>5-10 business days</b> for the refund to be processed. The total amount will be refunded to the credit card used for payment. Please reach out if you do not see the refund appearing within the provided time frame or feel that this cancellation was made in error.</td>
+                  <td width=100% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 26px; color:#434343;">The user <b>{{fullName}}</b> has requested a refund on the date of <b>{{date}}</b> for a total amount of <b>${{totalAmount.toFixed(2)}}</b>. They can be reached by email at <a href="mailto:{{emailAddress}}" style="text-decoration:none;">{{emailAddress}}</a> or by phone at <b>{{phoneNumber}}</b>.</td>
                 </tr>
                 <tr>
                   <td height="44" style="height:44px;" class="em_h20">&nbsp;</td>
@@ -206,45 +201,10 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
                 <td height="16" style="height:16px; font-size:1px; line-height:1px; height:16px;">&nbsp;</td>
               </tr>
               <tr>
-                <td class="em_grey" align="center" valign="top" style="font-family: Arial, sans-serif; font-size: 15px; line-height: 18px; color:#434343; font-weight:bold;">Problems or questions?</td>
+                <td class="em_grey" align="center" valign="top" style="font-family: Arial, sans-serif; font-size: 15px; line-height: 18px; color:#434343; font-weight:bold;"></td>
               </tr>
               <tr>
                 <td height="10" style="height:10px; font-size:1px; line-height:1px;">&nbsp;</td>
-              </tr>
-              <tr>
-                <td align="center" valign="top" style="font-size:0px; line-height:0px;"><table border="0" cellspacing="0" cellpadding="0" align="center">
-                  <tr>
-                    <td class="em_grey em_font_11" align="left" valign="middle" style="font-family: Arial, sans-serif; font-size: 13px; line-height: 15px; color:#434343;"><a href="mailto:{{emailAddress}}" style="text-decoration:none; color:#434343;">{{emailAddress}}</a></td>
-                  </tr>
-                </table>
-                </td>
-              </tr>
-               <tr>
-                <td align="center" valign="top"><table border="0" cellspacing="0" cellpadding="0" align="center">
-                  <tr>
-                    <td width="7" style="width:7px; font-size:0px; line-height:0px;" class="em_w5">&nbsp;</td>
-                  </tr>
-                </table>
-                </td>
-              </tr>
-              <tr>
-                <td height="35" style="height:35px;" class="em_h20">&nbsp;</td>
-              </tr>
-            </table>
-            </td>
-          </tr>
-           <tr>
-            <td align="center" valign="top" style="padding:0 25px;" class="em_aside10"><table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
-              <tr>
-                <td height="16" style="font-size:0px; line-height:0px; height:16px;">&nbsp;</td>
-              </tr>
-              <tr>
-                <td align="center" valign="top"><table border="0" cellspacing="0" cellpadding="0" align="left" class="em_wrapper">
-                </table>
-                </td>
-              </tr>
-              <tr>
-                <td height="16" style="font-size:0px; line-height:0px; height:16px;">&nbsp;</td>
               </tr>
             </table>
             </td>

@@ -126,7 +126,19 @@ exports.isUserOrderAllowed = function(req, res, next) {
         id: orderIds,
         userId: req.user.id
       },
-      include: {model: db.menu, include: db.timeslot}
+      include: {
+        model: db.menu, 
+        include: [
+          {
+            model: db.timeslot,
+            include: db.restaurant
+          },
+          {
+            model: db.meal,
+            include: db.mealinfo
+          }
+        ]
+      }
     }).then((orders) => {
       if(orders && orders.length === new Set(orderIds).size) {
         var validation = orders.map((order) => order.userId === req.user.id);

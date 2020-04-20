@@ -38,7 +38,7 @@ module.exports = function(app) {
     .all(ordersPolicy.isUserAllowed)
     .all(ordersPolicy.isUserOrderAllowed)
     .all(ordersPolicy.isUpdateOrderAllowed)
-    .put(orders.update)
+    // .put(orders.update)
     .delete(orders.delete);
 
   app.route('/api/user/orders/status')

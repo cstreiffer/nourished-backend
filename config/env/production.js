@@ -39,6 +39,7 @@ module.exports = {
     }
   },
   mailer: {
+    errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'nourished@pennmedicine.upenn.edu', 'ryanschu@pennmedicine.upenn.edu'],
     from: process.env.MAILER_FROM || 'MAILER_FROM',
     options: {
       service: process.env.MAILER_SERVICE_PROVIDER || 'MAILER_SERVICE_PROVIDER',

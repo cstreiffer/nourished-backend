@@ -70,7 +70,6 @@ exports.create = function(req, res) {
       });
     };
   }).catch(function(err) {
-    console.log(err);
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
@@ -108,7 +107,6 @@ exports.update = function(req, res) {
     var ret = orders.map((order)=> _.pick(order, retAttributes));
     res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully updated"});
   }).catch(function(err) {
-    console.log(err);
     return res.status(400).send({
       message: errorHandler.getErrorMessage(err)
     });
@@ -245,28 +243,23 @@ exports.delete = function(req, res) {
         });
       },
       function(orders, done) {
-        // Find the striperorders
         Stripe.findAll({
           where: {
             userId: req.user.id,
-            groupId: groupId,
-            refundId: {
-              [Op.ne] : null
-            }
+            groupId: groupId
           }
-        }).then(function(stripeorders) {
-          // console.log(stripeorders);
-          // Remap the stripe orders by timeslot
+        })
+        .then(function(stripeorders) {
           var stripeorders = stripeorders.reduce(function(map, obj) {
             map[obj.timeslotId] = obj;
             return map;
           }, {});
           var refunds = [];
           Object.keys(orders).map(function(key) {
-            console.log("Here is the key: " + key);
             refunds.push({
               oldAmount: stripeorders[key].amount,
               newAmount: calculateOrderAmount(orders[key]),
+              refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
               stripePaymentId: stripeorders[key].paymentIntentId,
               timeslotid: key
             });
@@ -277,11 +270,19 @@ exports.delete = function(req, res) {
         })
       },
       function(refunds, done) {
-        console.log(refunds);
+        var ors = req.orders.map((order) => {
+            return {
+              name: order.menu.meal.name,
+              quantity: order.quantity,
+              totalPrice: order.quantity * order.menu.meal.mealinfo.price,
+              restaurant: order.menu.timeslot.restaurant.name
+            }
+          });
         res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
+          date: new Date().toISOString(),
           emailAddress: config.mailer.email,
           totalAmount: calculateTotalAmount(refunds),
-          referenceId: req.groupId
+          orders: ors
         }, function(err, emailHTML) {
           done(err, emailHTML, refunds);
         });
@@ -290,7 +291,38 @@ exports.delete = function(req, res) {
         var mailOptions = {
           to: req.user.email,
           from: config.mailer.from,
-          subject: 'Order Cancelled - Confirmation',
+          subject: 'Order Cancellation - Confirmation',
+          html: emailHTML,
+          attachments: [{
+            filename: 'nourished_logo.png',
+            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+            cid: 'nourishedlogo' //same cid value as in the html img src
+          }]
+        };
+        smtpTransport.sendMail(mailOptions)
+          .then(function(){
+            done(null, refunds);
+          }).catch(function(err) {
+            done(err);
+          })
+      },
+      function(refunds, done) {
+        res.render(path.resolve('modules/orders/server/templates/admin-order-cancel-confirmation'), {
+          fullName: req.user.firstName + ' ' + req.user.lastName,
+          phoneNumber: req.user.phoneNumber,
+          date: new Date().toISOString(),
+          emailAddress: req.user.email,
+          totalAmount: calculateTotalAmount(refunds),
+          refunds: refunds
+        }, function(err, emailHTML) {
+          done(err, emailHTML, refunds);
+        });
+      },
+      function(emailHTML, refunds, done) {
+        var mailOptions = {
+          to: config.mailer.errorEmails,
+          from: config.mailer.from,
+          subject: 'Order Cancellation - Report',
           html: emailHTML,
           attachments: [{
             filename: 'nourished_logo.png',
@@ -464,7 +496,6 @@ exports.userList = function(req, res) {
       res.json({orders: orders, message: "Orders successfully found"});
     }
   }).catch(function(err) {
-    console.log(err);
     res.jsonp(err);
   });
 };
