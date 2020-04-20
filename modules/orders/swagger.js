@@ -47,7 +47,7 @@
  * path:
  *  /user/orders/:
  *    post:
- *      summary: Creates batch order. Cannot create an order within 3 hours of delivery time. Update will fail if >=1 individual orders invalid.
+ *      summary: Creates batch order. Cannot create an order within 3 hours of delivery time. Post will fail if >=1 individual orders invalid.
  *      security:
  *        - bearerAuth: []
  *      tags: [Orders]
@@ -94,7 +94,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Order'
  *    put:
- *      summary: Updates batch orders. Cannot update an order within 3 hours of delivery time. Update will fail if >=1 individual orders invalid.
+ *      summary: NOT IN SERVICE. Updates batch orders. Cannot update an order within 3 hours of delivery time. Update will fail if >=1 individual orders invalid.
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -128,7 +128,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Order'
  *    delete:
- *      summary: Deletes a batch of order items
+ *      summary: Deletes a batch of order items. Delete will fail if >=1 individual orders invalid.
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -140,7 +140,10 @@
  *              type: object
  *              required:
  *                - orders
+ *                - groupId
  *              properties:
+ *                groupId:
+ *                  type: string 
  *                orders:
  *                  type: array
  *                  items:

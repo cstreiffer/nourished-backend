@@ -256,13 +256,15 @@ exports.delete = function(req, res) {
           }, {});
           var refunds = [];
           Object.keys(orders).map(function(key) {
-            refunds.push({
-              oldAmount: stripeorders[key].amount,
-              newAmount: calculateOrderAmount(orders[key]),
-              refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
-              stripePaymentId: stripeorders[key].paymentIntentId,
-              timeslotid: key
-            });
+            if(key in stripeorders) {
+              refunds.push({
+                oldAmount: stripeorders[key].amount,
+                newAmount: calculateOrderAmount(orders[key]),
+                refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
+                stripePaymentId: stripeorders[key].paymentIntentId,
+                timeslotid: key
+              });
+            }
           });
           done(null, refunds);
         }).catch(function(err) {
@@ -270,41 +272,49 @@ exports.delete = function(req, res) {
         })
       },
       function(refunds, done) {
-        var ors = req.orders.map((order) => {
-            return {
-              name: order.menu.meal.name,
-              quantity: order.quantity,
-              totalPrice: order.quantity * order.menu.meal.mealinfo.price,
-              restaurant: order.menu.timeslot.restaurant.name
-            }
+        if(refunds.length) {
+          var ors = req.orders.map((order) => {
+              return {
+                name: order.menu.meal.name,
+                quantity: order.quantity,
+                totalPrice: order.quantity * order.menu.meal.mealinfo.price,
+                restaurant: order.menu.timeslot.restaurant.name
+              }
+            });
+          res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
+            date: new Date().toISOString(),
+            emailAddress: config.mailer.email,
+            totalAmount: calculateTotalAmount(refunds),
+            orders: ors
+          }, function(err, emailHTML) {
+            done(err, emailHTML, refunds);
           });
-        res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
-          date: new Date().toISOString(),
-          emailAddress: config.mailer.email,
-          totalAmount: calculateTotalAmount(refunds),
-          orders: ors
-        }, function(err, emailHTML) {
-          done(err, emailHTML, refunds);
-        });
+        } else {
+          done(null, null, refunds);
+        }
       },
       function(emailHTML, refunds, done) {
-        var mailOptions = {
-          to: req.user.email,
-          from: config.mailer.from,
-          subject: 'Order Cancellation - Confirmation',
-          html: emailHTML,
-          attachments: [{
-            filename: 'nourished_logo.png',
-            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-            cid: 'nourishedlogo' //same cid value as in the html img src
-          }]
-        };
-        smtpTransport.sendMail(mailOptions)
-          .then(function(){
-            done(null, refunds);
-          }).catch(function(err) {
-            done(err);
-          })
+        if(refunds.length) {
+          var mailOptions = {
+            to: req.user.email,
+            from: config.mailer.from,
+            subject: 'Order Cancellation - Confirmation',
+            html: emailHTML,
+            attachments: [{
+              filename: 'nourished_logo.png',
+              path: path.resolve('./modules/users/server/images/nourished_logo.png'),
+              cid: 'nourishedlogo' //same cid value as in the html img src
+            }]
+          };
+          smtpTransport.sendMail(mailOptions)
+            .then(function(){
+              done(null, refunds);
+            }).catch(function(err) {
+              done(err);
+            })
+        } else {
+          done(null, refunds);
+        }
       },
       function(refunds, done) {
         res.render(path.resolve('modules/orders/server/templates/admin-order-cancel-confirmation'), {
@@ -332,10 +342,10 @@ exports.delete = function(req, res) {
         };
         smtpTransport.sendMail(mailOptions)
           .then(function(){
-            done(null);
+            done(null, refunds);
           }).catch(function(err) {
             done(err);
-          })
+          });
       },
       // // Issue the refunds
       // function(refunds, done) {
@@ -370,17 +380,24 @@ exports.delete = function(req, res) {
       //   })
       // },
       // Mark the orders as deleted
-      function(done) {
+      function(refunds, done) {
         Order.update({deleted: true, payStatus: 'REFUNDED'}, {
           where: {
             userId: req.user.id,
             id: orderIds
           }
         }).then(function(orders) {
-          var ret = req.orders.map((order)=> _.pick(order, retAttributes));
-          res.jsonp({orders: ret, message: "Orders markerd as deleted"});
+          if(refunds.length) {
+            var ret = req.orders.map((order)=> _.pick(order, retAttributes));
+            res.jsonp({orders: ret, message: "Orders markerd as deleted"});
+          } else {
+            return res.status(402).send({
+              message: 'Orders marked as deleted but no associated payment intents'
+            });   
+          }
           done(null);
         }).catch(function(err) {
+          console.log(err);
           done(err);
         });
       }

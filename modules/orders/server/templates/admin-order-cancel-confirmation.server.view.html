@@ -142,35 +142,44 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
         <table align="center" width="650" border="0" cellspacing="0" cellpadding="0" class="em_main_table" style="width:750px; table-layout:fixed;background-color:#ffffff;">
           <tr>
             <td align="center" valign="top" style="padding:0 25px;" class="em_aside10">
+              {% if refunds.length %}
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
+                  <tr>
+                    <th width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Stripe Payment Intent ID</th>
+                    <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Payment Amount</th>
+                    <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Refund Amount</th>
+                  </tr>
+                  <tr> 
+                    <td> <hr /> </td>
+                    <td> <hr /> </td> 
+                    <td> <hr /> </td>                  
+                  </tr>
+                  {% for x in refunds %}
+                    <tr>
+                      <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.stripePaymentId}}</td>
+                      <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">${{(x.oldAmount/100.0).toFixed(2)}}</td>
+                      <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{(x.refundAmount/100.0).toFixed(2)}}</td>
+                    </tr>
+                  {% endfor %}
+                  <tr> 
+                    <td> <hr /> </td>
+                    <td> <hr /> </td> 
+                    <td> <hr /> </td>                  
+                  </tr>
+                  <tr> 
+                   <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
+                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
+                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
+                  </tr>
+                </table>
+              {% endif %}
+              {% if !refunds.length %}
               <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <th width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Stripe Payment Intent ID</th>
-                  <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Payment Amount</th>
-                  <th width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#264780; font-weight:bold;">Refund Amount</th>
-                </tr>
-                <tr> 
-                  <td> <hr /> </td>
-                  <td> <hr /> </td> 
-                  <td> <hr /> </td>                  
-                </tr>
-                {% for x in refunds %}
-                  <tr>
-                    <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">{{x.stripePaymentId}}</td>
-                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;">${{(x.oldAmount/100.0).toFixed(2)}}</td>
-                    <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{(x.refundAmount/100.0).toFixed(2)}}</td>
-                  </tr>
-                {% endfor %}
-                <tr> 
-                  <td> <hr /> </td>
-                  <td> <hr /> </td> 
-                  <td> <hr /> </td>                  
-                </tr>
-                <tr> 
-                 <td width=33% class="em_blue em_font_22" align="left" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=33% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 12px; line-height: 29px; color:#FF0000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
+                  <td width=100% class="em_blue em_font_22" align="center" style="font-family: Arial, sans-serif; font-size: 14px; line-height: 29px; color:#000000; font-weight:bold;">No associated payment intents.</td>
                 </tr>
               </table>
+              {% endif %}
             </td>
           </tr>
           <tr>

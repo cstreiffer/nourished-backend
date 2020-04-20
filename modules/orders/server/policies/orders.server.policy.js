@@ -119,12 +119,13 @@ exports.isUpdateOrderAllowed = function(req, res, next) {
 }
 
 exports.isUserOrderAllowed = function(req, res, next) {
-  if(req.body.orders) {
+  if(req.body.orders && req.body.groupId) {
     var orderIds = req.body.orders.map((order) => order.id);
     Order.findAll({
       where: {
         id: orderIds,
-        userId: req.user.id
+        userId: req.user.id,
+        groupId: req.body.groupId
       },
       include: {
         model: db.menu, 

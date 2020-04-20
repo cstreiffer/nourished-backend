@@ -17,6 +17,7 @@ var
   Menu = db.menu,
   Order = db.order,
   Cart = db.cart,
+  Stripe = db.stripe,
   MealInfo = db.mealinfo,
   TimeSlot = db.timeslot,
   chai = require('chai'),
@@ -446,6 +447,11 @@ describe('/DELETE /api/user/orders endpoint', () => {
       .then(function(){done();});
   });
 
+  beforeEach(function(done) {
+    Stripe.destroy({where: {}})
+      .then(function(){done();});
+  });
+
   it('User with "user" role should be able to delete their orders', (done) => {
     var orders = [
       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
@@ -485,6 +491,32 @@ describe('/DELETE /api/user/orders endpoint', () => {
       });
   }).timeout(7000);
 
+  it('User with "user" role should be able to delete their orders', (done) => {
+    var orders = [
+      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+    ];
+    Order.bulkCreate(orders).then(function() {
+      chai.request(app)
+        .delete('/api/user/orders')
+        .set('Authorization', userJWT1)
+        .send({orders: [
+            {...orders[0]},
+            {...orders[1]}
+          ], 
+          groupId: userId1})
+        .end((err, res) => {
+          res.should.have.status(402);
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Orders marked as deleted but no associated payment intents');
+          done();
+        });
+      });
+  }).timeout(7000);
+
+
   it('User with "user" role should NOT be able to delete order thats not theirs', (done) => {
     var orders = [
       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
@@ -504,6 +536,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
       });
     })
   });
+
 });
 
 describe('/PUT /api/user/orders/status endpoint', () => {
