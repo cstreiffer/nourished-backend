@@ -23,7 +23,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
 const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'menuId'];
-const menuRetAttributes = ['id', 'timeslotId', 'mealId'];
+const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
 const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
