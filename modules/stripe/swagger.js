@@ -50,6 +50,26 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Stripe'
+ *  /stripe/oauth?code={code}:
+ *    post:
+ *      summary: Create a new stripe payment intent
+ *      security:
+ *        - bearerAuth: []
+ *      tags: [Stripe]
+ *      parameters:
+ *        - in: path
+ *          name: code
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Stripe code
+ *      responses:
+ *        "200":
+ *          description: A stripe return
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Stripe'
  *  /user/stripe:
  *    get:
  *      summary: Get all stripe payment intents

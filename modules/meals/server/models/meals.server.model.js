@@ -34,7 +34,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ''
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ''
     },
     dietaryRestrictions: {

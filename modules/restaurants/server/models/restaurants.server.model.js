@@ -57,7 +57,7 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     description: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ''
     },
     email: {

@@ -156,9 +156,9 @@ exports.oauth = function(req, res) {
 
   // Assert the state matches the state you provided in the OAuth link (optional).
   // Turn on when in production
-  if(process.env.NODE_ENV === 'production' && !stateMatches(state)) {
-    return res.status(403).json({ error: 'Incorrect state parameter: ' + state });
-  }
+  // if(process.env.NODE_ENV === 'production' && !stateMatches(state)) {
+  //   return res.status(403).json({ error: 'Incorrect state parameter: ' + state });
+  // }
 
   // Send the authorization code to Stripe's API.
   stripe.oauth.token({
@@ -170,30 +170,30 @@ exports.oauth = function(req, res) {
 
       Restaurant.findOne({
         where : {
-          id: req.user.id,
-          restaurantStripeAccountId: {
-            [Op.ne] : null
-          }
+          userId: req.user.id
         }
-      }).then(function(rest) {
-        if(!rest) {
+      }).then(function(restaurant) {
+        if(!restaurant) {
           return res.status(404).json({message: 'No restaurant attached to user'});
         } else {
           restaurant.restaurantStripeAccountId = connected_account_id;
           restaurant.save()
             .then(function(rest) {
-              var ret = _.pick(order, retAttributes);
-              return res.status(200).json({message: 'Stripe ID attached to restaurant'});
+              var ret = _.pick(rest, retAttributes);
+              return res.status(200).json({restaurant:rest, message: 'Stripe ID attached to restaurant'});
             })
             .catch(function(err) {
+              console.log(err);
               return res.status(500).json({message: 'Restaurant failed to save'});
             });  
         }
       }).catch(function(err) {
+        console.log(err);
         return res.status(500).json({message: 'An unknown error occurred'});
       });
     },
     (err) => {
+      console.log(err);
       if (err.type === 'StripeInvalidGrantError') {
         return res.status(400).json({message: 'Invalid authorization code: ' + code});
       } else {
