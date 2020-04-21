@@ -86,7 +86,7 @@ describe('/POST api/auth/signup endpoint', () => {
         .end((err, res) => {
           res.should.have.status(400);
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: Validation error');
+          res.body.should.have.property('message').eql('SequelizeUniqueConstraintError: username must be unique');
           done();
         });
       }); 

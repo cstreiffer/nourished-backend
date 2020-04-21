@@ -21,6 +21,100 @@ const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
 const restRetAttributes = ['id', 'name', 'phoneNumber', 'email'];
 
 /**
+ * Increment item by one
+ */
+exports.increment = function(req, res) {
+  if(!req.body.menuId) {
+    return res.status(400).send({
+      message: "Please include menu id"
+    });
+  } else {
+    Cart.findOne({
+      where: {
+        userId: req.user.id,
+        menuId: req.body.menuId
+      }
+    }).then(function(cartItem) {
+      if(cartItem) {
+        cartItem.quantity = cartItem.quantity + 1;
+        cartItem.save()
+          .then(function(cart) {
+            var ret = _.pick(cart, retAttributes);
+            res.status(200).json({cart: ret, message: "Cart item successfully updated"});
+          }).catch(function(err) {
+            console.log(err);
+            res.status(400).send({message: "Error updating the cart"});
+          })
+      } else {
+        Cart.create({
+          id: uuid(),
+          userId: req.user.id,
+          menuId: req.body.menuId,
+          quantity: 1
+        })
+        .then(function(cart) {
+          var ret = _.pick(cart, retAttributes);
+          res.status(200).json({cart: ret, message: "Cart item successfully updated"});
+        })
+        .catch(function(err) {
+          console.log(err);
+          res.status(400).send({message: "Error updating the cart"});
+        });
+      }
+    }).catch(function(err) {
+      console.log(err);
+      res.status(400).send({message: "Error updating the cart"});
+    });
+  }
+}
+
+/**
+ * Increment item by one
+ */
+exports.decrement = function(req, res) {
+  if(!req.body.menuId) {
+    return res.status(400).send({
+      message: "Please include menu id"
+    });
+  } else {
+    Cart.findOne({
+      where: {
+        userId: req.user.id,
+        menuId: req.body.menuId
+      }
+    }).then(function(cartItem) {
+      if(cartItem) {
+        cartItem.quantity = cartItem.quantity - 1;
+        if(cartItem.quantity === 0) {
+          cartItem.destroy()
+            .then(function(cart) {
+              var ret = _.pick(cart, retAttributes);
+              res.status(200).json({cart: ret, message: "Cart item deleted"});
+            })
+            .catch(function(err) {
+              res.status(400).send({message: "Error updating the cart"});
+            });
+        } else {
+          cartItem.save()
+            .then(function(cart) {
+              var ret = _.pick(cart, retAttributes);
+              res.status(200).json({cart: ret, message: "Cart item successfully updated"});
+            }).catch(function(err) {
+              console.log(err);
+              res.status(400).send({message: "Error updating the cart"});
+            });
+        }
+      } else {
+        res.status(400).send({message: "No cart item associated with menu"});
+      }
+    }).catch(function(err) {
+      console.log(err);
+      res.status(400).send({message: "Error updating the cart"});
+    });
+  }
+}
+
+/**
  * Create a menu
  */
 exports.create = function(req, res) {

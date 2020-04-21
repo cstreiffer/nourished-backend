@@ -39,6 +39,12 @@ exports.invokeRolesPolicies = function() {
     }, {
       resources: '/api/user/carts/:cartId',
       permissions: []
+    }, {
+      resources: '/api/user/carts/increment',
+      permissions: ['post']
+    }, {
+      resources: '/api/user/carts/decrement',
+      permissions: ['post']
     }]
   }]);
 };

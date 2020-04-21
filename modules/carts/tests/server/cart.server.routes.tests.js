@@ -178,6 +178,85 @@ before((done) => {
 describe('/POST /api/user/carts endpoint', () => {
   
   // Clear the database
+  before(function(done) {
+    Cart.destroy({where: {}})
+      .then(function(){done()})
+  });
+
+  it('User with "user" role should be able to create cart item', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/increment')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu1.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart item successfully updated');
+        res.body.cart.should.have.property('id');
+        res.body.cart.should.have.property('menuId');
+        res.body.cart.should.have.property('quantity').eql(1);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to create cart item', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/increment')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu1.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart item successfully updated');
+        res.body.cart.should.have.property('id');
+        res.body.cart.should.have.property('menuId');
+        res.body.cart.should.have.property('quantity').eql(2);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to create cart item', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/decrement')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu1.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart item successfully updated');
+        res.body.cart.should.have.property('id');
+        res.body.cart.should.have.property('menuId');
+        res.body.cart.should.have.property('quantity').eql(1);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to create cart item', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/decrement')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu1.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart item deleted');
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+});
+
+describe('/POST /api/user/carts endpoint', () => {
+  
+  // Clear the database
   beforeEach(function(done) {
     Cart.destroy({where: {}})
       .then(function(){done()})

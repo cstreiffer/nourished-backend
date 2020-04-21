@@ -21,6 +21,17 @@ var getUniqueErrorMessage = function(err) {
  * Get the error message from error object
  */
 exports.getErrorMessage = function(err) {
+  var message;
+  if (err.name) {
+    switch (err.name) {
+      case 'SequelizeUniqueConstraintError':
+        message = 'SequelizeUniqueConstraintError: ';
+        if(err.errors.length) message = message + err.errors[0].message;
+        break;
+      default:
+        message = err.toString();
+    }
+  }
 
   // if (err.code) {
   //   switch (err.code) {
@@ -39,5 +50,5 @@ exports.getErrorMessage = function(err) {
   //   }
   // }
 
-  return err.toString();
+  return message;
 };

@@ -80,6 +80,54 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Cart'
+ *  /user/carts/increment:
+ *    post:
+ *      summary: Increments menu item by 1
+ *      tags: [Carts]
+ *      security:
+ *        - bearerAuth: []
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - menuId
+ *              properties:
+ *                menuId:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Updates a cart
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Cart'
+ *  /user/carts/decrement:
+ *    post:
+ *      summary: Decrements menu item by 1
+ *      tags: [Carts]
+ *      security:
+ *        - bearerAuth: []
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - menuId
+ *              properties:
+ *                menuId:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Updates a cart
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Cart'
  *  /user/carts/{cartId}:
  *    get:
  *      summary: Get a cart by id

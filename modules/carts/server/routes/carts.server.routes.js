@@ -19,6 +19,17 @@ module.exports = function(app) {
     .delete(carts.destroy); // Testing
 
   // Restaurant 
+  app.route('/api/user/carts/increment')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(cartsPolicy.isAllowed)
+    .post(carts.increment);
+
+   app.route('/api/user/carts/decrement')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(cartsPolicy.isAllowed)
+    .post(carts.decrement);  
+
+  // Restaurant 
   app.route('/api/user/carts/:cartId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(cartsPolicy.isAllowed)
