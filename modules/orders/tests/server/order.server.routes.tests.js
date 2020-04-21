@@ -62,6 +62,8 @@ var
   menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: true},
   menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot2.id,  finalized: true},
   menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot2.id,  finalized: true},
+  menu5 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot1.id,  finalized: true, visible: false},
+  menu6 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot1.id,  finalized: false},
   order = {quantity: 5, information: "Allergic to nuts."};
 
 before(function(done) {
@@ -126,6 +128,8 @@ before((done) => {
   menu2.userId = restaurantId1;
   menu3.userId = restaurantId2;
   menu4.userId = restaurantId2;
+  menu5.userId = restaurantId1;
+  menu6.userId = restaurantId1;
 
   done();
 });
@@ -184,9 +188,11 @@ before((done) => {
   var m2 = {...menu2, restaurantId: restaurant1.id, userId: restaurantId1};
   var m3 = {...menu3, restaurantId: restaurant2.id, userId: restaurantId2};
   var m4 = {...menu4, restaurantId: restaurant2.id, userId: restaurantId2};
+  var m5 = {...menu5, restaurantId: restaurant1.id, userId: restaurantId1};
+  var m6 = {...menu6, restaurantId: restaurant1.id, userId: restaurantId1};
   Menu.destroy({where: {}})
     .then(function() {
-      Menu.bulkCreate([m1, m2, m3, m4])
+      Menu.bulkCreate([m1, m2, m3, m4, m5, m6])
         .then(() => {
           done();
         });
@@ -233,6 +239,54 @@ describe('/POST /api/user/orders endpoint', () => {
       .send({orders: [
           {...order, hospitalId: hospital1.id, menuId: menu1.id},
           {...order, hospitalId: hospital2.id, menuId: menu3.id},
+      ]})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.have.property('message');
+        res.body.message.should.be.eql("Invalid order");
+        done();
+      });
+  });
+
+  it('User with "user" role should NOT be able to create order if meal NOT finalized', (done) => {
+    chai.request(app)
+      .post('/api/user/orders')
+      .set('Authorization', userJWT1)
+      .send({orders: [
+          {...order, hospitalId: hospital1.id, menuId: menu1.id},
+          {...order, hospitalId: hospital2.id, menuId: menu4.id},
+      ]})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.have.property('message');
+        res.body.message.should.be.eql("Invalid order");
+        done();
+      });
+  });
+
+  it('User with "user" role should NOT be able to create order if MENU NOT FINALIZED', (done) => {
+    chai.request(app)
+      .post('/api/user/orders')
+      .set('Authorization', userJWT1)
+      .send({orders: [
+          {...order, hospitalId: hospital1.id, menuId: menu1.id},
+          {...order, hospitalId: hospital2.id, menuId: menu5.id},
+      ]})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.have.property('message');
+        res.body.message.should.be.eql("Invalid order");
+        done();
+      });
+  });
+
+  it('User with "user" role should NOT be able to create order if MENU NOT VISIBLE', (done) => {
+    chai.request(app)
+      .post('/api/user/orders')
+      .set('Authorization', userJWT1)
+      .send({orders: [
+          {...order, hospitalId: hospital1.id, menuId: menu1.id},
+          {...order, hospitalId: hospital2.id, menuId: menu6.id},
       ]})
       .end((err, res) => {
         res.should.have.status(400);
@@ -913,10 +967,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-after(function(done) {
-  Menu.destroy({where: {}})
-  .then(function(){done()})
-});
+// after(function(done) {
+//   Menu.destroy({where: {}})
+//   .then(function(){done()})
+// });
 
 after(function(done) {
   Meal.destroy({where: {}})

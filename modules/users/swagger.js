@@ -25,9 +25,6 @@
  *            type: string
  *          lastName:
  *            type: string
- *          hospitalId:
- *            type: string
- *            description: Hospital user can attach to their profile.
  *    securitySchemes:
  *      bearerAuth:
  *        type: http
@@ -64,9 +61,9 @@
  *                  type: string
  *                account_type:
  *                  type: string
- *                fullName:
+ *                firstName:
  *                  type: string
- *                hospitalId:
+ *                lastName:
  *                  type: string
  *      responses:
  *        "200":
