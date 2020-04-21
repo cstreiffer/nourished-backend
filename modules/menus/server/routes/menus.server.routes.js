@@ -11,12 +11,28 @@ var path = require('path'),
 
 module.exports = function(app) {
 
-  // Restaurant 
-  app.route('/api/menus')
-    .get(menus.list) // Restaurant/User get (Good)
+  // ADMiN
 
   app.route('/api/timeslots')
     .get(timeslot.list) // Restaurant/User get (Good)
+    
+  app.route('/api/timeslots')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(menusPolicy.isAllowed)
+    .post(timeslot.create) // Restaurant/User get (Good)
+
+  app.route('/api/timeslots/:timeslotId')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(menusPolicy.isAllowed)
+    .delete(timeslot.delete) // Restaurant/User get (Good)
+
+  // Finish by binding the menu middleware
+  app.param('timeslotId', timeslot.timeslotById);
+
+
+  // Restaurant 
+  app.route('/api/menus')
+    .get(menus.list) // Restaurant/User get (Good)
 
   app.route('/api/rest/timeslots')
     .all(passport.authenticate('jwt', {session: false}))

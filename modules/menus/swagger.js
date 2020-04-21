@@ -191,4 +191,53 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/TimeSlot'
+ *    post:
+ *      summary: Creates a menu attached to the user
+ *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              required:
+ *                - restaurantName
+ *                - hospitalName
+ *                - date
+ *              properties:
+ *                restaurantName:
+ *                  type: string
+ *                hospitalName:
+ *                  type: string
+ *                date:
+ *                  type: string
+ *      responses:
+ *        "200":
+ *          description: Create timeslot
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/TimeSlot'
+ *  /timeslots/{timeslotId}:
+ *    delete:
+ *      summary: Will delete the timeslot
+ *      tags: [Menus]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: timeslotId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the timeslot
+ *      responses:
+ *        "200":
+ *          description: Deletes a timeslot
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/TimeSlot'
  */

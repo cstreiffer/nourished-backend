@@ -6,6 +6,7 @@
 var
   path = require('path'),
   passport = require('passport'),
+  uuid = require('uuid/v4'),
   config = require(path.resolve('./config/config')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user;
@@ -40,4 +41,20 @@ module.exports = function(app, db) {
   // Add passport's middleware
   app.use(passport.initialize());
   // app.use(passport.session());
+
+  // Seed the user
+  if(process.env.ADMIN_EMAIL) {
+      var user = User.build({
+        id: uuid(),
+        username: process.env.ADMIN_USERNAME,
+        roles: ['admin']
+      });
+      user.salt = user.makeSalt();
+      user.hashedPassword = user.encryptPassword(process.env.ADMIN_PASSWORD, user.salt);
+      user.email = process.env.ADMIN_EMAIL.toLowerCase();
+      user.phoneNumber = process.env.ADMIN_PHONENUMBER.replace(/-|\(|\)| /g, '');
+      return user.save()
+        .then((user) => console.log("Seeded admin user"))
+        .catch((err) => console.log("User exists: " + err));
+  }
 };

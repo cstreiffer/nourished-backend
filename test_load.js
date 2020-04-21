@@ -37,10 +37,6 @@ var
   mealInfo2 = {type: "dinner", price: 5.00, time: "7:00", id: uuid()},
   hospital1 = {name:"Presby 1", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   hospital2 = {name:"Presby 2", phoneNumber:"504-613-7325", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
-  restaurant1 = {name:"Goldie 1", phoneNumber:"504-613-7325", email:"test21@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   timeslot1 = {id: uuid(), userId: rest1.id, restaurantId: restaurant1.id, date: new Date().toISOString(), hospitalId: hospital1.id},
   timeslot2 = {id: uuid(), userId: rest1.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
   timeslot3 = {id: uuid(), userId: rest2.id, restaurantId: restaurant3.id, date: new Date().toISOString(), hospitalId: hospital2.id},
@@ -81,7 +77,6 @@ var
 
 var buildUser = function(creds) {
   var user = User.build(creds);
-  user.id = uuid();
   user.salt = user.makeSalt();
   user.hashedPassword = user.encryptPassword(creds.password, user.salt);
   user.email = user.email.toLowerCase();
