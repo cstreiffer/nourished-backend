@@ -37,16 +37,32 @@ acl = new acl(new acl.memoryBackend());
  * Invoke Articles Permissions
  */
 exports.invokeRolesPolicies = function() {
-  acl.allow([{
+  acl.allow([
+  {
+    roles: ['admin'],
+    allows: [{
+      resources: '/api/timeslots',
+      permissions: ['post']
+    }]
+  },
+  {
+    roles: ['admin'],
+    allows: [{
+      resources: '/api/timeslots/:timeslotId',
+      permissions: ['delete']
+    }]
+  },
+  {
     roles: ['restaurant'],
     allows: [{
       resources: '/api/rest/menus',
       permissions: ['post', 'get']
     }, {
-      resources: '/api/rest/menus:menuId',
+      resources: '/api/rest/menus/:menuId',
       permissions: []
     }]
-  }]);
+  }
+  ]);
 };
 
 /**
