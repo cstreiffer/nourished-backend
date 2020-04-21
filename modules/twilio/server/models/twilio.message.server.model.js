@@ -39,7 +39,7 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ''
     },
     messageBody: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ''
     }
   });

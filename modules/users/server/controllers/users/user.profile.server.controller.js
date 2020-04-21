@@ -117,7 +117,7 @@ exports.update = function(req, res, next) {
           if (phoneNumber) user.phoneNumber = phoneNumber
           if (email) user.email = email;
           if (username) user.username = username;
-          if (userInfo.hospitalId) user.hospitalId = userInfo.hospitalId;
+          // if (userInfo.hospitalId) user.hospitalId = userInfo.hospitalId;
           user.updatedAt = Date.now();
 
           user.save().then(function(user) {

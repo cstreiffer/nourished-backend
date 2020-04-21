@@ -46,6 +46,7 @@ module.exports = {
   },
   twilio: {
     secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234'
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234',
+    phoneNumber: '+19893738621'
   }
 };

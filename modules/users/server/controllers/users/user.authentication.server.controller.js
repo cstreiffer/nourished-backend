@@ -7,6 +7,8 @@ var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
+  async = require('async'),
+  twilio = require(path.resolve('./config/lib/twilio')),
   config = require(path.resolve('./config/config')),
   fs = require('fs'),
   jwt = require('jsonwebtoken'),
@@ -16,6 +18,7 @@ var
   passport = require('passport'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
+  TwilioMessage = db.twiliomessage,
   owasp = require('owasp-password-strength-test');
 
 owasp.config(config.shared.owasp);
@@ -29,6 +32,19 @@ var noReturnUrls = [
   '/authentication/signin',
   '/authentication/signup'
 ];
+
+// Send a text message to the user
+var sendMessage = function(tm, user) {
+  var url = config.app.webURL;
+  var to = '+1' + user.phoneNumber;
+  var from = config.twilio.phoneNumber;
+  return twilio.messages
+    .create({
+       body: tm.messageBody,
+       from: from,
+       to: to
+     });
+};
 
 /**
  * Signup
@@ -59,17 +75,62 @@ exports.signup = function(req, res) {
       else user.roles = ["user"];
 
       // Let's save the model!
-      user.save().then(function(user) {
-        user.password = undefined;
-        user.salt = undefined;
-        var ret = _.pick(user || {}, retAttributes)
-        var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
-        res.jsonp({user: ret, token: token, message: "User successfully created"});
-      }).catch(function(err) {
-        res.status(400).send({
-          message: errorHandler.getErrorMessage(err)
+      async.waterfall(
+        [
+          function(done) {
+            user.save()
+              .then(function(user) {
+                user.password = undefined;
+                user.salt = undefined;
+                done(null, user);
+              })
+              .catch(function(err) {
+                done(err);
+              });
+          }, 
+          // Send the user a text
+          function(user, done) {
+            var queryText = 'SIGNUP_NOTIFY_USER';
+            if (user.roles.includes('user')) queryText = 'SIGNUP_NOTIFY_USER'
+            else if (user.roles.includes('restaurant')) queryText = 'SIGNUP_NOTIFY_REST';
+            if(process.env.NODE_ENV !== 'test' && user.roles.includes('user')) {
+              TwilioMessage.findOne({
+                where: {
+                  subtype: queryText,
+                }
+              })
+              .then(function(tm) {
+                // Send the message to the user
+                sendMessage(tm, user)
+                  .then(function() {
+                    done(null, user);
+                  })
+                  .catch(function(err) {
+                    // res.json({user: ret, token: token, message: "User successfully created"});
+                    console.log(err);
+                    done(null, user);
+                  });
+              })
+              .catch(function(err) {
+                done(null, user);
+              });
+            } else {
+              done(null, user);
+            }
+          },
+          function(user, done) {
+            var ret = _.pick(user || {}, retAttributes)
+            var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
+            res.json({user: ret, token: token, message: "User successfully created"});
+          }
+        ],
+        function(err) {
+          if(err) {
+            res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          } 
         });
-      });
     } else {
       res.status(400).send({
         message: "Password not strong enough"
