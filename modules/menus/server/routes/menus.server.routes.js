@@ -52,9 +52,10 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .all(menusPolicy.isAllowed)
     .get(menus.read)
+    .put(menus.update) // Restaurant update (Good)
     .all(menusPolicy.isFinalized)
     .delete(menus.delete) // Restaurant delete (Good)
-    .put(menus.update); // Restaurant update (Good)
+    
 
   // Finish by binding the menu middleware
   app.param('menuId', menus.menuByID);

@@ -69,6 +69,10 @@ var isTimeValid = function(menu) {
   return time < new Date(menu.timeslot.date);
 };
 
+var isMenuVisible = function(menu) {
+  return menu.visible;
+};
+
 var isMenuFinalized = function(menu) {
   return menu.finalized;
 };
@@ -87,7 +91,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
     }).then((menus) => {
       // console.log(meals);
       if(menus && menus.length === new Set(menuIds).size) {
-        var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu));
+        var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu) && isMenuVisible(menu));
         if(validation.every((v) => v)) {
           return next();
         } else {

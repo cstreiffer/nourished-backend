@@ -14,7 +14,7 @@ var
 
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'date', 'quantity', 'menuId'];
-const menuRetAttributes = ['id', 'timeslotId', 'mealId'];
+const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
 const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId'];

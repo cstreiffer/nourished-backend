@@ -17,11 +17,17 @@
  *            type: string
  *            description: UUID of the meal. 
  *          userId:
- *            type: boolean
+ *            type: string
  *            description: UUID of the user who created the meal. Should not be returned.  
  *          timeslotId:
- *            type: boolean
+ *            type: string
  *            description: UUID of the timeslot for the meal
+ *          finalized:
+ *            type: boolean
+ *            description: Whether the menu can be further deleted
+ *          visible:
+ *            type: boolean
+ *            description: Whether the menu is shown to the user
  *      TimeSlot:
  *        type: object
  *        required:
@@ -121,7 +127,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Menu'
  *    put:
- *      summary: Will finalize the menu. Menu cannot be deleted after being finalized. 
+ *      summary: Will finalize the menu. Menu cannot be deleted after being finalized. Visibility can still be changed.
  *      tags: [Menus]
  *      security:
  *        - bearerAuth: []
@@ -140,6 +146,8 @@
  *              type: object
  *              properties:
  *                finalized:
+ *                  type: boolean
+ *                visible:
  *                  type: boolean
  *      responses:
  *        "200":

@@ -14,7 +14,7 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'mealId', 'timeslotId'];
+const retAttributes = ['id', 'mealId', 'timeslotId', 'visible', 'finalized'];
 const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealRetAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
@@ -68,9 +68,13 @@ exports.update = function(req, res) {
   delete req.body.userId;
   // delete req.body.restaurantId;
   var menu = req.menu;
-  menu.update({
-    finalized: req.body.finalized
-  }).then(function(menu) {
+  var update = {};
+  if(!menu.finalized) {
+    update.finalized = req.body.finalized;
+  }
+  update.visible = req.body.visible;
+
+  menu.update(update).then(function(menu) {
     var ret = _.pick(menu, retAttributes);
     res.jsonp({menu: ret, message: "Menu successfully updated"});
   }).catch(function(err) {
@@ -107,7 +111,7 @@ var formatDate = function(query) {
  * List of restaurant menus
  */
 exports.list = function(req, res) {
-  var query = {finalized: true};
+  var query = {finalized: true, visible: true};
   // if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
   // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
   var timeslotQuery = {};

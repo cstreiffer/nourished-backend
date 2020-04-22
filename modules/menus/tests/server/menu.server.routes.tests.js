@@ -93,7 +93,6 @@ before((done) => {
 });
 
 before((done) =>{
-  console.log("Here?");
   var r1 = {...restaurant1, ...{userId: restaurantId1}};
   var r2 = {...restaurant2, ...{userId: restaurantId2}};
   Restaurant.bulkCreate([r1, r2])
@@ -149,10 +148,11 @@ describe('/GET /api/menus endpoint', () => {
   beforeEach(function(done) {
     var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
     var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
+    var menu3 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible: false};
 
     Menu.destroy({where: {}})
       .then(function(){
-        Menu.bulkCreate([menu1, menu2], {returning: true}).then(function(menus) {
+        Menu.bulkCreate([menu1, menu2, menu3], {returning: true}).then(function(menus) {
           done();
         }).catch((err)=> {console.log(err)});
       });
@@ -167,6 +167,38 @@ describe('/GET /api/menus endpoint', () => {
        res.body.menus[0].timeslot.should.not.have.property('userId');
        res.body.menus[0].meal.should.not.have.property('userId');
        res.body.menus.length.should.be.eql(2);
+       res.body.should.have.property('message').eql('Menus successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+});
+
+describe('/GET /api/menus endpoint', () => {
+  
+  // Clear the database
+  beforeEach(function(done) {
+    var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
+    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
+    var menu3 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible: true};
+
+    Menu.destroy({where: {}})
+      .then(function(){
+        Menu.bulkCreate([menu1, menu2, menu3], {returning: true}).then(function(menus) {
+          done();
+        }).catch((err)=> {console.log(err)});
+      });
+  });
+
+  it('User with "user" role should get menus', (done) => {
+    chai.request(app)
+      .get('/api/menus')
+      .end((err, res) => {
+       res.body.menus.should.be.a('array');
+       res.body.menus[0].should.not.have.property('userId');
+       res.body.menus[0].timeslot.should.not.have.property('userId');
+       res.body.menus[0].meal.should.not.have.property('userId');
+       res.body.menus.length.should.be.eql(3);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
        done();
@@ -286,7 +318,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
   });
 
   it('User with "restaurant" role should should be able to update their menu', (done) => {
-    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: false}).then((menu) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: false, visible: true}).then((menu) => {
       chai.request(app)
         .put('/api/rest/menus/' + menu.id)
         .set('Authorization', restaurantJWT1)
@@ -294,6 +326,27 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully updated');
+          res.body.menu.should.have.property('visible').eql(true);
+          res.body.menu.should.have.property('id');
+          res.body.menu.should.not.have.property('userId');
+          res.body.menu.should.not.have.property('timeslot');
+          res.body.menu.should.not.have.property('meal');
+          res.should.have.status(200);
+          done();
+        });
+    });
+  });
+
+  it('User with "restaurant" role should should be able to update their menu', (done) => {
+    Menu.create({timeslotId: timeslot1.id, mealId: m1.id, id: uuid(), userId: restaurantId1, finalized: true, visible: true}).then((menu) => {
+      chai.request(app)
+        .put('/api/rest/menus/' + menu.id)
+        .set('Authorization', restaurantJWT1)
+        .send({visible: false})
+        .end((err, res) => {
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Menu successfully updated');
+          res.body.menu.should.have.property('visible').eql(false);
           res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
           res.body.menu.should.not.have.property('timeslot');
@@ -311,11 +364,15 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
         .set('Authorization', restaurantJWT1)
         .send({finalized: false})
         .end((err, res) => {
-          res.should.have.status(403);
-          res.body.should.have.property('message');
-          res.body.message.should.be.eql("User is not authorized");
-          done();
-        });
+          res.body.should.be.a('object');
+          res.body.should.have.property('message').eql('Menu successfully updated');
+          res.body.menu.should.have.property('finalized').eql(true);
+          res.body.menu.should.have.property('id');
+          res.body.menu.should.not.have.property('userId');
+          res.body.menu.should.not.have.property('timeslot');
+          res.body.menu.should.not.have.property('meal');
+          res.should.have.status(200);
+          done();        });
     });
   });
 
