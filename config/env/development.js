@@ -24,12 +24,6 @@ module.exports = {
     ssl: process.env.DB_SSL || false,
     sync: process.env.DB_SYNC || true, //Synchronizing any model changes with database
   },
-  redis: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: process.env.REDIS_PORT || 6379,
-    database: process.env.REDIS_DATABASE || 0,
-    password: process.env.REDIS_PASSWORD || "",
-  },
   log: {
     // Can specify one of 'combined', 'common', 'dev', 'short', 'tiny'
     format: 'dev',
@@ -56,16 +50,16 @@ module.exports = {
   livereload: true,
   stripe: {
     // fill this in from https://dashboard.stripe.com/test/apikeys
-    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY,
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
+    secretKey: process.env.STRIPE_SECRET_KEY,
     // fill this in by configuring the webhook url https://devserver.example.com/api/stripe/webhook
     // at https://dashboard.stripe.com/test/webhooks
-    webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+    webhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET
   },
   twilio: {
-    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234',
-    phoneNumber: '+19893738621'
+    secretKey: process.env.TWILIO_ACCOUNT_SID,
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER
   }
 };

@@ -91,10 +91,16 @@ module.exports.initMiddleware = function(app) {
     }
 
     // Request body parsing middleware should be above methodOverride
-    app.use(bodyParser.urlencoded({
-        extended: true
-    }));
-    app.use(bodyParser.json());
+    // app.use(bodyParser.urlencoded({
+    //     extended: true
+    // }));
+    app.use((req, res, next) => {
+      if (req.originalUrl === '/api/stripe/webhook') {
+        bodyParser.raw({type: 'application/json'})(req, res, next);
+      } else {
+        bodyParser.json()(req, res, next);
+      }
+    });
     app.use(methodOverride());
 
     // Add the cookie parser and flash middleware

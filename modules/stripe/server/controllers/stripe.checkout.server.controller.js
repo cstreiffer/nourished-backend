@@ -20,11 +20,11 @@ const {Op} = require('sequelize');
 const retAttributes = ['id', 'groupId', 'amount', 'paymentIntentId'];
 const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
 
-exports.checkout = function(req, res) {
-  // Display checkout page
-  const path = resolve(process.env.STATIC_DIR + "/index.html");
-  res.sendFile(path);
-};
+// exports.checkout = function(req, res) {
+//   // Display checkout page
+//   const path = resolve(process.env.STATIC_DIR + "/index.html");
+//   res.sendFile(path);
+// };
 
 const calculateOrderAmount = orders => {
   var sum = orders.map((order) => Number(order.quantity) * Number(order.menu.meal.mealinfo.price)).reduce((a,b) => a + b, 0)
@@ -254,17 +254,18 @@ exports.webhook = function(req, res) {
 
   // Check if webhook signing is configured.
   // if (process.env.STRIPE_WEBHOOK_SECRET || process.env.NODE_ENV === 'production') {
-   if (process.env.NODE_ENV === 'production') {
+   if (process.env.NODE_ENV === 'production' || process.env.STRIPE_WEBHOOK_SECRET) {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event;
     let signature = req.headers["stripe-signature"];
     try {
       event = stripe.webhooks.constructEvent(
-        req.rawBody,
+        req.body,
         signature,
         process.env.STRIPE_WEBHOOK_SECRET
       );
     } catch (err) {
+      console.log(err);
       console.log(`⚠️  Webhook signature verification failed.`);
       return res.sendStatus(400);
     }

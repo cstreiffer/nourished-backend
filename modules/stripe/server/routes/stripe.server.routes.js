@@ -41,9 +41,9 @@ module.exports = function(app) {
 	);
 
 
-  app.route('/api/stripe/checkout')
-    .all(passport.authenticate('jwt', {session: false}))
-    .get(stripe.checkout); // Good
+  // app.route('/api/stripe/checkout')
+  //   .all(passport.authenticate('jwt', {session: false}))
+  //   .get(stripe.checkout); // Good
 
   if (process.env.NODE_ENV === 'development') {
     app.route('/api/stripe/create-payment-intent')

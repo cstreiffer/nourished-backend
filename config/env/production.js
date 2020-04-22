@@ -13,21 +13,15 @@ module.exports = {
   },
   port: process.env.PORT || 8443,
   db: {
-    name: process.env.DB_NAME || "nourished_dev",
-    host: process.env.DB_HOST || "localhost",
-    port: process.env.DB_PORT || 5432,
-    username: process.env.DB_USERNAME || "postgres",
-    password: process.env.DB_PASSWORD || "postgres",
+    name: process.env.DB_NAME,
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
     dialect: process.env.DB_DIALECT || "postgres", //mysql, postgres, sqlite3,...
     enableSequelizeLog: process.env.DB_LOG || false,
     ssl: process.env.DB_SSL || false,
     sync: process.env.DB_SYNC || false //Synchronizing any model changes with database
-  },
-  redis: {
-    host: process.env.REDIS_HOST || "localhost",
-    port: process.env.REDIS_PORT || 6379,
-    database: parseInt(process.env.REDIS_DATABASE) || 0,
-    password: process.env.REDIS_PASSWORD || "",
   },
   log: {
     // Can specify one of 'combined', 'common', 'dev', 'short', 'tiny'
@@ -40,23 +34,25 @@ module.exports = {
   },
   mailer: {
     errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'nourished@pennmedicine.upenn.edu', 'ryanschu@pennmedicine.upenn.edu'],
-    from: process.env.MAILER_FROM || 'MAILER_FROM',
+    email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
+    from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {
-      service: process.env.MAILER_SERVICE_PROVIDER || 'MAILER_SERVICE_PROVIDER',
+      service: process.env.MAILER_SERVICE_PROVIDER,
       auth: {
-        user: process.env.MAILER_EMAIL_ID || 'MAILER_EMAIL_ID',
-        pass: process.env.MAILER_PASSWORD || 'MAILER_PASSWORD'
+        user: process.env.MAILER_EMAIL_ID,
+        pass: process.env.MAILER_PASSWORD
       }
     }
   },
   stripe: {
-    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY,
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
-    webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET
   },
   twilio: {
-    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234'
+    secretKey: process.env.TWILIO_ACCOUNT_SID,
+    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER
   }
 };
