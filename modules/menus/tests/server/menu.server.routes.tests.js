@@ -44,6 +44,16 @@ var
   m3 = {...meal2, userId: restaurantCredentials1.id, id: uuid()},
   m4 = {...meal2, userId: restaurantCredentials2.id, id: uuid()};
 
+describe('Menu CRUD tests', function() {
+before(function(done) {
+  Menu.destroy({where: {}})
+  .then(function(){done()})
+});
+before(function(done) {
+  TimeSlot.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before(function(done) {
 User.destroy({where: {}})
 	.then(function(){done();});
@@ -509,4 +519,5 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
 });

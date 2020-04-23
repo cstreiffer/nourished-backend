@@ -66,6 +66,12 @@ var
   menu6 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot1.id,  finalized: false},
   order = {quantity: 5, information: "Allergic to nuts."};
 
+describe('Order CRUD tests', function() {
+before(function(done) {
+  Order.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before(function(done) {
 User.destroy({where: {}})
   .then(function(){done()})
@@ -990,4 +996,6 @@ after((done) => {
 after(function(done) {
   stop();
   done();
+});
+
 });

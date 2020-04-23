@@ -34,6 +34,8 @@ var
   restaurantAlt = {name:"Goldie", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"New Orleans", state:"LA"};
 
 
+describe('Restaurant CRUD tests', function() {
+
 before(function(done) {
   User.destroy({where: {}})
 	 .then(function(){done()})
@@ -343,4 +345,5 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
 });

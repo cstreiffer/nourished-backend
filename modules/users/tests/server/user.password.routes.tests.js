@@ -24,6 +24,12 @@ var
 var 
   userCredentials1 = {id: uuid(), username: "testuser", email: 'ccstreiffer@gmail.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"504-613-7325", firstName: 'Chris', account_type: 'user'};
 
+describe('User password CRUD tests', function() {
+before(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before(function(done) {
 User.destroy({where: {}})
 	.then(function(){done()})
@@ -166,4 +172,5 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
 });

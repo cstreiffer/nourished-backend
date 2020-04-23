@@ -177,7 +177,9 @@ module.exports = function(grunt) {
       }
     },
     mochaTest: {
-      src: testAssets.tests.server,
+      src: [
+        'modules/*/tests/server/*.routes.tests.js'
+      ],
       options: {
         reporter: 'spec'
       }
@@ -270,9 +272,9 @@ module.exports = function(grunt) {
 
   // Run the project tests
   //TODO return 'karma:unit'
-  grunt.registerTask('test', ['env:test', 'lint', 'mkdir:upload', 'copy:localConfig', 'server', 'mochaTest']);
-  grunt.registerTask('test:server', ['env:test', 'lint', 'server', 'mochaTest']);
-  grunt.registerTask('test:client', ['env:test', 'lint', 'server', 'karma:unit']);
+  // grunt.registerTask('test', ['env:test', 'lint', 'mkdir:upload', 'copy:localConfig', 'server', 'mochaTest']);
+  grunt.registerTask('test', ['env:test', 'mochaTest']);
+  // grunt.registerTask('test:client', ['env:test', 'lint', 'server', 'karma:unit']);
 
   // Run project coverage
   //grunt.registerTask('coverage', ['env:test', 'lint', 'mocha_istanbul:coverage']);

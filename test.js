@@ -16,14 +16,16 @@ var
   sequelize = require(path.resolve('./config/lib/sequelize-connect')),
   express = require(path.resolve('./config/lib/express'));
 
+  // sequelize = require(path.resolve('./config/lib/sequelize-connect')),
+  // express = require(path.resolve('./config/lib/express')),
+ var app = express.init(sequelize);
 
-
-var app = express.init(sequelize).listen(3000, () => {
-    console.log(`Server started on port 3000`);
-});
+// var app = express.init(sequelize).listen(3000, () => {
+//     console.log(`Server started on port 3000`);
+// });
 
 function stop() {
-  	app.close();
+  	// app.close();
 }
 
 module.exports = app;
