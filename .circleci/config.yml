@@ -9,6 +9,9 @@ jobs:
       - checkout
       - node/with-cache:
           steps:
+            - run: 
+                name: "Storing JWT creds"
+                command: env JWT_RSA=${JWT_RSA} JWT_RSA_PUB=${JWT_RSA_PUB} bash scripts/reload-jwt.sh
             - run: npm install
             - run: npm test
 workflows:
