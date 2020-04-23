@@ -14,6 +14,7 @@ var
   MealInfo = db.mealinfo,
   TimeSlot = db.timeslot,
   Menu = db.menu,
+  Order = db.order,
   util = require('util');
 
 
@@ -258,6 +259,10 @@ var restMeals = [
 var generateData = function(vals) {
   var timeslots = [];
   var menus = [];
+  var orders = [];
+
+  // Let's get spooky
+  var bulkId = uuid();
 
   for (var a=0; a < vals.length; a++) {
     var start = vals[a][0];
@@ -282,19 +287,40 @@ var generateData = function(vals) {
         });
 
         var mls = meal.meals.sort(() => 0.5 - Math.random()).slice(0, 3);
+        var groupId = uuid();
         for(var k=0; k < 3; k++) {
+          var menuId = uuid();
           menus.push({
-            id: uuid(),
+            id: menuId,
             timeslotId: timeslotId,
             mealId: fromString(mls[k]),
             userId: fromString(meal.user)
           })
+
+          if(Math.random() > 0.7) {
+            orders.push({
+              id: uuid(),
+              menuId: menuId,
+              quantity: Math.floor(Math.random()*10),
+              userId: fromString('cstreiffer'),
+              groupId: groupId
+            })
+          } else if (Math.random() > 0.7) {
+            orders.push({
+              id: uuid(),
+              menuId: menuId,
+              quantity: Math.floor(Math.random()*10),
+              userId: fromString('cstreiffer'),
+              groupId: bulkId
+            })
+          }
         }
+        if(Math.random() > 0.8) bulkId = uuid();
       }
     }
   }
 
-  return [timeslots, menus];
+  return [timeslots, menus, orders];
 }
 
 function pad(num, size) {
@@ -302,15 +328,17 @@ function pad(num, size) {
     return s.substr(s.length-size);
 }
 
-var vals = generateData([[24, 31, '2020-04-%sT16:00:00Z'], [25, 31, '2020-04-%sT00:00:00Z'], [1, 31, '2020-05-%sT16:00:00Z'], [1, 31, '2020-05-%sT00:00:00Z']]);
+var vals = generateData([[23, 31, '2020-04-%sT16:00:00Z'], [25, 31, '2020-04-%sT00:00:00Z'], [1, 31, '2020-05-%sT16:00:00Z'], [1, 31, '2020-05-%sT00:00:00Z']]);
 
 var timeslots = vals[0];
 var menus = vals[1];
+var orders = vals[2];
+console.log(orders.length);
 
 var buildUser = function(creds) {
   var user = User.build(creds);
   user.salt = user.makeSalt();
-  user.hashedPassword = user.encryptPassword(crypto.randomBytes(15).toString('hex'), user.salt);
+  user.hashedPassword = user.encryptPassword('password', user.salt);
   user.email = user.email.toLowerCase();
   user.phoneNumber = user.phoneNumber.replace(/-|\(|\)| /g, '');
   return user.save()
@@ -319,54 +347,54 @@ var buildUser = function(creds) {
 
 async.waterfall([
   function(done) {
-    Hospital.destroy({where: {}})
-      .then(function() {
+    // Hospital.destroy({where: {}})
+    //   .then(function() {
         Hospital.bulkCreate(hospitals)
           .then(() => {
             done();
-          });
-      })
+          }).catch((err) => {console.log("Hospital error"); done()});
+      // })
   },
   function(done) {
-    User.destroy({where: {}})
-      .then(() => {
+    // User.destroy({where: {}})
+    //   .then(() => {
         Promise.all(users.map((user) => buildUser(user)))
           .then(function(users) {
             done();
-          });
-      });
+          }).catch((err) => {console.log("User error"); done()});
+      // });
   },
   function(done) {
-    Restaurant.destroy({where: {}})
-      .then(function() {
+    // Restaurant.destroy({where: {}})
+    //   .then(function() {
         Restaurant.bulkCreate(restaurants, {validate: true})
           .then(() => {
             done();
-          });
-      }).catch((err) => {
-        console.log(err);
-      });
+          }).catch((err) => {console.log("Restaurant error"); done()});
+      // }).catch((err) => {
+      //   console.log(err);
+      // });
+  },
+  function(done) {
+    // MealInfo.destroy({where: {}})
+    //   .then(function(){
+        MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
+          done()
+        }).catch((err) => {console.log("Meal info error"); done()});
+      // })
+  }, 
+  function(done) {
+    // Meal.destroy({where: {}})
+    //   .then(function(){
+        Meal.bulkCreate(meals, {validate: true}).then(()=> {
+          done()
+        }).catch((err) => {console.log("Meal error"); done()});
+      // })
   },
   function(done) {
     TimeSlot.destroy({where: {}})
       .then(function(){
         TimeSlot.bulkCreate(timeslots, {validate: true}).then(()=> {
-          done()
-        })
-      })
-  },
-  function(done) {
-    MealInfo.destroy({where: {}})
-      .then(function(){
-        MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
-          done()
-        })
-      })
-  }, 
-  function(done) {
-    Meal.destroy({where: {}})
-      .then(function(){
-        Meal.bulkCreate(meals, {validate: true}).then(()=> {
           done()
         })
       })
@@ -378,6 +406,15 @@ async.waterfall([
           .then(() => {
             done();
           }).catch((err) => console.log(err))
+        });
+  },
+  function(done) {
+    Order.destroy({where: {}})
+      .then(function() {
+        Order.bulkCreate(orders, {validate: true})
+          .then(() => {
+            done();
+          }).catch((err) => console.log("Orders error"))
         });
   },
 function(done) {

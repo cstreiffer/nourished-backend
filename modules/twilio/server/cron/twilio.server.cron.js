@@ -41,21 +41,21 @@ var sendMessage = function(tm, user) {
 }
 
 var getStartDate = function() {
-  return new Date(new Date().getTime() - 60*60000)
+  return Date.now() - 15*60*1000;
 }
 
 var getEndDate = function() {
-  return new Date(new Date().getTime() + 60*60000)
+  return Date.now() + 15*60*1000;
 }
 
 module.exports = function() {
-  cron.schedule(config.cronConfigs.twilio.twilioDailyUpdate, () => {
+  cron.schedule(config.cron.twilio.dailyUpdate, () => {
     cronDailyUpdate();
-  });
+  }, {timezone: config.cron.twilio.timezone});
 
-  cron.schedule(config.cronConfigs.twilio.twilioWeeklyUpdate, () => {
+  cron.schedule(config.cron.twilio.weeklyUpdate, () => {
     cronWeeklyUpdate();
-  });
+  }, {timezone: config.cron.twilio.timezone});
 }
 
 var cronDailyUpdate = function() {
@@ -73,7 +73,7 @@ var cronDailyUpdate = function() {
           {
             model: db.timeslot,
             where: timeSlotQuery,
-            attributes: ['id'],
+            attributes: ['id', 'date'],
           }
       }).then(function(menus) {
         done(null, menus);

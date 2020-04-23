@@ -69,11 +69,12 @@ module.exports = {
       'http://nourished-dev.uphs.upenn.edu', 'http://nourished.uphs.upenn.edu'
     ]
   },
-  cronConfigs: {
+  cron: {
     twilio: {
-      twilioWeeklyUpdate: '* * * * 12,13,14,15,16,17,18 1,2,3,4,5,6,7',
-      twilioDailyUpdate:  '* * * * 12,13,14,15,16,17,18 1,2,3,4,5,6,7',
-    }
+      weeklyUpdate: '0 13 * * *',
+      dailyUpdate:  '10 * * * *',
+      timezone: 'America/New_York'
+    },
   },
   twilio: {
     tokenExpiry : 3600000*3

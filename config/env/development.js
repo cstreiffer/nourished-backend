@@ -58,8 +58,8 @@ module.exports = {
     webhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET
   },
   twilio: {
-    secretKey: process.env.TWILIO_ACCOUNT_SID,
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN,
+    accountId: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER
   }
 };

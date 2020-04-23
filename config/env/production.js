@@ -33,7 +33,7 @@ module.exports = {
     }
   },
   mailer: {
-    errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'nourished@pennmedicine.upenn.edu', 'ryanschu@pennmedicine.upenn.edu'],
+    errorEmails: ['christopher.streiffer@pennmedicine.upenn.edu', 'nourished@pennmedicine.upenn.edu'],
     email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
     from: process.env.MAILER_FROM || 'Nourished <nourished@pennmedicine.upenn.edu>',
     options: {
@@ -44,6 +44,13 @@ module.exports = {
       }
     }
   },
+  cron: {
+    twilo: {
+      weeklyUpdate: '0 13 * * SUN',
+      dailyUpdate: '10 9,10,11,15,16,17 * * *',
+      timezone: 'America/New_York'
+    }
+  },
   stripe: {
     pubKey: process.env.STRIPE_PUBLISHABLE_KEY,
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
@@ -51,8 +58,8 @@ module.exports = {
     webhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET
   },
   twilio: {
-    secretKey: process.env.TWILIO_ACCOUNT_SID,
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN,
+    accountId: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER
   }
 };

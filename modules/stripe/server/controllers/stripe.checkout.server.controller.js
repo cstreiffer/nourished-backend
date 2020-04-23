@@ -8,6 +8,7 @@ var
   path = require('path'),
   uuid = require('uuid/v4'),
   async = require('async'),
+  config = require(path.resolve('./config/config')),
   stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
@@ -19,12 +20,6 @@ var
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'groupId', 'amount', 'paymentIntentId'];
 const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
-
-// exports.checkout = function(req, res) {
-//   // Display checkout page
-//   const path = resolve(process.env.STATIC_DIR + "/index.html");
-//   res.sendFile(path);
-// };
 
 const calculateOrderAmount = orders => {
   var sum = orders.map((order) => Number(order.quantity) * Number(order.menu.meal.mealinfo.price)).reduce((a,b) => a + b, 0)
@@ -123,7 +118,7 @@ exports.createPaymentIntent = function(req, res) {
       // console.log(stripeOrders);
       var ret = stripeOrders.map((order) => _.pick(order, retAttributes));
       res.json({
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+        publishableKey: config.stripe.pubKey,
         stripeData: retMod.map(function(order) {
           return {
             clientSecret: order[1].client_secret,
@@ -153,12 +148,6 @@ exports.createPaymentIntent = function(req, res) {
 exports.oauth = function(req, res) {
   var user = req.user;
   const { code, state } = req.query;
-
-  // Assert the state matches the state you provided in the OAuth link (optional).
-  // Turn on when in production
-  // if(process.env.NODE_ENV === 'production' && !stateMatches(state)) {
-  //   return res.status(403).json({ error: 'Incorrect state parameter: ' + state });
-  // }
 
   // Send the authorization code to Stripe's API.
   stripe.oauth.token({
@@ -201,12 +190,6 @@ exports.oauth = function(req, res) {
       }
     }
   );
-};
-
-const stateMatches = (state_parameter) => {
-  // Load the same state value that you randomly generated for your OAuth link.
-  const saved_state = process.env.STRIPE_STATE;
-  return saved_state == state_parameter;
 };
 
 /**
@@ -252,9 +235,7 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
 exports.webhook = function(req, res) {
   let data, eventType;
 
-  // Check if webhook signing is configured.
-  // if (process.env.STRIPE_WEBHOOK_SECRET || process.env.NODE_ENV === 'production') {
-   if (process.env.NODE_ENV === 'production' || process.env.STRIPE_WEBHOOK_SECRET) {
+   if (process.env.NODE_ENV === 'production' || config.stripe.webhookSecretKey) {
     // Retrieve the event by verifying the signature using the raw body and secret.
     let event;
     let signature = req.headers["stripe-signature"];
@@ -262,7 +243,7 @@ exports.webhook = function(req, res) {
       event = stripe.webhooks.constructEvent(
         req.body,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET
+        config.stripe.webhookSecretKey
       );
     } catch (err) {
       console.log(err);

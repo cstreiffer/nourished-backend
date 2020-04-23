@@ -12,8 +12,8 @@
     {
       "name": "cron",
       "script": "./cron.js",
-      "error_file": "logs/server/error.log",
-      "out_file": "logs/server/out.log",
+      "error_file": "logs/cron/error.log",
+      "out_file": "logs/cron/out.log",
       "log_date_format": "YYYY-MM-DD HH:mm:ss Z"
     }
   ]
