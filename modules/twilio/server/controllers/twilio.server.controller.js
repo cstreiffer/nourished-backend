@@ -130,11 +130,11 @@ exports.webhook = function(req, res) {
           map[obj.keyword] = obj;
           return map;
       }, {});
-      if(req.body.Body in tms) {
-        var tm = tms[req.body.Body];
+      if(req.body.Body && req.body.Body.toLowerCase() in tms) {
+        var tm = tms[req.body.Body.toLowerCase()];
         // Build the URL
         if(tm.urlDest) {
-          var url = config.app.webURL + tm.urlDest;
+          var url = config.app.webURL;
           User.findOne({
             where: {
               phoneNumber: req.body.From.substring(2)

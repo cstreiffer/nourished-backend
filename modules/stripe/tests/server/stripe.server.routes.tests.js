@@ -194,35 +194,35 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
   // });
 });
 
-describe('/POST /stripe/create-payment-intent endpoint', () => {
+// describe('/POST /stripe/create-payment-intent endpoint', () => {
   
-  // Clear the database
-  before(function(done) {
-    Stripe.destroy({where: {}})
-      .then(function(){done()})
-  });
+//   // Clear the database
+//   before(function(done) {
+//     Stripe.destroy({where: {}})
+//       .then(function(){done()})
+//   });
 
-  it('User with "user" role should be able to create payment intent for their order', (done) => {
-    chai.request(app)
-      .post('/api/stripe/create-payment-intent')
-      .set('Authorization', userJWT1)
-      .send({groupId: group1.id})
-      .end((err, res) => {
-        var stripeorder = res.body.stripeOrders[0];
-        var payload = {data: {id: stripeorder.paymentIntentId}, type: 'payment_intent.canceled'};
-        chai.request(app)
-          .post('/api/stripe/webhook')
-          .send(payload)
-          .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('message').eql('Orders updated');
-            done();
-          });
-      });
-  }).timeout(7000);
+//   it('User with "user" role should be able to create payment intent for their order', (done) => {
+//     chai.request(app)
+//       .post('/api/stripe/create-payment-intent')
+//       .set('Authorization', userJWT1)
+//       .send({groupId: group1.id})
+//       .end((err, res) => {
+//         var stripeorder = res.body.stripeOrders[0];
+//         var payload = {data: {id: stripeorder.paymentIntentId}, type: 'payment_intent.canceled'};
+//         chai.request(app)
+//           .post('/api/stripe/webhook')
+//           .send(payload)
+//           .end((err, res) => {
+//             res.should.have.status(200);
+//             res.body.should.be.a('object');
+//             res.body.should.have.property('message').eql('Orders updated');
+//             done();
+//           });
+//       });
+//   }).timeout(7000);
 
-});
+// });
 
 describe('/GET /user/stripe', () => {
   

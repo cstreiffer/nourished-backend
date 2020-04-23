@@ -167,7 +167,7 @@ exports.isUserOrderAllowed = function(req, res, next) {
 
 exports.isFormatAllowed = function(req, res, next) {
   if(req.body.orders) {
-    if(req.body.orders.every(order => order.hospitalId && order.menuId && order.quantity)) {
+    if(req.body.orders.every(order => order.menuId && order.quantity)) {
       next();
     } else {
       return res.status(400).json({message: 'Please include hospital id, menu id, and/or quantity in every order'});

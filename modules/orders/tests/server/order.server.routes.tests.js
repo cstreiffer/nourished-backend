@@ -328,21 +328,21 @@ describe('/POST /api/user/orders endpoint', () => {
       });
   });
 
-  it('User with "user" role should be NOT able to create order if NOT formatted correctly', (done) => {
-    chai.request(app)
-      .post('/api/user/orders')
-      .set('Authorization', userJWT1)
-      .send({orders: [
-          {...order, menuId: menu1.id},
-          {...order, hospitalId: hospital2.id, menuId: menu2.id},
-      ]})
-      .end((err, res) => {
-        res.should.have.status(400);
-        res.body.should.have.property('message');
-        res.body.message.should.be.eql("Please include hospital id, menu id, and/or quantity in every order");
-        done();
-      });
-  });
+  // it('User with "user" role should be NOT able to create order if NOT formatted correctly', (done) => {
+  //   chai.request(app)
+  //     .post('/api/user/orders')
+  //     .set('Authorization', userJWT1)
+  //     .send({orders: [
+  //         {...order, menuId: menu1.id},
+  //         {...order, hospitalId: hospital2.id, menuId: menu2.id},
+  //     ]})
+  //     .end((err, res) => {
+  //       res.should.have.status(400);
+  //       res.body.should.have.property('message');
+  //       res.body.message.should.be.eql("Please include hospital id, menu id, and/or quantity in every order");
+  //       done();
+  //     });
+  // });
 });
 
 describe('/POST /api/user/orders endpoint with CART delete', () => {

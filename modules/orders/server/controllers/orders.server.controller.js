@@ -299,12 +299,7 @@ exports.delete = function(req, res) {
             to: req.user.email,
             from: config.mailer.from,
             subject: 'Order Cancellation - Confirmation',
-            html: emailHTML,
-            attachments: [{
-              filename: 'nourished_logo.png',
-              path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-              cid: 'nourishedlogo' //same cid value as in the html img src
-            }]
+            html: emailHTML
           };
           smtpTransport.sendMail(mailOptions)
             .then(function(){
@@ -333,12 +328,7 @@ exports.delete = function(req, res) {
           to: config.mailer.errorEmails,
           from: config.mailer.from,
           subject: 'Order Cancellation - Report',
-          html: emailHTML,
-          attachments: [{
-            filename: 'nourished_logo.png',
-            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-            cid: 'nourishedlogo' //same cid value as in the html img src
-          }]
+          html: emailHTML
         };
         smtpTransport.sendMail(mailOptions)
           .then(function(){
@@ -470,10 +460,10 @@ var formatDate = function(query) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
-  if(req.query.menuId) query.menuId = req.query.menuId;
-  if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
-  if(req.query.groupId) query.groupId = req.query.groupId;
-  if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
+  // if(req.query.menuId) query.menuId = req.query.menuId;
+  // if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
+  // if(req.query.groupId) query.groupId = req.query.groupId;
+  // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
   // if(req.query.userStatus) query.userStatus = req.query.userStatus;
   // if(req.query.restStatus) query.restStatus = req.query.restStatus;
   // if(req.query.payStatus) query.payStatus = req.query.payStatus;
@@ -523,7 +513,7 @@ exports.userList = function(req, res) {
 exports.restList = function(req, res) {
   var orderQuery = {};
   if(req.query.menuId) orderQuery.menuId = req.query.menuId;
-  if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
+  // if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
   // if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
   // if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
   // if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;

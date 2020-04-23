@@ -11,11 +11,6 @@ services:
       - POSTGRES_DB=nourished_dev
     ports:
       - "5432:5432"
-  redis:
-    image: redis:alpine
-    #    command: ["redis-server", "--bind", "redis", "--port", "6379"]
-    ports:
-      - "6379:6379"
   backend:
     build:
       context: .
@@ -24,7 +19,6 @@ services:
     command: ["./scripts/wait-for-it.sh", "db:5432", "--", "node", "server.js"]
     environment:
       - NODE_ENV=development
-      - REDIS_HOST=redis
       - DB_HOST=db
     volumes:
       - .:/usr/src/nourished-backend
@@ -32,4 +26,3 @@ services:
       - "3000:3000"
     depends_on:
       - db
-      - redis

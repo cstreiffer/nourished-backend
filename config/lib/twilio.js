@@ -1,5 +1,9 @@
 'use strict';
 
-const twilio = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+var
+  path = require('path'),
+  config = require(path.resolve('./config/config'));
+
+const twilio = require('twilio')(config.twilio.accountId, config.twilio.authToken);
 
 module.exports = twilio;

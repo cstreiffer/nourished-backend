@@ -7,9 +7,9 @@ var config = require('../config'),
     express = require('express'),
     morgan = require('morgan'),
     bodyParser = require('body-parser'),
-    redis = require('redis'),
+    // redis = require('redis'),
     session = require('express-session'),
-    RedisStore = require('connect-redis')(session),
+    // RedisStore = require('connect-redis')(session),
     multer = require('multer'),
     favicon = require('serve-favicon'),
     compress = require('compression'),
@@ -94,7 +94,13 @@ module.exports.initMiddleware = function(app) {
     app.use(bodyParser.urlencoded({
         extended: true
     }));
-    app.use(bodyParser.json());
+    app.use((req, res, next) => {
+      if (req.originalUrl === '/api/stripe/webhook') {
+        bodyParser.raw({type: 'application/json'})(req, res, next);
+      } else {
+        bodyParser.json()(req, res, next);
+      }
+    });
     app.use(methodOverride());
 
     // Add the cookie parser and flash middleware

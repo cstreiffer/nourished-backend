@@ -1,0 +1,20 @@
+{
+  "apps": [
+    {
+      "name": "server",
+      "script": "./server.js",
+      "exec_mode": "cluster",
+      "instances": 2,
+      "error_file": "logs/server/error.log",
+      "out_file": "logs/server/out.log",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z"
+    },
+    {
+      "name": "cron",
+      "script": "./cron.js",
+      "error_file": "logs/cron/error.log",
+      "out_file": "logs/cron/out.log",
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z"
+    }
+  ]
+}

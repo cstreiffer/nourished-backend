@@ -39,14 +39,14 @@ module.exports = {
     }
   },
   stripe: {
-    pubKey: process.env.STRIPE_PUBLISHABLE_KEY || 'pk_12345',
+    pubKey: process.env.STRIPE_PUBLISHABLE_KEY,
     // DO NOT COMMIT REAL SECRETS TO THIS FILE
-    secretKey: process.env.STRIPE_SECRET_KEY || 'sk_12345',
-    webhookSecretKey: process.env.STRIPE_WEBHOOK || 'whsec_1234'
+    secretKey: process.env.STRIPE_SECRET_KEY,
+    webhookSecretKey: process.env.STRIPE_WEBHOOK_SECRET
   },
   twilio: {
-    secretKey: process.env.TWILIO_ACCOUNT_SID || 'sk_12345',
-    webhookSecretKey: process.env.TWILIO_AUTH_TOKEN || 'whsec_1234',
-    phoneNumber: '+19893738621'
+    accountId: process.env.TWILIO_ACCOUNT_SID,
+    authToken: process.env.TWILIO_AUTH_TOKEN,
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '+19893738621'
   }
 };
