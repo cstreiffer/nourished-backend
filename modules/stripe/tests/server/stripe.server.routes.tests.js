@@ -47,6 +47,17 @@ var
   group3 = {id: uuid()},
   group4 = {id: uuid()};
 
+describe('Stripe CRUD tests', function() {
+before(function(done) {
+  Stripe.destroy({where: {}})
+  .then(function(){done()})
+});
+
+before(function(done) {
+User.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before((done) => {  
   request(app)
     .post('/api/auth/signup')
@@ -350,4 +361,5 @@ after((done) => {
 after(function(done) {
   stop();
   done();
+});
 });

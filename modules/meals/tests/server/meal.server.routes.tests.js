@@ -50,6 +50,12 @@ var
   meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", mealinfoId: mealInfo1.id, finalized: false},
   meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan",mealinfoId: mealInfo2.id, finalized: true};
 
+describe('Meal CRUD tests', function() {
+before(function(done) {
+  Meal.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before(function(done) {
 User.destroy({where: {}})
 	.then(function(){done()})
@@ -651,4 +657,6 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
+
 });

@@ -25,6 +25,12 @@ var
   user1 = {id: uuid(), username: "testuser", email: 'testuser@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5046137325", fullName: 'Chris Streiffer', account_type: 'user'},
   rest1 = {id: uuid(), username: "testuser1", email: 'testuser1@test.com', password: 'h4dm322i8!!ssfSS', phoneNumber:"5056137325", fullName: 'Chris Streiffer', account_type: 'restaurant'};
 
+describe('User main CRUD tests', function() {
+before(function(done) {
+  User.destroy({where: {}})
+  .then(function(){done()})
+});
+
 describe('/POST api/auth/signup endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
@@ -180,4 +186,5 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
 });

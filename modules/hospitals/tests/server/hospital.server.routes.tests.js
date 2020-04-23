@@ -28,6 +28,12 @@ var
   hospital1 = {name:"Presby 1", phoneNumber:"504-613-7325", email:"email@penn.upenn.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()},
   hospital2 = {name:"Presby 2", phoneNumber:"504-613-7325", email:"email@test.com", streetAddress:"201 lane", zip:"19146", city:"Philadelphia", state:"PA", dropoffLocation: "Floor 1", dropoffInfo: "Floor 2", id: uuid()};
 
+describe('Hospital CRUD tests', function() {
+before(function(done) {
+  Hospital.destroy({where: {}})
+  .then(function(){done()})
+});
+
 before(function(done) {
 User.destroy({where: {}})
   .then(function(){done()})
@@ -186,4 +192,5 @@ after(function(done) {
 after(function(done) {
   stop();
   done();
+});
 });
