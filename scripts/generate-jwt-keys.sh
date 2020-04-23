@@ -10,6 +10,6 @@ fi
 
 echo "Generating self-signed certificates..."
 mkdir -p ./config/jwttokens
-ssh-keygen -t rsa -b 4096 -m PEM -f ./config/jwttokens/jwt_rsa
+ssh-keygen -t rsa -b 4096 -m PEM -f ./config/jwttokens/jwt_rsa -q -N ""
 openssl rsa -in ./config/jwttokens/jwt_rsa -pubout -outform PEM -out ./config/jwttokens/jwt_rsa.pub
 chmod 600 ./config/jwttokens/jwt_rsa ./config/jwttokens/jwt_rsa.pub
