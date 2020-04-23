@@ -299,12 +299,7 @@ exports.delete = function(req, res) {
             to: req.user.email,
             from: config.mailer.from,
             subject: 'Order Cancellation - Confirmation',
-            html: emailHTML,
-            attachments: [{
-              filename: 'nourished_logo.png',
-              path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-              cid: 'nourishedlogo' //same cid value as in the html img src
-            }]
+            html: emailHTML
           };
           smtpTransport.sendMail(mailOptions)
             .then(function(){
@@ -333,12 +328,7 @@ exports.delete = function(req, res) {
           to: config.mailer.errorEmails,
           from: config.mailer.from,
           subject: 'Order Cancellation - Report',
-          html: emailHTML,
-          attachments: [{
-            filename: 'nourished_logo.png',
-            path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-            cid: 'nourishedlogo' //same cid value as in the html img src
-          }]
+          html: emailHTML
         };
         smtpTransport.sendMail(mailOptions)
           .then(function(){
