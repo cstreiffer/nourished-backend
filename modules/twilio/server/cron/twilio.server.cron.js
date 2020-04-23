@@ -19,7 +19,7 @@ const util = require('util');
 var sendDailyMessage = function(tm, user) {
   var to = '+1' + user.user.phoneNumber;
   var from = config.twilio.phoneNumber;
-  var message = util.format(tm.messageBody, user.type, user.restaurant, user.location);
+  var message = util.format(tm.messageBody, "meal", user.restaurant, user.location);
   return twilio.messages
     .create({
        body: message,

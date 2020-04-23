@@ -27,9 +27,8 @@ var users =  [
   {id: fromString('temp2'), username: 'temp2', email: 'test_renatas@gmail.com', phoneNumber: '5555555560', firstName: 'Ren', lastName: 'Ata', roles: ['restaurant']},
   {id: fromString('abranca'), username: 'abranca', email: 'test_satekampar@gmail.com', phoneNumber: '5555555561', firstName: 'Angelina', lastName: 'Branca', roles: ['restaurant']},
 
-  
-  // {id: fromString('cstreiffer'), username: 'cstreiffer', email: 'ccstreiffer@gmail.com',phoneNumber: '5046137325', firstName: 'Chris', lastName: 'Streiffer', roles: ['user']},
-  // {id: fromString('ccstreiffer'), username: 'ccstreiffer', email: 'christopher.streiffer@pennmedicine.upenn.edu',phoneNumber: '5046137326', firstName: 'Chris', lastName: 'Streiffer', roles: ['user']},
+  {id: fromString('cstreiffer'), username: 'cstreiffer', email: 'ccstreiffer@gmail.com',phoneNumber: '5046137325', firstName: 'Chris', lastName: 'Streiffer', roles: ['user']},
+  {id: fromString('ccstreiffer'), username: 'ccstreiffer', email: 'christopher.streiffer@pennmedicine.upenn.edu',phoneNumber: '5046137326', firstName: 'Chris', lastName: 'Streiffer', roles: ['user']},
 ];
 
 var restaurants = [
@@ -248,16 +247,13 @@ var meals = [
     mealinfoId: fromString('lunch/dinner')},
 ];
 
-
 var restMeals = [
-  {name: 'Cafe Ynez', meals: ['CY ML1', 'CY ML2', 'CY ML3', 'CY ML4', 'CY ML5', 'CY ML6', 'CY ML7', 'CY ML8', 'CY ML9', 'CY ML10', 'CY ML11']},
-  {name: 'Pumpkin', meals: ['PU ML1', 'PU ML2', 'PU ML3']},
-  {name: 'El Merkury', meals: ['EM ML1', 'EM ML2', 'EM ML3', 'EM ML4']},
-  {name: 'On Point Bistro', meals: ['OP ML1', 'OP ML2', 'OP ML3', 'OP ML4']},
-  {name: 'Baology', meals: ['BA ML1', 'BA ML2', 'BA ML3', 'BA ML4', 'BA ML5', 'BA ML6', 'BA ML7']},
+  {name: 'Cafe Ynez', user: 'JetJill', meals: ['CY ML1', 'CY ML2', 'CY ML3', 'CY ML4', 'CY ML5', 'CY ML6', 'CY ML7', 'CY ML8', 'CY ML9', 'CY ML10', 'CY ML11']},
+  {name: 'Pumpkin', user: 'HillaryB', meals: ['PU ML1', 'PU ML2', 'PU ML3']},
+  {name: 'El Merkury', user: 'SofiaD', meals: ['EM ML1', 'EM ML2', 'EM ML3', 'EM ML4']},
+  {name: 'On Point Bistro', user: 'malfix8', meals: ['OP ML1', 'OP ML2', 'OP ML3', 'OP ML4']},
+  {name: 'Baology', user: 'judyni', meals: ['BA ML1', 'BA ML2', 'BA ML3', 'BA ML4', 'BA ML5', 'BA ML6', 'BA ML7']},
 ]
-
-// var hospitalNames = ['Penn Presby', 'Penn Hospital', 'HUP'];
 
 var generateData = function(vals) {
   var timeslots = [];
@@ -279,9 +275,10 @@ var generateData = function(vals) {
 
         timeslots.push({
           id: timeslotId,
-          date: util.format(dateStr, i),
-          restaurant: fromString(meal.name),
-          hospital: hospitals[j].id
+          date: util.format(dateStr, pad(i, 2)),
+          restaurantId: fromString(meal.name),
+          hospitalId: hospitals[j].id,
+          userId: fromString(meal.user)
         });
 
         var mls = meal.meals.sort(() => 0.5 - Math.random()).slice(0, 3);
@@ -289,7 +286,8 @@ var generateData = function(vals) {
           menus.push({
             id: uuid(),
             timeslotId: timeslotId,
-            mealId: fromString(mls[k])
+            mealId: fromString(mls[k]),
+            userId: fromString(meal.user)
           })
         }
       }
@@ -299,8 +297,12 @@ var generateData = function(vals) {
   return [timeslots, menus];
 }
 
-// var vals = generateData([24, 31, '2020-04-%sT16:00:00Z'], [25, 31, '2020-04-%sT00:00:00Z']);
-var vals = generateData([[24, 31, '2020-04-%sT16:00:00Z'], [25, 31, '2020-04-%sT00:00:00Z']]);
+function pad(num, size) {
+    var s = "000000000" + num;
+    return s.substr(s.length-size);
+}
+
+var vals = generateData([[24, 31, '2020-04-%sT16:00:00Z'], [25, 31, '2020-04-%sT00:00:00Z'], [1, 31, '2020-05-%sT16:00:00Z'], [1, 31, '2020-05-%sT00:00:00Z']]);
 
 var timeslots = vals[0];
 var menus = vals[1];
@@ -317,112 +319,71 @@ var buildUser = function(creds) {
 
 async.waterfall([
   function(done) {
-        Hospital.bulkCreate(hospitals).then(() => {
-          done();
-        });
+    Hospital.destroy({where: {}})
+      .then(function() {
+        Hospital.bulkCreate(hospitals)
+          .then(() => {
+            done();
+          });
+      })
   },
   function(done) {
-        Promise.all(users.map((user) => buildUser(user))).then(function(users) {
-          done();
-        });
+    User.destroy({where: {}})
+      .then(() => {
+        Promise.all(users.map((user) => buildUser(user)))
+          .then(function(users) {
+            done();
+          });
+      });
   },
   function(done) {
-        Restaurant.bulkCreate(restaurants, {validate: true}).then(() => {
-          done();
-        });
+    Restaurant.destroy({where: {}})
+      .then(function() {
+        Restaurant.bulkCreate(restaurants, {validate: true})
+          .then(() => {
+            done();
+          });
+      }).catch((err) => {
+        console.log(err);
+      });
   },
   function(done) {
+    TimeSlot.destroy({where: {}})
+      .then(function(){
         TimeSlot.bulkCreate(timeslots, {validate: true}).then(()=> {
           done()
         })
+      })
   },
   function(done) {
+    MealInfo.destroy({where: {}})
+      .then(function(){
         MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
           done()
         })
+      })
   }, 
   function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){
         Meal.bulkCreate(meals, {validate: true}).then(()=> {
           done()
         })
+      })
   },
   function(done) {
-        Menu.bulkCreate(menus, {validate: true}).then(() => {
-          done();
+    Menu.destroy({where: {}})
+      .then(function() {
+        Menu.bulkCreate(menus, {validate: true})
+          .then(() => {
+            done();
+          }).catch((err) => console.log(err))
         });
   },
 function(done) {
   process.exit(0);
 }
 ]);
-
-// async.waterfall([
-//   function(done) {
-//     Hospital.destroy({where: {}})
-//       .then(function() {
-//         Hospital.bulkCreate(hospitals)
-//           .then(() => {
-//             done();
-//           });
-//       })
-//   },
-//   function(done) {
-//     User.destroy({where: {}})
-//       .then(() => {
-//         Promise.all(users.map((user) => buildUser(user)))
-//           .then(function(users) {
-//             done();
-//           });
-//       });
-//   },
-//   function(done) {
-//     Restaurant.destroy({where: {}})
-//       .then(function() {
-//         Restaurant.bulkCreate(restaurants, {validate: true})
-//           .then(() => {
-//             done();
-//           });
-//       }).catch((err) => {
-//         console.log(err);
-//       });
-//   },
-//   function(done) {
-//     TimeSlot.destroy({where: {}})
-//       .then(function(){
-//         TimeSlot.bulkCreate(timeslots, {validate: true}).then(()=> {
-//           done()
-//         })
-//       })
-//   },
-//   function(done) {
-//     MealInfo.destroy({where: {}})
-//       .then(function(){
-//         MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
-//           done()
-//         })
-//       })
-//   }, 
-//   function(done) {
-//     Meal.destroy({where: {}})
-//       .then(function(){
-//         Meal.bulkCreate(meals, {validate: true}).then(()=> {
-//           done()
-//         })
-//       })
-//   },
-//   function(done) {
-//     Menu.destroy({where: {}})
-//       .then(function() {
-//         Menu.bulkCreate(menus, {validate: true})
-//           .then(() => {
-//             done();
-//           }).catch((err) => console.log(err))
-//         });
-//   },
-// function(done) {
-//   process.exit(0);
-// }
-// ]);
 
 
 // var timeslots = [

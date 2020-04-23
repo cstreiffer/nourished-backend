@@ -47,7 +47,7 @@ module.exports = function(app, db) {
       var user = User.build({
         id: uuid(),
         username: process.env.ADMIN_USERNAME,
-        roles: ['admin']
+        roles: ['admin', 'user', 'restaurant']
       });
       user.salt = user.makeSalt();
       user.hashedPassword = user.encryptPassword(process.env.ADMIN_PASSWORD, user.salt);

@@ -96,14 +96,14 @@ module.exports = function(sequelize, DataTypes) {
       }
     },
     dropoffLocation: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: '',
       validate: {
         isValid: validationWrapper("Dropoff Location")
       }
     },
     dropoffInfo: {
-      type: DataTypes.STRING,
+      type: DataTypes.TEXT,
       defaultValue: ''
     }
   });
