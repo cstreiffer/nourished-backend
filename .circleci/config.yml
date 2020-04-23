@@ -19,7 +19,7 @@ jobs:
           steps:
             - run: 
                 name: "Storing JWT creds"
-                command: env JWT_RSA="Tedt1" JWT_RSA_PUB="Test1" bash scripts/reload-jwt.sh
+                command: bash scripts/generate-jwt-keys.sh
             - run: 
                 name: "Retrieving JWT creds"
                 command: cat config/jwttokens/jwt_rsa
