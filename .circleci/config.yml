@@ -23,11 +23,22 @@ jobs:
             - run: 
                 name: "Retrieving JWT creds"
                 command: cat config/jwttokens/jwt_rsa
+            - run:
+                name: install dockerize
+                command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+                environment:
+                  DOCKERIZE_VERSION: v0.3.0
+            - run:
+                name: Wait for db
+                command: dockerize -wait tcp://localhost:5432 -timeout 1m
+            - run:
+                name: "Create the db migrations"
+                command: node seeders/migrate.js
             # - run: apt-get update
             # - run: apt-get install postgresql-client-9.6
-            - run: whoami
-            - run: npm install
-            - run: npm test
+            # - run: whoami
+            # - run: npm install
+            # - run: npm test
 workflows:
     build-and-test:
       jobs:
