@@ -2,19 +2,33 @@ version: 2.1
 orbs:
   node: circleci/node@1.1.6
 jobs:
-  build-and-test:
+  build:
     executor:
       name: node/default
+    working_directory: ~/nourished-backend
+    docker:
+      - image: circleci/node:13.12   
+      - image: circleci/postgres:alpine
+        environment:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: nourished_test
     steps:
       - checkout
       - node/with-cache:
           steps:
             - run: 
                 name: "Storing JWT creds"
-                command: env JWT_RSA=${JWT_RSA} JWT_RSA_PUB=${JWT_RSA_PUB} bash scripts/reload-jwt.sh
+                command: env JWT_RSA="Tedt1" JWT_RSA_PUB="Test1" bash scripts/reload-jwt.sh
+            - run: 
+                name: "Retrieving JWT creds"
+                command: cat config/jwttokens/jwt_rsa
+            # - run: apt-get update
+            # - run: apt-get install postgresql-client-9.6
+            - run: whoami
             - run: npm install
             - run: npm test
 workflows:
     build-and-test:
       jobs:
-        - build-and-test
+        - build
