@@ -22,7 +22,7 @@ jobs:
             docker build -t $IMAGE_NAME:test -f prod-dockerfile .
       - run:
           name: Publish Docker Image to Docker Hub
-          command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
+          command: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER"
       - run:
           name: Publish the image
           command: docker push $IMAGE_NAME:test
