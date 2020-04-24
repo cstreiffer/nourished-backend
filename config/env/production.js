@@ -2,7 +2,7 @@
 
 module.exports = {
   app: {
-    title: defaultEnvConfig.app.title + ' - Production Environment',
+    title: 'Nourished Production Environment',
     webURL: 'https://nourished.uphs.upenn.edu/',
     restURL: 'https://nourished.uphs.upenn.edu/api/'
   },

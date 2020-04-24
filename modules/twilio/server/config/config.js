@@ -26,7 +26,6 @@ var
 
 module.exports = function(app, db){
 
-  if(process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
   TwilioMessage.destroy({where: {}})
       .then(() => {
         TwilioMessage.bulkCreate(twilioMessages, {validate: true})
@@ -37,5 +36,4 @@ module.exports = function(app, db){
             console.log("Error seeding twilio message responses");
           });
       });
-  }
 };
