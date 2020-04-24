@@ -292,6 +292,8 @@ exports.webhook = function(req, res) {
 
     default:
       console.log('stripe.webhook: Unknown event type ' + eventType);
+      console.log('Body data: ' + data);
+      console.log('Body: ' + req.body);
       return res.status(400).json({message: "Error unknown"});
   }
 };

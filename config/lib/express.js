@@ -229,16 +229,16 @@ module.exports.initHelmetHeaders = function(app) {
 /**
  * Configure CSRF and add the token to the XSRF cookie
  */
- module.exports.initCSRF = function(app) {
-    // Enable CSRF protection if running in production
-    if (process.env.NODE_ENV === 'production') {
-        app.use(csurf({ cookie: true }));
-        app.use(function (req, res, next) {
-            res.cookie('XSRF-TOKEN', req.csrfToken());
-            next();
-        });
-    }
- };
+ // module.exports.initCSRF = function(app) {
+ //    // Enable CSRF protection if running in production
+ //    if (process.env.NODE_ENV === 'production') {
+ //        app.use(csurf({ cookie: true }));
+ //        app.use(function (req, res, next) {
+ //            res.cookie('XSRF-TOKEN', req.csrfToken());
+ //            next();
+ //        });
+ //    }
+ // };
 
 /**
  * Configure the modules static routes

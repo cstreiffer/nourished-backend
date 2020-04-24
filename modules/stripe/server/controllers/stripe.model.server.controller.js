@@ -7,6 +7,7 @@ var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
+  config = require(path.resolve('./config/config')),
   stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
@@ -28,7 +29,7 @@ exports.read = function(req, res) {
   stripe.paymentIntents.retrieve(req.stripe.paymentIntentId)
     .then(function(paymentIntent) {
       res.json({
-        publishableKey: process.env.STRIPE_PUBLISHABLE_KEY,
+        publishableKey: config.stripe.pubKey,
         clientSecret: paymentIntent.client_secret,
         stripeOrder: ret,
         message: "Payment intent successfully created"
