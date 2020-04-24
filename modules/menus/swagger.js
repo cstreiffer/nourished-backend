@@ -248,4 +248,15 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/TimeSlot'
+ *  /timeslots/index:
+ *    get:
+ *      summary: Get all menu timeslots index
+ *      tags: [Menus]
+ *      responses:
+ *        "200":
+ *          description: Get menu timeslots index
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/TimeSlot'
  */
