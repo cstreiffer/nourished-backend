@@ -251,6 +251,7 @@ describe('/POST /api/user/carts endpoint', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
+        res.body.cart.should.have.property('quantity').eql(0);
         res.body.should.have.property('message').eql('Cart item deleted');
         res.body.cart.should.not.have.property('userId');
         res.body.cart.should.not.have.property('menu');
