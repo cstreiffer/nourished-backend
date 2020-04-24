@@ -19,15 +19,9 @@ jobs:
       - run:
           name: Pulling production credentials
           command: git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/cstreiffer/nourished-config.git
-      # - run:
-      #     name: Let's see where we are
-      #     command: ls && pwd
       - run:
           name: Extract secrets
           command: cd nourished-config && python encryptdir.py decrypt_sym -key ${SYM_TOKEN} && cd ..
-      # - run: 
-      #     name: More debugging
-      #     command: ls && pwd
       - run:
           name: Move config to correct location
           command: mv nourished-config/config/production.js config/env/production.js
@@ -85,9 +79,8 @@ workflows:
   version: 2
   build-master:
       jobs:
-        - build
-        # - test
-        # - build:
-        #     requires:
-        #       - test
+        - test
+        - build:
+            requires:
+              - test
 
