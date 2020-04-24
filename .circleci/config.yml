@@ -34,13 +34,47 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            docker build -t $IMAGE_NAME:test -f prod-dockerfile .
+            docker build -t $IMAGE_NAME:staging -f prod-dockerfile .
       - run:
           name: Publish Docker Image to Docker Hub
           command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
       - run:
           name: Publish the image
-          command: docker push $IMAGE_NAME:test
+          command: docker push $IMAGE_NAME:staging
+  build-and-publish:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Pulling production credentials
+          command: git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/cstreiffer/nourished-config.git
+      - run:
+          name: Extract secrets
+          command: cd nourished-config && python encryptdir.py decrypt_sym -key ${SYM_TOKEN} && cd ..
+      - run:
+          name: Move config to correct location
+          command: mv nourished-config/config/production.js config/env/production.js
+      - run:
+          name: Move jwt tokens to correct location
+          command: mkdir config/jwttokens && mv nourished-config/config/jwt* config/jwttokens/
+      - run:
+          name: Remove the config
+          command: rm -rf nourished-config
+      - run:
+          name: Build Docker image
+          command: |
+            IMAGE_TAG=${CIRCLE_TAG/v/''}
+            docker build -t $IMAGE_NAME:$IMAGE_TAG -f prod-dockerfile .
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
+            docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:$IMAGE_TAG
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
+      - run:
+          name: Publish the image
+          command: docker push $IMAGE_NAME:prod
   test:
     executor:
       name: node/default
@@ -79,8 +113,19 @@ workflows:
   version: 2
   build-master:
       jobs:
-        - test
+        - test:
+            filters:
+              branches:
+                only: staging
         - build:
             requires:
               - test
-
+            filters:
+              branches:
+                only: staging
+        - build-and-publish:
+            filters:
+              tags:
+                only: /^v.*/
+              branches:
+                ignore: /.*/
