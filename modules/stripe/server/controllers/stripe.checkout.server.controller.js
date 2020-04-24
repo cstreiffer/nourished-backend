@@ -202,27 +202,33 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
         paymentIntentId: paymentIntentId
       }
     }).then(function(stripeorder) {
-      Order.findAll({
-        where: {
-          groupId: stripeorder.groupId,
-        },
-        include: db.menu,
-      }).then(function(orders) {
-        var orders = orders.filter((order) => order.menu.timeslotId === stripeorder.timeslotId);
-        var orderIds = orders.map((order) => order.id);
-        Order.update(statusUpdate, {
+      if(stripeorder) {
+        Order.findAll({
           where: {
-            id: orderIds
-          }
+            groupId: stripeorder.groupId,
+          },
+          include: db.menu,
         }).then(function(orders) {
-          return res.status(200).json({received: true, message: "Orders updated"});
-        });
-      }).catch(function(err) {
-        console.log(err);
+          var orders = orders.filter((order) => order.menu.timeslotId === stripeorder.timeslotId);
+          var orderIds = orders.map((order) => order.id);
+          Order.update(statusUpdate, {
+            where: {
+              id: orderIds
+            }
+          }).then(function(orders) {
+            return res.status(200).json({received: true, message: "Orders updated"});
+          });
+        }).catch(function(err) {
+          console.log(err);
+          return res.status(400).send({
+            message: errorHandler.getErrorMessage(err)
+          });
+        })
+      } else {
         return res.status(400).send({
-          message: errorHandler.getErrorMessage(err)
-        });
-      })
+          message: "No associated stripe order"
+        });  
+      }
     }).catch(function(err) {
       console.log(err);
       return res.status(400).send({
@@ -233,11 +239,10 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
 
 // Expose a endpoint as a webhook handler for asynchronous events. https://dashboard.stripe.com/test/webhooks
 exports.webhook = function(req, res) {
-  let data, eventType;
+  let data, eventType, event, object;
 
    if (process.env.NODE_ENV === 'production' || config.stripe.webhookSecretKey) {
     // Retrieve the event by verifying the signature using the raw body and secret.
-    let event;
     let signature = req.headers["stripe-signature"];
     try {
       event = stripe.webhooks.constructEvent(
@@ -250,43 +255,44 @@ exports.webhook = function(req, res) {
       console.log(`⚠️  Webhook signature verification failed.`);
       return res.sendStatus(400);
     }
-    data = event.data;
     eventType = event.type;
+    data = event.data.object;
   } else {
-    data = req.body.data;
-    eventType = req.body.type;
+    var body = JSON.parse(req.body.toString());
+    eventType = body.type;
+    data = body.data.object;
   }
 
   // event types are here https://stripe.com/docs/api/events/types
   switch(eventType) {
 
     case 'payment_intent.created':
-      console.log('stripe.webhook payment_intent.created: ' + JSON.stringify(data, null, 2));
+      console.log('stripe.webhook payment_intent.created: ');
       return res.json({received: true, msg: 'Payment intent created'});
       break;
 
     case 'payment_intent.amount_capturable_updated':
-      console.log('stripe.webhook payment_intent.amount_capturable_updated: ' + JSON.stringify(data, null, 2));
+      console.log('stripe.webhook payment_intent.amount_capturable_updated: ');
       return res.json({received: true, msg: 'Payment intent updated'});
       break;
 
     case 'payment_intent.processing':
-      console.log('stripe.webhook payment_intent.processing: ' + JSON.stringify(data, null, 2));
+      console.log('stripe.webhook payment_intent.processing: ');
       return res.json({received: true, msg: 'Payment intent processing'});
       break;
 
     case 'payment_intent.payment_failed':
-      console.log('payment_intent.payment_failed: ' + JSON.stringify(data, null, 2));
+      console.log('payment_intent.payment_failed: ');
       updateOrderStatus(data.id, {payStatus: 'ERROR'}, res);
       break;
 
     case "payment_intent.succeeded":
-      console.log('payment_intent.succeeded: ' + JSON.stringify(data, null, 2));
+      console.log('payment_intent.succeeded: ');
       updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res);
       break;
 
     case 'payment_intent.canceled':
-      console.log('stripe.webhook payment_intent.canceled: ' + JSON.stringify(data, null, 2));
+      console.log('stripe.webhook payment_intent.canceled: ');
       updateOrderStatus(data.id, {payStatus: 'REFUNDED'}, res);
       break;
 
@@ -294,6 +300,7 @@ exports.webhook = function(req, res) {
       console.log('stripe.webhook: Unknown event type ' + eventType);
       console.log('Body data: ' + data);
       console.log('Body: ' + req.body);
+      console.log('Event: ' + event);
       return res.status(400).json({message: "Error unknown"});
   }
 };

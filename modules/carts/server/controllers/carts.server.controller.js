@@ -87,8 +87,9 @@ exports.decrement = function(req, res) {
         cartItem.quantity = cartItem.quantity - 1;
         if(cartItem.quantity === 0) {
           cartItem.destroy()
-            .then(function(cart) {
-              var ret = _.pick(cart, retAttributes);
+            .then(function() {
+              cartItem.quantity = 0;
+              var ret = _.pick(cartItem, retAttributes);
               res.status(200).json({cart: ret, message: "Cart item deleted"});
             })
             .catch(function(err) {
