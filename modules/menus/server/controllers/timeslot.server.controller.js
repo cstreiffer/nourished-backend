@@ -130,6 +130,36 @@ exports.list = function(req, res) {
 };
 
 
+var removeDups = function(vals) {
+  let unique = {};
+  vals.forEach(function(i) {
+    if(!unique[i.date]) {
+      unique[i.date] = i;
+    }
+  });
+  return Object.keys(unique).map((key) => unique[key]);
+}
+
+/**
+ * List of restaurant menus
+ */
+exports.listIndex = function(req, res) {
+  TimeSlot.findAll({
+    attributes: ['id', 'date']
+  }).then(function(timeslots) {
+    if (!timeslots) {
+      return res.status(404).send({
+        message: 'No timeslots found'
+      });
+    } else {
+      res.jsonp({timeslots: removeDups(timeslots), message: "Timeslots successfully found"});
+    }
+  }).catch(function(err) {
+    res.jsonp(err);
+  });
+};
+
+
 /**
  * List of restaurant menus
  */

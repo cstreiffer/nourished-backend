@@ -37,6 +37,7 @@ var
   hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
   timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital2.id},
+  timeslot3 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital2.id},
   meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false},
   meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true},
   m1 = {...meal1, userId: restaurantCredentials1.id, id: uuid()},
@@ -89,6 +90,7 @@ before((done) => {
 
   timeslot1.userId = restaurantId1;
   timeslot2.userId = restaurantId2;
+  timeslot3.userId = restaurantId2;
   done();
 });
 
@@ -110,7 +112,7 @@ before((done) =>{
 });
 
 before((done) =>{
-  TimeSlot.bulkCreate([timeslot1, timeslot2])
+  TimeSlot.bulkCreate([timeslot1, timeslot2, timeslot3])
     .then(() => {done();}).catch((err) => {console.log("One, " + err)});
 });
 
@@ -125,6 +127,23 @@ describe('/GET /api/timeslots endpoint', () => {
     chai.request(app)
       .get('/api/timeslots')
       .end((err, res) => {
+       res.body.timeslots.should.be.a('array');
+       res.body.timeslots[0].should.not.have.property('userId');
+       res.body.timeslots.length.should.be.eql(3);
+       res.body.should.have.property('message').eql('Timeslots successfully found');
+       res.should.have.status(200);
+       done();
+      });
+  });
+});
+
+describe('/GET /api/timeslots endpoint', () => {
+
+  it('User with "user" role should get menus', (done) => {
+    chai.request(app)
+      .get('/api/timeslots/index')
+      .end((err, res) => {
+        console.log("%j",res.body.timeslots);
        res.body.timeslots.should.be.a('array');
        res.body.timeslots[0].should.not.have.property('userId');
        res.body.timeslots.length.should.be.eql(2);

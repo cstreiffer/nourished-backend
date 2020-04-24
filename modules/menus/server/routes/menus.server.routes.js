@@ -15,6 +15,9 @@ module.exports = function(app) {
 
   app.route('/api/timeslots')
     .get(timeslot.list) // Restaurant/User get (Good)
+
+  app.route('/api/timeslots/index')
+    .get(timeslot.listIndex) // Restaurant/User get (Good)
     
   app.route('/api/timeslots')
     .all(passport.authenticate('jwt', {session: false}))
