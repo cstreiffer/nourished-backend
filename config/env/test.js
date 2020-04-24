@@ -50,9 +50,9 @@ module.exports = {
     phoneNumber: process.env.TWILIO_PHONE_NUMBER || '+19893738621'
   },
   admin: {
-    email: process.env.ADMIN_EMAIL,
-    username: process.env.ADMIN_USERNAME,
-    phoneNumber: process.env.ADMIN_PHONENUMBER,
-    password: process.env.ADMIN_PASSWORD,
+    email: process.env.ADMIN_EMAIL || 'admin@test.com',
+    username: process.env.ADMIN_USERNAME || 'admin',
+    phoneNumber: process.env.ADMIN_PHONENUMBER || '4444444444',
+    password: process.env.ADMIN_PASSWORD || 'password',
   }
 };
