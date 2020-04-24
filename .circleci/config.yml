@@ -19,13 +19,13 @@ jobs:
       - run:
           name: Build Docker image
           command: |
-            sudo docker build -t $IMAGE_NAME:test -f prod-dockerfile .
+            docker build -t $IMAGE_NAME:test -f prod-dockerfile .
       - run:
           name: Publish Docker Image to Docker Hub
-          command: sudo docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
+          command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
       - run:
           name: Publish the image
-          command: sudo docker push $IMAGE_NAME:test
+          command: docker push $IMAGE_NAME:test
   test:
     executor:
       name: node/default
