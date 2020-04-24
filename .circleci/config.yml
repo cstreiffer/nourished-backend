@@ -1,8 +1,32 @@
 version: 2.1
 orbs:
   node: circleci/node@1.1.6
+executors:
+  docker-publisher:
+    environment:
+      IMAGE_NAME: cstreiffer/nourished-backend
+    docker:
+      - image: circleci/buildpack-deps:stretch
+        environment:
+          DOCKERHUB_PASS: ${DOCKERHUB_PASS}
+          DOCKERHUB_USER: ${DOCKERHUB_USERNAME}
 jobs:
   build:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build Docker image
+          command: |
+            sudo docker build -t $IMAGE_NAME:test -f prod-dockerfile .
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: sudo docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
+      - run:
+          name: Publish the image
+          command: sudo docker push $IMAGE_NAME:test
+  test:
     executor:
       name: node/default
     working_directory: ~/nourished-backend
@@ -37,6 +61,11 @@ jobs:
                 command: node seeders/migrate.js
             - run: npm test
 workflows:
-    build-and-test:
+  version: 2
+  build-master:
       jobs:
-        - build
+        - test
+        - build:
+            requires:
+              - test
+
