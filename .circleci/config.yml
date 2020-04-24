@@ -17,6 +17,21 @@ jobs:
       - checkout
       - setup_remote_docker
       - run:
+          name: Pulling production credentials
+          command: git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/cstreiffer/nourished-config.git
+      - run:
+          name: Extract secrets
+          command: cd nourished-config && python encryptdir.py decrypt_sym -key ${SYM_TOKEN} && cd ~
+      - run:
+          name: Move config to correct location
+          command: mv nourished-config/config/production.js config/env/production.js
+      - run:
+          name: Move jwt tokens to correct location
+          command: mkdir config/jwttokens && mv nourished-config/config/jwt* config/jwttokens/
+      - run:
+          name: Clean the working_directory
+          command: rm -rf nourished-config
+      - run:
           name: Build Docker image
           command: |
             docker build -t $IMAGE_NAME:test -f prod-dockerfile .

@@ -43,16 +43,17 @@ module.exports = function(app, db) {
   // app.use(passport.session());
 
   // Seed the user
-  if(process.env.ADMIN_EMAIL) {
+
+  if(config.admin) {
       var user = User.build({
         id: uuid(),
-        username: process.env.ADMIN_USERNAME,
+        username: config.admin.username,
         roles: ['admin', 'user', 'restaurant']
       });
       user.salt = user.makeSalt();
-      user.hashedPassword = user.encryptPassword(process.env.ADMIN_PASSWORD, user.salt);
-      user.email = process.env.ADMIN_EMAIL.toLowerCase();
-      user.phoneNumber = process.env.ADMIN_PHONENUMBER.replace(/-|\(|\)| /g, '');
+      user.hashedPassword = user.encryptPassword(config.admin.password, user.salt);
+      user.email = config.admin.email.toLowerCase();
+      user.phoneNumber = config.admin.phoneNumber.replace(/-|\(|\)| /g, '');
       return user.save()
         .then((user) => console.log("Seeded admin user"))
         .catch((err) => console.log("User exists: " + err));

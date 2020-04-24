@@ -61,5 +61,11 @@ module.exports = {
     accountId: process.env.TWILIO_ACCOUNT_SID,
     authToken: process.env.TWILIO_AUTH_TOKEN,
     phoneNumber: process.env.TWILIO_PHONE_NUMBER
+  },
+  admin: {
+    email: process.env.ADMIN_EMAIL,
+    username: process.env.ADMIN_USERNAME,
+    phoneNumber: process.env.ADMIN_PHONENUMBER,
+    password: process.env.ADMIN_PASSWORD,
   }
 };
