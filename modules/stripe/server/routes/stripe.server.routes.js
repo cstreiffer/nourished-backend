@@ -26,8 +26,6 @@ module.exports = function(app) {
   app.param('stripeId', stripe.stripeByID);
 
   // STRIPE CHECKOUT ROUTES ROUTES ----------------------------------
-
-	// app.use(express.static(process.env.STATIC_DIR));
 	app.use(
 	  express.json({
 	    // We need the raw body to verify webhook signatures.

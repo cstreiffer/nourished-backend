@@ -5,9 +5,9 @@ COPY ./ ./
 RUN npm install
 RUN npm install pm2 -g
 
-# Store the JWTs
-RUN bash scripts/reload-jwt.sh
+# Set the node environment
+ENV NODE_ENV=production
 
 # Run it
 EXPOSE 3001
-CMD ["node", "server.js"]
+CMD ["pm2", "start", "config/pm2.json"]

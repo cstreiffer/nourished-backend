@@ -1,0 +1,86 @@
+version: 2.1
+orbs:
+  node: circleci/node@1.1.6
+executors:
+  docker-publisher:
+    environment:
+      IMAGE_NAME: cstreiffer/nourished-backend
+    docker:
+      - image: circleci/buildpack-deps:stretch
+        environment:
+          DOCKERHUB_PASS: ${DOCKERHUB_PASS}
+          DOCKERHUB_USER: ${DOCKERHUB_USER}
+jobs:
+  build:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Pulling production credentials
+          command: git clone https://${GITHUB_USERNAME}:${GITHUB_TOKEN}@github.com/cstreiffer/nourished-config.git
+      - run:
+          name: Extract secrets
+          command: cd nourished-config && python encryptdir.py decrypt_sym -key ${SYM_TOKEN} && cd ..
+      - run:
+          name: Move config to correct location
+          command: mv nourished-config/config/production.js config/env/production.js
+      - run:
+          name: Move jwt tokens to correct location
+          command: mkdir config/jwttokens && mv nourished-config/config/jwt* config/jwttokens/
+      - run:
+          name: Remove the config
+          command: rm -rf nourished-config
+      - run:
+          name: Build Docker image
+          command: |
+            docker build -t $IMAGE_NAME:test -f prod-dockerfile .
+      - run:
+          name: Publish Docker Image to Docker Hub
+          command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
+      - run:
+          name: Publish the image
+          command: docker push $IMAGE_NAME:test
+  test:
+    executor:
+      name: node/default
+    working_directory: ~/nourished-backend
+    docker:
+      - image: circleci/node:13.12   
+      - image: circleci/postgres:alpine
+        environment:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: nourished_test
+    steps:
+      - checkout
+      - node/with-cache:
+          steps:
+            - run: 
+                name: "Storing JWT creds"
+                command: bash scripts/generate-jwt-keys.sh
+            - run: 
+                name: "Retrieving JWT creds"
+                command: cat config/jwttokens/jwt_rsa
+            - run:
+                name: install dockerize
+                command: wget https://github.com/jwilder/dockerize/releases/download/$DOCKERIZE_VERSION/dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && sudo tar -C /usr/local/bin -xzvf dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz && rm dockerize-linux-amd64-$DOCKERIZE_VERSION.tar.gz
+                environment:
+                  DOCKERIZE_VERSION: v0.3.0
+            - run:
+                name: Wait for db
+                command: dockerize -wait tcp://localhost:5432 -timeout 1m
+            - run: npm install
+            - run:
+                name: "Create the db migrations"
+                command: node seeders/migrate.js
+            - run: npm test
+workflows:
+  version: 2
+  build-master:
+      jobs:
+        - test
+        - build:
+            requires:
+              - test
+
