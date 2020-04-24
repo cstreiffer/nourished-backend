@@ -66,15 +66,16 @@ jobs:
           command: |
             IMAGE_TAG=${CIRCLE_TAG/v/''}
             docker build -t $IMAGE_NAME:$IMAGE_TAG -f prod-dockerfile .
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:$IMAGE_TAG
       - run:
           name: Publish Docker Image to Docker Hub
           command: docker login -u "$DOCKERHUB_USER" -p "$DOCKERHUB_PASS"
       - run:
           name: Publish the image
-          command: docker push $IMAGE_NAME:prod
+          command: |
+            IMAGE_TAG=${CIRCLE_TAG/v/''}
+            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
+            docker push $IMAGE_NAME:latest
+            docker push $IMAGE_NAME:$IMAGE_TAG
   test:
     executor:
       name: node/default
