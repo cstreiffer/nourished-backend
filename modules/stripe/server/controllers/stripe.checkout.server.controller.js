@@ -233,11 +233,12 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
 
 // Expose a endpoint as a webhook handler for asynchronous events. https://dashboard.stripe.com/test/webhooks
 exports.webhook = function(req, res) {
-  let data, eventType;
+  let data, eventType, event;
+  console.log("Here is my key: %s", config.stripe.webhookSecretKey);
 
    if (process.env.NODE_ENV === 'production' || config.stripe.webhookSecretKey) {
+    console.log("We're going for it: %s", config.stripe.webhookSecretKey);
     // Retrieve the event by verifying the signature using the raw body and secret.
-    let event;
     let signature = req.headers["stripe-signature"];
     try {
       event = stripe.webhooks.constructEvent(
@@ -245,14 +246,17 @@ exports.webhook = function(req, res) {
         signature,
         config.stripe.webhookSecretKey
       );
+      console.log("1. Running this:  %j ", event);
     } catch (err) {
       console.log(err);
       console.log(`⚠️  Webhook signature verification failed.`);
       return res.sendStatus(400);
     }
+    console.log("2. Now running this: %j ", event);
     data = event.data;
     eventType = event.type;
   } else {
+    console.log("3. Grabbing the event the old-fashioned way: %j ", event);
     data = req.body.data;
     eventType = req.body.type;
   }
@@ -294,6 +298,7 @@ exports.webhook = function(req, res) {
       console.log('stripe.webhook: Unknown event type ' + eventType);
       console.log('Body data: ' + data);
       console.log('Body: ' + req.body);
+      console.log('Event: ' + event);
       return res.status(400).json({message: "Error unknown"});
   }
 };
