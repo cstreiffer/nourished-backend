@@ -69,9 +69,7 @@ exports.update = function(req, res) {
   // delete req.body.restaurantId;
   var menu = req.menu;
   var update = {};
-  if(!menu.finalized) {
-    update.finalized = req.body.finalized;
-  }
+  update.finalized = req.body.finalized;
   update.visible = req.body.visible;
 
   menu.update(update).then(function(menu) {
@@ -116,7 +114,7 @@ exports.list = function(req, res) {
   // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
   var timeslotQuery = {};
   if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
-  if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
+  // if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
 
   Menu.findAll({
     where: query,
@@ -163,7 +161,7 @@ exports.userList = function(req, res) {
   // 
   var timeslotQuery = {};
   if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
-  if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
+  // if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
 
   Menu.findAll({
     where: query,

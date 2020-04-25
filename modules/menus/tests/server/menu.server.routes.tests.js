@@ -395,7 +395,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully updated');
-          res.body.menu.should.have.property('finalized').eql(true);
+          res.body.menu.should.have.property('finalized').eql(false);
           res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
           res.body.menu.should.not.have.property('timeslot');

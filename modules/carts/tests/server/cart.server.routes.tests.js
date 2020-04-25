@@ -372,7 +372,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to update their cart', (done) => {
-    Cart.create({quantity: 5, menuId: menu4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, menuId: menu4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .put('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -392,7 +392,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to update their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .put('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)
@@ -415,7 +415,7 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to delete their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .delete('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -431,7 +431,7 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to delete their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .delete('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)
@@ -453,7 +453,7 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to get their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .get('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -469,7 +469,7 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to get their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .get('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)

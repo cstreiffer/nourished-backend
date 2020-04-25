@@ -47,7 +47,7 @@ module.exports = function(app) {
   app.route('/api/rest/meals/:mealId')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
-    .all(mealsPolicy.isFinalized)
+    // .all(mealsPolicy.isFinalized)
     .delete(meals.delete) // Restaurant delete (Good)
     .all(mealsPolicy.isValidRestaurant)
     .put(meals.update); // Restaurant update (Good)
