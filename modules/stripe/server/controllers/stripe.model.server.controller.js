@@ -16,7 +16,7 @@ var
 
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
-const retAttributes = ['id', 'groupId', 'amount'];
+const retAttributes = ['id', 'groupId', 'restaurantId', 'amount'];
 
 /**
  * Show the current stripe

@@ -83,17 +83,7 @@ exports.isOrderPaymentAllowed = function(req, res, next) {
         groupId: req.body.groupId,
         userId: req.user.id
       },
-      include: {
-        model: db.menu,
-        include: [{
-          model: db.meal,
-          include: db.mealinfo
-        },
-        {
-          model: db.timeslot,
-          include: db.restaurant
-        }]
-      }
+      include: db.restaurant
     }).then(function(orders) {
       if (!orders || !orders.length) {
         return res.status(404).send({

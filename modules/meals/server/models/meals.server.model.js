@@ -38,12 +38,14 @@ module.exports = function(sequelize, DataTypes) {
       defaultValue: ''
     },
     dietaryRestrictions: {
-      type: DataTypes.STRING,
-      defaultValue: ''
+      type: DataTypes.JSONB,
+      defaultValue: [],
+      isArray: true
     },
     allergens: {
-      type: DataTypes.STRING,
-      defaultValue: ''
+      type: DataTypes.JSONB,
+      defaultValue: [],
+      isArray: true
     },
     imageURL: {
       type: DataTypes.STRING,

@@ -227,12 +227,12 @@ describe('/POST /api/user/orders endpoint', () => {
         res.body.should.have.property('message').eql('Orders successfully created');
         res.body.orders.should.be.a('array');
         res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].should.not.have.property('menu');
-        res.body.orders[0].should.not.have.property('hospital');
         res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('hospitalId');
+        res.body.orders[0].should.have.property('restaurantId');
+        res.body.orders[0].should.have.property('total');
         res.body.orders[0].should.have.property('quantity');
-        res.body.orders[0].should.have.property('menuId');
-        // res.body.orders[0].should.have.property('hospitalId');
+        res.body.orders[0].should.have.property('price');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -400,14 +400,14 @@ describe('/GET /api/orders/:orderId endpoint', () => {
   beforeEach(function(done) {
 
     var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId2, id: uuid(), groupId: userId2},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2},
+      {...order, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
+      {...order, hospitalId: hospital1.id, deliveryDate: timeslot2.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, hospitalId: hospital2.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
     ];
     Order.destroy({where: {}})
       .then(function(){
-        Order.bulkCreate(orders).then(function(){done();});
+        Order.bulkCreate(orders, {validate: false}).then(function(){done();});
       });
   });
 
@@ -420,17 +420,13 @@ describe('/GET /api/orders/:orderId endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Orders successfully found');
         res.body.orders.should.be.a('array');
-        res.body.orders[0].should.have.property('groupId');
-        res.body.orders[0].should.have.property('quantity');
-        res.body.orders[0].should.have.property('menuId');
-        // res.body.orders[0].should.have.property('hospitalId');
         res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].menu.should.not.have.property('userId');
-        res.body.orders[0].menu.meal.should.not.have.property('userId');
-        res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-        res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-        res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-        res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+        res.body.orders[0].should.have.property('groupId');
+        res.body.orders[0].should.have.property('hospitalId');
+        res.body.orders[0].should.have.property('restaurantId');
+        res.body.orders[0].should.have.property('total');
+        res.body.orders[0].should.have.property('quantity');
+        res.body.orders[0].should.have.property('price');
         res.body.orders.length.should.be.eql(2);
         done();
       });
@@ -438,67 +434,67 @@ describe('/GET /api/orders/:orderId endpoint', () => {
 });
 
 
-// describe('/PUT /api/user/orders endpoint', () => {
-//   // Clear the database
-//   beforeEach(function(done) {
-//     Order.destroy({where: {}})
-//       .then(function(){done();});
-//   });
+// // describe('/PUT /api/user/orders endpoint', () => {
+// //   // Clear the database
+// //   beforeEach(function(done) {
+// //     Order.destroy({where: {}})
+// //       .then(function(){done();});
+// //   });
 
-//   it('User with "user" role should be able to get their orders', (done) => {
-//     var orders = [
-//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-//       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-//     ];
-//     Order.bulkCreate(orders).then(function() {
-//       chai.request(app)
-//       .put('/api/user/orders')
-//       .set('Authorization', userJWT1)
-//       .send({orders: [
-//           {...orders[0], quantity: 8},
-//           {...orders[1], quantity: 9, hospitalId: hospital2.id}
-//         ]})
-//       .end((err, res) => {
-//         res.should.have.status(200);
-//         res.body.should.be.a('object');
-//         res.body.should.have.property('message').eql('Orders successfully updated');
-//         res.body.orders.should.be.a('array');
-//         res.body.orders[0].should.not.have.property('userId');
-//         res.body.orders[0].should.not.have.property('menu');
-//         res.body.orders[0].should.not.have.property('hospital');
-//         res.body.orders[0].should.have.property('groupId');
-//         res.body.orders[0].should.have.property('quantity');
-//         res.body.orders[0].should.have.property('menuId');
-//         res.body.orders.length.should.be.eql(2);
-//         done();
-//       });
-//     })
-//   });
+// //   it('User with "user" role should be able to get their orders', (done) => {
+// //     var orders = [
+// //       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+// //       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+// //     ];
+// //     Order.bulkCreate(orders).then(function() {
+// //       chai.request(app)
+// //       .put('/api/user/orders')
+// //       .set('Authorization', userJWT1)
+// //       .send({orders: [
+// //           {...orders[0], quantity: 8},
+// //           {...orders[1], quantity: 9, hospitalId: hospital2.id}
+// //         ]})
+// //       .end((err, res) => {
+// //         res.should.have.status(200);
+// //         res.body.should.be.a('object');
+// //         res.body.should.have.property('message').eql('Orders successfully updated');
+// //         res.body.orders.should.be.a('array');
+// //         res.body.orders[0].should.not.have.property('userId');
+// //         res.body.orders[0].should.not.have.property('menu');
+// //         res.body.orders[0].should.not.have.property('hospital');
+// //         res.body.orders[0].should.have.property('groupId');
+// //         res.body.orders[0].should.have.property('quantity');
+// //         res.body.orders[0].should.have.property('menuId');
+// //         res.body.orders.length.should.be.eql(2);
+// //         done();
+// //       });
+// //     })
+// //   });
 
-//   it('User with "user" role should NOT be able to update order thats not theirs', (done) => {
-//     var orders = [
-//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-//       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-//       {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
-//     ];
-//     Order.bulkCreate(orders).then(function() {
-//       chai.request(app)
-//       .put('/api/user/orders')
-//       .set('Authorization', userJWT1)
-//       .send({orders: [
-//           {...orders[0], quantity: 8},
-//           {...orders[1], quantity: 9, hospitalId: hospital2.id},
-//           {...orders[2], quantity: 8}
-//         ]})
-//       .end((err, res) => {
-//         res.should.have.status(400);
-//         res.body.should.have.property('message');
-//         res.body.message.should.be.eql("Invalid order");
-//         done();
-//       });
-//     })
-//   });
-// });
+// //   it('User with "user" role should NOT be able to update order thats not theirs', (done) => {
+// //     var orders = [
+// //       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+// //       {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+// //       {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
+// //     ];
+// //     Order.bulkCreate(orders).then(function() {
+// //       chai.request(app)
+// //       .put('/api/user/orders')
+// //       .set('Authorization', userJWT1)
+// //       .send({orders: [
+// //           {...orders[0], quantity: 8},
+// //           {...orders[1], quantity: 9, hospitalId: hospital2.id},
+// //           {...orders[2], quantity: 8}
+// //         ]})
+// //       .end((err, res) => {
+// //         res.should.have.status(400);
+// //         res.body.should.have.property('message');
+// //         res.body.message.should.be.eql("Invalid order");
+// //         done();
+// //       });
+// //     })
+// //   });
+// // });
 
 describe('/DELETE /api/user/orders endpoint', () => {
   // Clear the database
@@ -514,10 +510,10 @@ describe('/DELETE /api/user/orders endpoint', () => {
 
   it('User with "user" role should be able to delete their orders', (done) => {
     var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, restaurantId: restaurant2.id, hospitalId: hospital1.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
+      {...order, restaurantId: restaurant2.id, hospitalId: hospital2.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
     ];
     Order.bulkCreate(orders).then(function() {
     chai.request(app)
@@ -526,7 +522,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
       .send({groupId: userId1})
       .end((err, res) => {
           chai.request(app)
-            .delete('/api/user/orders')
+            .delete('/api/user/orders/delete')
             .set('Authorization', userJWT1)
             .send({orders: [
                 {...orders[0]},
@@ -534,16 +530,17 @@ describe('/DELETE /api/user/orders endpoint', () => {
               ], 
               groupId: userId1})
             .end((err, res) => {
+              res.body.should.have.property('message').eql('Orders markerd as deleted');
               res.should.have.status(200);
               res.body.should.be.a('object');
-              res.body.should.have.property('message').eql('Orders markerd as deleted');
               res.body.orders.should.be.a('array');
               res.body.orders[0].should.not.have.property('userId');
-              res.body.orders[0].should.not.have.property('menu');
-              res.body.orders[0].should.not.have.property('hospital');
               res.body.orders[0].should.have.property('groupId');
+              res.body.orders[0].should.have.property('hospitalId');
+              res.body.orders[0].should.have.property('restaurantId');
+              res.body.orders[0].should.have.property('total');
               res.body.orders[0].should.have.property('quantity');
-              res.body.orders[0].should.have.property('menuId');
+              res.body.orders[0].should.have.property('price');
               res.body.orders.length.should.be.eql(2);
               done();
             });
@@ -553,14 +550,14 @@ describe('/DELETE /api/user/orders endpoint', () => {
 
   it('User with "user" role should be able to delete their orders', (done) => {
     var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, restaurantId: restaurant2.id, hospitalId: hospital1.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
+      {...order, restaurantId: restaurant2.id, hospitalId: hospital2.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
     ];
     Order.bulkCreate(orders).then(function() {
       chai.request(app)
-        .delete('/api/user/orders')
+        .delete('/api/user/orders/delete')
         .set('Authorization', userJWT1)
         .send({orders: [
             {...orders[0]},
@@ -568,9 +565,9 @@ describe('/DELETE /api/user/orders endpoint', () => {
           ], 
           groupId: userId1})
         .end((err, res) => {
+          res.body.should.have.property('message').eql('Orders marked as deleted but no associated payment intents');
           res.should.have.status(402);
           res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Orders marked as deleted but no associated payment intents');
           done();
         });
       });
@@ -579,373 +576,371 @@ describe('/DELETE /api/user/orders endpoint', () => {
 
   it('User with "user" role should NOT be able to delete order thats not theirs', (done) => {
     var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: userId1, total: 50.00},
+      {...order, restaurantId: restaurant1.id, hospitalId: hospital1.id, deliveryDate: timeslot1.date, userId: userId2, id: uuid(), groupId: userId2, total: 50.00},
     ];
     Order.bulkCreate(orders).then(function() {
       chai.request(app)
-      .delete('/api/user/orders')
+      .delete('/api/user/orders/delete')
       .set('Authorization', userJWT1)
-      .send({orders: orders})
+      .send({orders: orders, groupId: userId1})
       .end((err, res) => {
         res.should.have.status(400);
         res.body.should.have.property('message');
-        res.body.message.should.be.eql("Invalid order");
+        res.body.message.should.be.eql("Invalid order IDs");
         done();
       });
     })
   });
-
 });
 
-describe('/PUT /api/user/orders/status endpoint', () => {
-  // Clear the database
-  beforeEach(function(done) {
-    Order.destroy({where: {}})
-      .then(function(){done();});
-  });
+// describe('/PUT /api/user/orders/status endpoint', () => {
+//   // Clear the database
+//   beforeEach(function(done) {
+//     Order.destroy({where: {}})
+//       .then(function(){done();});
+//   });
 
-  it('User with "user" role should be able to update status by groupId', (done) => {
-    var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
-    ];
-    Order.bulkCreate(orders).then(function() {
-      chai.request(app)
-      .put('/api/user/orders/status')
-      .set('Authorization', userJWT1)
-      .send({menuIds: [menu1.id], userStatus: "NOT_DELIVERED"})
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Orders successfully updated');
-        res.body.orders.should.be.a('array');
-        res.body.orders.length.should.be.eql(1);
-        res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].should.not.have.property('menu');
-        res.body.orders[0].should.not.have.property('hospital');
-        done();
-      });
-    })
-  });
+//   it('User with "user" role should be able to update status by groupId', (done) => {
+//     var orders = [
+//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
+//     ];
+//     Order.bulkCreate(orders).then(function() {
+//       chai.request(app)
+//       .put('/api/user/orders/status')
+//       .set('Authorization', userJWT1)
+//       .send({menuIds: [menu1.id], userStatus: "NOT_DELIVERED"})
+//       .end((err, res) => {
+//         res.should.have.status(200);
+//         res.body.should.be.a('object');
+//         res.body.should.have.property('message').eql('Orders successfully updated');
+//         res.body.orders.should.be.a('array');
+//         res.body.orders.length.should.be.eql(1);
+//         res.body.orders[0].should.not.have.property('userId');
+//         res.body.orders[0].should.not.have.property('menu');
+//         res.body.orders[0].should.not.have.property('hospital');
+//         done();
+//       });
+//     })
+//   });
 
-  it('User with "user" role should be able to update status by orderId array', (done) => {
-    var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
-    ];
-    Order.bulkCreate(orders).then(function() {
-      chai.request(app)
-      .put('/api/user/orders/status')
-      .set('Authorization', userJWT1)
-      .send({orderIds: [orders[0].id], userStatus: "NOT_DELIVERED"})
-      .end((err, res) => {
-        res.should.have.status(200);
-        res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Orders successfully updated');
-        res.body.orders.should.be.a('array');
-        res.body.orders.length.should.be.eql(1);
-        res.body.orders[0].should.not.have.property('userId');
-        res.body.orders[0].should.not.have.property('menu');
-        res.body.orders[0].should.not.have.property('hospital');
-        done();
-      });
-    })
-  });
+//   it('User with "user" role should be able to update status by orderId array', (done) => {
+//     var orders = [
+//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital2.id, menuId: menu4.id, userId: userId2, id: uuid(), groupId: userId2}
+//     ];
+//     Order.bulkCreate(orders).then(function() {
+//       chai.request(app)
+//       .put('/api/user/orders/status')
+//       .set('Authorization', userJWT1)
+//       .send({orderIds: [orders[0].id], userStatus: "NOT_DELIVERED"})
+//       .end((err, res) => {
+//         res.should.have.status(200);
+//         res.body.should.be.a('object');
+//         res.body.should.have.property('message').eql('Orders successfully updated');
+//         res.body.orders.should.be.a('array');
+//         res.body.orders.length.should.be.eql(1);
+//         res.body.orders[0].should.not.have.property('userId');
+//         res.body.orders[0].should.not.have.property('menu');
+//         res.body.orders[0].should.not.have.property('hospital');
+//         done();
+//       });
+//     })
+//   });
 
-  it('User with "user" role should be able to update status by mealId', (done) => {
-    var orders = [
-      {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-      {...order, hospitalId: hospital2.id, menuId: menu1.id, userId: userId2, id: uuid(), groupId: userId2}
-    ];
-    Order.bulkCreate(orders).then(function() {
-      chai.request(app)
-      .put('/api/user/orders/status')
-      .set('Authorization', userJWT1)
-      .send({userStatus: "NOT_DELIVERED"})
-      .end((err, res) => {
-        res.should.have.status(400);
-        res.body.should.be.a('object');
-        done();
-      });
-    })
-  });
+//   it('User with "user" role should be able to update status by mealId', (done) => {
+//     var orders = [
+//       {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//       {...order, hospitalId: hospital2.id, menuId: menu1.id, userId: userId2, id: uuid(), groupId: userId2}
+//     ];
+//     Order.bulkCreate(orders).then(function() {
+//       chai.request(app)
+//       .put('/api/user/orders/status')
+//       .set('Authorization', userJWT1)
+//       .send({userStatus: "NOT_DELIVERED"})
+//       .end((err, res) => {
+//         res.should.have.status(400);
+//         res.body.should.be.a('object');
+//         done();
+//       });
+//     })
+//   });
 
-});
+// });
 
-describe('/GET /api/rest/orders endpoint', () => {
-  // Clear the database
-  beforeEach(function(done) {
-    Order.destroy({where: {}})
-      .then(function(){
-        var orders = [
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
-        ];
-        Order.bulkCreate(orders).then(function() {
-          done();
-        });
-      });
-  });
+// describe('/GET /api/rest/orders endpoint', () => {
+//   // Clear the database
+//   beforeEach(function(done) {
+//     Order.destroy({where: {}})
+//       .then(function(){
+//         var orders = [
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
+//         ];
+//         Order.bulkCreate(orders).then(function() {
+//           done();
+//         });
+//       });
+//   });
 
-  it('User with "restaurant" role should be able get all orders belonging to them', (done) => {
-    chai.request(app)
-    .get('/api/rest/orders')
-    .set('Authorization', restaurantJWT1)
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully found');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(4);
-      res.body.orders[0].should.have.property('groupId');
-      res.body.orders[0].should.have.property('quantity');
-      res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurant');
-      res.body.orders[0].menu.timeslot.should.have.property('hospital');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].menu.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
-      done();
-    });
-  });
+//   it('User with "restaurant" role should be able get all orders belonging to them', (done) => {
+//     chai.request(app)
+//     .get('/api/rest/orders')
+//     .set('Authorization', restaurantJWT1)
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully found');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(4);
+//       res.body.orders[0].should.have.property('groupId');
+//       res.body.orders[0].should.have.property('quantity');
+//       res.body.orders[0].should.have.property('menuId');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurant');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospital');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].menu.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+//       done();
+//     });
+//   });
 
-  it('User with "restaurant" role should be able get all orders belonging to them and query by menuId', (done) => {
-    chai.request(app)
-    .get('/api/rest/orders')
-    .set('Authorization', restaurantJWT1)
-    .query({menuId: menu1.id})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully found');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(2);
-      res.body.orders[0].should.have.property('groupId');
-      res.body.orders[0].should.have.property('quantity');
-      res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].menu.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
-      done();
-    });
-  });
+//   it('User with "restaurant" role should be able get all orders belonging to them and query by menuId', (done) => {
+//     chai.request(app)
+//     .get('/api/rest/orders')
+//     .set('Authorization', restaurantJWT1)
+//     .query({menuId: menu1.id})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully found');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(2);
+//       res.body.orders[0].should.have.property('groupId');
+//       res.body.orders[0].should.have.property('quantity');
+//       res.body.orders[0].should.have.property('menuId');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].menu.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+//       done();
+//     });
+//   });
 
-  it('User with "restaurant" role should be able get all orders belonging to them and query by date', (done) => {
-    chai.request(app)
-    .get('/api/rest/orders')
-    .set('Authorization', restaurantJWT2)
-    .query({startDate: "2020-04-01T11:30:00Z", endDate: "2021-04-04T12:30:00Z"})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully found');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(4);
-      res.body.orders[0].should.have.property('groupId');
-      res.body.orders[0].should.have.property('quantity');
-      res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].menu.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
-      done();
-    });
-  });
+//   it('User with "restaurant" role should be able get all orders belonging to them and query by date', (done) => {
+//     chai.request(app)
+//     .get('/api/rest/orders')
+//     .set('Authorization', restaurantJWT2)
+//     .query({startDate: "2020-04-01T11:30:00Z", endDate: "2021-04-04T12:30:00Z"})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully found');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(4);
+//       res.body.orders[0].should.have.property('groupId');
+//       res.body.orders[0].should.have.property('quantity');
+//       res.body.orders[0].should.have.property('menuId');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].menu.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+//       done();
+//     });
+//   });
   
-  it('User with "restaurant" role should be able get all orders belonging to them and query by mealId', (done) => {
-    chai.request(app)
-    .get('/api/rest/orders')
-    .set('Authorization', restaurantJWT1)
-    .query({mealId: ml1.id})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully found');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(2);
-      res.body.orders[0].should.have.property('groupId');
-      res.body.orders[0].should.have.property('quantity');
-      res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].menu.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
-      done();
-    });
-  });
-});
+//   it('User with "restaurant" role should be able get all orders belonging to them and query by mealId', (done) => {
+//     chai.request(app)
+//     .get('/api/rest/orders')
+//     .set('Authorization', restaurantJWT1)
+//     .query({mealId: ml1.id})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully found');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(2);
+//       res.body.orders[0].should.have.property('groupId');
+//       res.body.orders[0].should.have.property('quantity');
+//       res.body.orders[0].should.have.property('menuId');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].menu.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+//       done();
+//     });
+//   });
+// });
 
-describe('/GET /api/rest/orders/itemized endpoint', () => {
-  // Clear the database
-  beforeEach(function(done) {
-    Order.destroy({where: {}})
-      .then(function(){
-        var orders = [
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
-        ];
-        Order.bulkCreate(orders).then(function() {
-          done();
-        });
-      });
-  });
+// describe('/GET /api/rest/orders/itemized endpoint', () => {
+//   // Clear the database
+//   beforeEach(function(done) {
+//     Order.destroy({where: {}})
+//       .then(function(){
+//         var orders = [
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
+//         ];
+//         Order.bulkCreate(orders).then(function() {
+//           done();
+//         });
+//       });
+//   });
 
-  it('User with "restaurant" role should be able get all orders belonging to them but itemized', (done) => {
-    chai.request(app)
-    .get('/api/rest/orders/itemized')
-    .set('Authorization', restaurantJWT1)
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully found - itemized');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(20);
-      res.body.orders[0].should.have.property('groupId');
-      res.body.orders[0].should.have.property('quantity');
-      res.body.orders[0].should.have.property('menuId');
-      res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
-      res.body.orders[0].menu.timeslot.should.have.property('restaurant');
-      res.body.orders[0].menu.timeslot.should.have.property('hospital');
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].menu.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.should.not.have.property('userId');
-      res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
-      res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
-      done();
-    });
-  });
-});
+//   it('User with "restaurant" role should be able get all orders belonging to them but itemized', (done) => {
+//     chai.request(app)
+//     .get('/api/rest/orders/itemized')
+//     .set('Authorization', restaurantJWT1)
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully found - itemized');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(20);
+//       res.body.orders[0].should.have.property('groupId');
+//       res.body.orders[0].should.have.property('quantity');
+//       res.body.orders[0].should.have.property('menuId');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospitalId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurantId');
+//       res.body.orders[0].menu.timeslot.should.have.property('restaurant');
+//       res.body.orders[0].menu.timeslot.should.have.property('hospital');
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].menu.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.should.not.have.property('userId');
+//       res.body.orders[0].menu.timeslot.restaurant.should.not.have.property('userId');
+//       res.body.orders[0].menu.meal.mealinfo.should.have.property('price');
+//       done();
+//     });
+//   });
+// });
 
-describe('/PUT /api/rest/orders/status endpoint', () => {
-  // Clear the database
-  var orders;
+// describe('/PUT /api/rest/orders/status endpoint', () => {
+//   // Clear the database
+//   var orders;
 
-  beforeEach(function(done) {
-    Order.destroy({where: {}})
-      .then(function(){
-        orders = [
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
-          {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
-          {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
-        ];
-        Order.bulkCreate(orders).then(function() {
-          done();
-        });
-      });
-  });
+//   beforeEach(function(done) {
+//     Order.destroy({where: {}})
+//       .then(function(){
+//         orders = [
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId1},
+//           {...order, hospitalId: hospital1.id, menuId: menu1.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu2.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu3.id, userId: userId1, id: uuid(), groupId: userId2},
+//           {...order, hospitalId: hospital1.id, menuId: menu4.id, userId: userId1, id: uuid(), groupId: userId2}
+//         ];
+//         Order.bulkCreate(orders).then(function() {
+//           done();
+//         });
+//       });
+//   });
 
-  it('User with "restaurant" role shoudl be able to update orders by menuId', (done) => {
-    chai.request(app)
-    .put('/api/rest/orders/status')
-    .set('Authorization', restaurantJWT1)
-    .send({restStatus: "COMPLETE", menuIds: [menu1.id]})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully updated');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(2);
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].should.not.have.property('menu');
-      res.body.orders[0].should.not.have.property('hospital');
-      done();
-    });
-  });
+//   it('User with "restaurant" role shoudl be able to update orders by menuId', (done) => {
+//     chai.request(app)
+//     .put('/api/rest/orders/status')
+//     .set('Authorization', restaurantJWT1)
+//     .send({restStatus: "COMPLETE", menuIds: [menu1.id]})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully updated');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(2);
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].should.not.have.property('menu');
+//       res.body.orders[0].should.not.have.property('hospital');
+//       done();
+//     });
+//   });
 
-  it('User with "restaurant" role should NOT be able to update orders not belonging to them by menuId', (done) => {
-    chai.request(app)
-    .put('/api/rest/orders/status')
-    .set('Authorization', restaurantJWT1)
-    .send({restStatus: "COMPLETE", menuIds: [menu3.id]})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully updated');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(0);
-      done();
-    });
-  });
+//   it('User with "restaurant" role should NOT be able to update orders not belonging to them by menuId', (done) => {
+//     chai.request(app)
+//     .put('/api/rest/orders/status')
+//     .set('Authorization', restaurantJWT1)
+//     .send({restStatus: "COMPLETE", menuIds: [menu3.id]})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully updated');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(0);
+//       done();
+//     });
+//   });
 
-  it('User with "restaurant" role should be able to update orders based on orderId', (done) => {
-    chai.request(app)
-    .put('/api/rest/orders/status')
-    .set('Authorization', restaurantJWT1)
-    .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[1].id]})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully updated');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(2);
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].should.not.have.property('menu');
-      res.body.orders[0].should.not.have.property('hospital');
-      done();
-    });
-  });
+//   it('User with "restaurant" role should be able to update orders based on orderId', (done) => {
+//     chai.request(app)
+//     .put('/api/rest/orders/status')
+//     .set('Authorization', restaurantJWT1)
+//     .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[1].id]})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully updated');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(2);
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].should.not.have.property('menu');
+//       res.body.orders[0].should.not.have.property('hospital');
+//       done();
+//     });
+//   });
 
-  it('User with "restaurant" role should only be able to updat orders belonging to them', (done) => {
-    chai.request(app)
-    .put('/api/rest/orders/status')
-    .set('Authorization', restaurantJWT1)
-    .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[6].id]})
-    .end((err, res) => {
-      res.should.have.status(200);
-      res.body.should.be.a('object');
-      res.body.should.have.property('message').eql('Orders successfully updated');
-      res.body.orders.should.be.a('array');
-      res.body.orders.length.should.be.eql(1);
-      res.body.orders[0].should.not.have.property('userId');
-      res.body.orders[0].should.not.have.property('menu');
-      res.body.orders[0].should.not.have.property('hospital');
-      done();
-    });
-  });
-});
+//   it('User with "restaurant" role should only be able to updat orders belonging to them', (done) => {
+//     chai.request(app)
+//     .put('/api/rest/orders/status')
+//     .set('Authorization', restaurantJWT1)
+//     .send({restStatus: "COMPLETE", orderIds: [orders[0].id, orders[6].id]})
+//     .end((err, res) => {
+//       res.should.have.status(200);
+//       res.body.should.be.a('object');
+//       res.body.should.have.property('message').eql('Orders successfully updated');
+//       res.body.orders.should.be.a('array');
+//       res.body.orders.length.should.be.eql(1);
+//       res.body.orders[0].should.not.have.property('userId');
+//       res.body.orders[0].should.not.have.property('menu');
+//       res.body.orders[0].should.not.have.property('hospital');
+//       done();
+//     });
+//   });
+// });
 
 after((done) => {
   TimeSlot.destroy({where: {}})
@@ -953,10 +948,10 @@ after((done) => {
 });
 
 
-after(function(done) {
-  Order.destroy({where: {}})
-  .then(function(){done()})
-});
+// after(function(done) {
+//   Order.destroy({where: {}})
+//   .then(function(){done()})
+// });
 
 after(function(done) {
   Restaurant.destroy({where: {}})
