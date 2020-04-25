@@ -19,7 +19,7 @@ const util = require('util');
 var sendDailyMessage = function(tm, user) {
   var to = '+1' + user.user.phoneNumber;
   var from = config.twilio.phoneNumber;
-  var message = util.format(tm.messageBody, "meal", user.restaurant, user.location);
+  var message = util.format(tm.messageBody, user.type, user.restaurant, user.location);
   return twilio.messages
     .create({
        body: message,
@@ -41,11 +41,11 @@ var sendMessage = function(tm, user) {
 }
 
 var getStartDate = function() {
-  return Date.now() - 15*60*1000;
+  return Date.now() - 15*60*1000+5000;
 }
 
 var getEndDate = function() {
-  return Date.now() + 15*60*1000;
+  return Date.now() + 15*60*1000+5000;
 }
 
 module.exports = function() {
@@ -59,55 +59,31 @@ module.exports = function() {
 }
 
 var cronDailyUpdate = function() {
+  console.log("Daily update");
   async.waterfall([
     function(done) {
-      var timeSlotQuery = {
-        date: {
+      var query = {
+        deleted: false,
+        deliveryDate: {
           [Op.gte] : getStartDate(),
           [Op.lte] : getEndDate()
         }
       };
-      Menu.findAll({
-        attributes: ['id'],
-        include: 
-          {
-            model: db.timeslot,
-            where: timeSlotQuery,
-            attributes: ['id', 'date'],
-          }
-      }).then(function(menus) {
-        done(null, menus);
-      }).catch(function(err) {
-        done(err);
-      })
-    }, 
-    function(menus, done) {
-      var query = {
-        deleted: false,
-        menuId: menus.map((menu) => menu.id)
-      };
       var userQuery = {phoneNumber: {[Op.ne]: ''}};
       Order.findAll({
-        attributes: ['quantity', 'restStatus', 'userStatus', 'payStatus'],
+        attributes: ['quantity', 'restStatus', 'userStatus', 'payStatus', 'restaurantId', 'type'],
         where: query,
-        include: [{
+        include: 
+        [{
           model: db.user,
           where: userQuery
         },
         {
-          model: db.menu,
-          include: [
-            {
-              model: db.meal,
-              include: db.mealinfo
-            },
-            {
-              model: db.timeslot,
-              include: [db.hospital, db.restaurant]
-            }
-          ]
-        }
-        ]
+          model: db.hospital,
+        },
+        {
+          model: db.restaurant
+        }]
       }).then(function(orders) {
         done(null, orders);
       }).catch(function(err) {
@@ -118,14 +94,14 @@ var cronDailyUpdate = function() {
       // console.log(orders);
       var userKeys = {};
       orders.map((order) => {
-        var key = order.user.id + order.menu.timeslot.restaurantId;
+        var key = order.user.id + order.restaurantId;
         console.log(key);
         if(! (key in userKeys)) {
           userKeys[key] = {
             user: order.user,
-            type: order.menu.meal.mealinfo.type,
-            restaurant: order.menu.timeslot.restaurant.name,
-            location: order.menu.timeslot.hospital.dropoffLocation
+            type: order.type,
+            restaurant: order.restaurant.name,
+            location: order.hospital.dropoffLocation
           }
         }
       });
