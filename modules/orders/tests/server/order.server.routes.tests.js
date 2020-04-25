@@ -58,12 +58,12 @@ var
   ml2 = {...meal2, id: uuid(), userId: restaurantCredentials1.id},
   ml3 = {...meal1, id: uuid(), userId: restaurantCredentials2.id},
   ml4 = {...meal2, id: uuid(), userId: restaurantCredentials2.id},
-  menu1 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml1.id, timeslotId: timeslot1.id, finalized: true},
-  menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: true},
-  menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot2.id,  finalized: true},
-  menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot2.id,  finalized: true},
-  menu5 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot1.id,  finalized: true, visible: false},
-  menu6 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot1.id,  finalized: false},
+  menu1 = {id: uuid(), userId: restaurantCredentials1.id, ...meal1, timeslotId: timeslot1.id, finalized: true},
+  menu2 = {id: uuid(), userId: restaurantCredentials1.id, ...meal2, timeslotId: timeslot1.id,  finalized: true},
+  menu3 = {id: uuid(), userId: restaurantCredentials2.id, ...meal1, timeslotId: timeslot2.id,  finalized: true},
+  menu4 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot2.id,  finalized: true},
+  menu5 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot1.id,  finalized: true, visible: false},
+  menu6 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot1.id,  finalized: false},
   order = {quantity: 5, information: "Allergic to nuts."};
 
 describe('Order CRUD tests', function() {
@@ -905,10 +905,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-after(function(done) {
-  Menu.destroy({where: {}})
-  .then(function(){done()})
-});
+// after(function(done) {
+//   Menu.destroy({where: {}})
+//   .then(function(){done()})
+// });
 
 after(function(done) {
   Stripe.destroy({where: {}})

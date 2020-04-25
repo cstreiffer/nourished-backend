@@ -62,15 +62,15 @@ exports.create = function(req, res) {
 
     // Meal info
     ret.deliveryDate = menu.timeslot.date;
-    ret.mealName = menu.meal.name;
-    ret.mealDescription = menu.meal.description;
-    ret.allergens = menu.meal.allergens;
-    ret.dietaryRestrictions = menu.meal.dietaryRestrictions;
-    ret.type = menu.meal.mealinfo.type;
-    ret.price = menu.meal.mealinfo.price;
+    ret.mealName = menu.mealName;
+    ret.mealDescription = menu.mealDescription;
+    ret.allergens = menu.allergens;
+    ret.dietaryRestrictions = menu.dietaryRestrictions;
+    ret.type = menu.mealinfo.type;
+    ret.price = menu.mealinfo.price;
 
     // Compute total
-    ret.total = menu.meal.mealinfo.price*order.quantity;
+    ret.total = menu.mealinfo.price*order.quantity;
 
     // Id info
     ret.hospitalId = menu.timeslot.hospitalId;

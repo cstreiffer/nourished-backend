@@ -7,37 +7,76 @@
  *        required:
  *          - id
  *          - quantity
- *          - menuId
+ *          - price
+ *          - total
+ *          - mealName
+ *          - mealDescription
  *          - userId
  *          - groupId
+ *          - restaurantId
+ *          - hopsitalId
  *        properties:
  *          id:
  *            type: string
  *            description: UUID of the order entry.
  *          quantity:
- *            type: string
+ *            type: int
  *            description: Number of meals included in order entry.
- *          menuId:
+ *          price:
+ *            type: decimal
+ *            description: Price of the associated meal.
+ *          total:
+ *            type: decimal
+ *            description: Total cost of the order item.
+ *          orderDate:
+ *            type: date
+ *            description: Time of the order.
+ *          deliveryDate:
  *            type: string
- *            description: UUID of menu.
+ *            description: Time of the order delivery.
  *          information:
  *            type: enum
  *            description: Any allergy/dietary information. 
+ *          mealName:
+ *            type: string
+ *            description: Name of the dish.
+ *          mealDescription:
+ *            type: string
+ *            description: Description of the dish
+ *          allergens:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: Any allergens in food - milk/dairy, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soy
+ *          dietaryRestrictions:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: Type of food - Vegan, Vegetarian, Gluten-Free
+ *          type:
+ *            type: string
+ *            description: Type of meal - lunch/dinner
  *          groupId:
  *            type: string
  *            description: UUID of the group/batch order. Generated when order created. 
  *          userId:
  *            type: string
  *            description: UUID of user who's shopping.
+ *          hospitalId:
+ *            type: string
+ *            description: UUID of user who's shopping.
+ *          restaurantId:
+ *            type: string
+ *            description: UUID of user who's shopping.
  *          userStatus:
  *            type: enum
- *            description: User's status of the order - 'ORDERED', 'NOT_DELIVERED', 'WRONG_DELIVERY', 'COMPLETE', 'ERROR'
+ *            description: User's status of the order - 'ORDERED', 'NOT_DELIVERED', 'WRONG_DELIVERY', 'COMPLETE', 'CANCELLED', 'ERROR'
  *          restStatus:
  *            type: enum
  *            description: Restaurant's status of the order - 'RECEIVED', 'PROCESSING', 'IN_DELIVERY', 'COMPLETE', 'ERROR'
  *          payStatus:
  *            type: enum
- *            description: Pay status of order - 'PENDING', 'COMPLETE', 'REFUNDED', 'ERROR'
+ *            description: Pay status of order - 'PENDING', 'COMPLETE', 'REFUNDED', 'CANCELLED', 'ERROR'
  *          deleted:
  *            type: boolean
  *            description: Marks orders that have been deleted.
@@ -127,6 +166,7 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Order'
+ *  /user/orders/delete:
  *    delete:
  *      summary: Deletes a batch of order items. Delete will fail if >=1 individual orders invalid.
  *      tags: [Orders]
@@ -162,7 +202,7 @@
  *                $ref: '#/components/schemas/Order'
  *  /user/orders/status:
  *    put:
- *      summary: Updates user status. Applies update to either orderIds or menuIds. 
+ *      summary: Updates user status. Applies update to either orderIds. 
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -178,10 +218,6 @@
  *                userStatus:
  *                  type: string
  *                orderIds:
- *                  type: array
- *                  items:
- *                    type: string
- *                menuIds:
  *                  type: array
  *                  items:
  *                    type: string
@@ -220,7 +256,7 @@
  *                $ref: '#/components/schemas/Order'
  *  /rest/orders/status:
  *    put:
- *      summary: Updates restaurant status. Applies update to either orderIds or menuIds. 
+ *      summary: Updates restaurant status. Applies update to either orderIds. 
  *      tags: [Orders]
  *      security:
  *        - bearerAuth: []
@@ -236,10 +272,6 @@
  *                restStatus:
  *                  type: string
  *                orderIds:
- *                  type: array
- *                  items:
- *                    type: string
- *                menuIds:
  *                  type: array
  *                  items:
  *                    type: string

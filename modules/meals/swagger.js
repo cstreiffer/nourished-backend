@@ -21,10 +21,14 @@
  *            type: string
  *            description: Description of the dish
  *          allergens:
- *            type: string
+ *            type: array
+ *            items:
+ *              type: string
  *            description: Any allergens in food - milk/dairy, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soy
  *          dietaryRestrictions:
- *            type: string
+ *            type: array
+ *            items:
+ *              type: string
  *            description: Type of food - Vegan, Vegetarian, Gluten-Free
  *          imageURL:
  *            type: string

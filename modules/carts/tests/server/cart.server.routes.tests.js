@@ -316,9 +316,10 @@ describe('/GET /api/user/carts endpoint', () => {
         res.body.carts.length.should.be.eql(2);
         res.body.carts[0].should.have.property('quantity');
         res.body.carts[0].should.have.property('menuId');
-        res.body.carts[0].should.not.have.property('userId');
+        res.body.carts[0].menu.should.have.property('mealName');
+        res.body.carts[0].menu.should.have.property('mealDescription');
+        res.body.carts[0].menu.should.have.property('mealinfo');
         res.body.carts[0].menu.should.not.have.property('userId');
-        res.body.carts[0].menu.meal.should.not.have.property('userId');
         res.body.carts[0].menu.timeslot.restaurant.should.not.have.property('userId');
         done();
       });

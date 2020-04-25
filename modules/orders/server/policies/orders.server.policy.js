@@ -90,15 +90,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
       where: {
         id: menuIds
       },
-      include: [
-        {
-          model: db.timeslot
-        },
-        {
-          model: db.meal,
-          include: db.mealinfo
-        }
-      ]
+      include: [db.timeslot, db.mealinfo]
     }).then((menus) => {
       // console.log(meals);
       if(menus && menus.length === new Set(menuIds).size) {

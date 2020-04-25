@@ -205,7 +205,7 @@ var formatDate = function(query) {
  * List of Meals
  */
 exports.list = function(req, res) {
-  var query = {finalized: true};
+  var query = {finalized: true, visible: true};
   
   Meal.findAll({
     where: query,

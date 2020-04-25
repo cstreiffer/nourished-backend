@@ -19,7 +19,9 @@
  *            type: string
  *            description: Phone number of the user.
  *          roles:
- *            type: string
+ *            type: array
+ *            items:
+ *              type: string
  *            description: Role for the user. Options are USER or RESTAURANT.
  *          firstName:
  *            type: string

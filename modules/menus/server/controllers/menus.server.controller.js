@@ -14,9 +14,8 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'mealId', 'timeslotId', 'visible', 'finalized'];
+const retAttributes = ['id', 'timeslotId', 'visible', 'finalized', 'mealName', 'allergens', 'dietaryRestrictions', 'mealDescription', 'imageURL', 'mealinfoId'];
 const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
-const mealRetAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
 const hospRetAttributes = ['name', 'phoneNumber', 'email'];
@@ -33,8 +32,17 @@ exports.create = function(req, res) {
         message: "Please include timeslot/meal id"
       });
   } else {
-    req.body.mealId = req.meal.id;
+    // Extract the data from the meal
+    req.body.mealName = req.meal.name;
+    req.body.mealDescription = req.meal.description;
+    req.body.mealinfoId = req.meal.mealinfoId;
+    req.body.allergens = req.meal.allergens;
+    req.body.dietaryRestrictions = req.meal.dietaryRestrictions;
+
+    // Add the timeslotId
     req.body.timeslotId = req.timeslot.id;
+
+    // Create the menu
     Menu.create(req.body).then(function(menu) {
       if (!menu) {
         return res.status(404).send({
@@ -66,13 +74,12 @@ exports.read = function(req, res) {
 exports.update = function(req, res) {
   delete req.body.id;
   delete req.body.userId;
-  // delete req.body.restaurantId;
-  var menu = req.menu;
-  var update = {};
-  update.finalized = req.body.finalized;
-  update.visible = req.body.visible;
+  delete req.body.mealinfoId;
+  delete req.body.timeslotId;
 
-  menu.update(update).then(function(menu) {
+  var menu = req.menu;
+
+  menu.update(req.body).then(function(menu) {
     var ret = _.pick(menu, retAttributes);
     res.jsonp({menu: ret, message: "Menu successfully updated"});
   }).catch(function(err) {
@@ -120,12 +127,8 @@ exports.list = function(req, res) {
     where: query,
     attributes: retAttributes,
     include: [{
-      model: db.meal,
-      attributes: mealRetAttributes,
-      include: {
-        model: db.mealinfo,
-        attributes: mealinfoRetAttributes
-      }
+      model: db.mealinfo,
+      attributes: mealinfoRetAttributes
     }, {
       model: db.timeslot,
       where: timeslotQuery,
@@ -167,12 +170,8 @@ exports.userList = function(req, res) {
     where: query,
     attributes: retAttributes,
     include: [{
-      model: db.meal,
-      attributes: mealRetAttributes,
-      include: {
-        model: db.mealinfo,
-        attributes: mealinfoRetAttributes
-      }
+      model: db.mealinfo,
+      attributes: mealinfoRetAttributes
     }, {
       model: db.timeslot,
       where: timeslotQuery,
@@ -208,6 +207,7 @@ exports.menuByID = function(req, res, next, id) {
     where: {
       id: id
     },
+    include: db.mealinfo
   }).then(function(menu) {
     if (!menu) {
       return res.status(404).send({

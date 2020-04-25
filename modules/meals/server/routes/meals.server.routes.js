@@ -56,7 +56,7 @@ module.exports = function(app) {
   app.route('/api/rest/meals/:mealId/picture')
     .all(passport.authenticate('jwt', {session: false}))
     .all(mealsPolicy.isAllowed)
-    .all(mealsPolicy.isFinalized)
+    // .all(mealsPolicy.isFinalized)
     .post(meals.changeMealPicture); // Restaurant update (Untested)
 
   // Finish by binding the meal middleware

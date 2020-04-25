@@ -51,7 +51,6 @@ exports.create = function(req, res) {
       },
       function(restaurant, hospital, done) {
         if(restaurant && hospital) {
-          console.log(restaurant.toJSON(), hospital.toJSON());
           // Check to see if it exists
           TimeSlot.findOne({
             where: {
