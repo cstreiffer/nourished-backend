@@ -21,19 +21,19 @@ module.exports = function(app) {
 
   // USER ROUTES --------------------------------------------
   // Articles collection routes
+  // app.route('/api/user/orders')
+  //   .all(passport.authenticate('jwt', {session: false}))
+  //   .all(ordersPolicy.isUserAllowed)
+    
   app.route('/api/user/orders')
     .all(passport.authenticate('jwt', {session: false}))
     .all(ordersPolicy.isUserAllowed)
-    .get(orders.userList);
-
-  app.route('/api/user/orders')
-    .all(passport.authenticate('jwt', {session: false}))
-    .all(ordersPolicy.isUserAllowed)
+    .get(orders.userList)
     .all(ordersPolicy.isCreateOrderAllowed)
     .all(ordersPolicy.isFormatAllowed)
     .post(orders.create);
 
-  app.route('/api/user/orders')
+  app.route('/api/user/orders/delete')
     .all(passport.authenticate('jwt', {session: false}))
     .all(ordersPolicy.isUserAllowed)
     .all(ordersPolicy.isUserOrderAllowed)

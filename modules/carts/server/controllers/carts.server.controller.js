@@ -14,8 +14,9 @@ var
 
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'date', 'quantity', 'menuId'];
-const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
-const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
+// const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
+const menuRetAttributes = ['id', 'timeslotId', 'visible', 'finalized', 'mealName', 'allergens', 'dietaryRestrictions', 'mealDescription', 'imageURL'];
+// const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId'];
 const restRetAttributes = ['id', 'name', 'phoneNumber', 'email'];
@@ -159,12 +160,8 @@ exports.userList = function(req, res) {
       model: db.menu,
       attributes: menuRetAttributes,
       include: [{
-        model: db.meal,
-        attributes: mealRetAttributes,        
-        include: {
-          model: db.mealinfo,
-          attributes: mealinfoRetAttributes
-        }
+        model: db.mealinfo,
+        attributes: mealinfoRetAttributes
       }, {
         model: db.timeslot,
         attributes: timeslotRetAttributes,
@@ -264,10 +261,7 @@ exports.cartByID = function(req, res, next, id) {
     include: {
       model: db.menu,
       include: [{
-        model: db.meal,
-        include: {
-          model: db.mealinfo
-        }
+        model: db.mealinfo
       }, {
         model: db.timeslot,
         include: {

@@ -52,7 +52,10 @@ exports.invokeRolesPolicies = function() {
     roles: ['user'],
     allows: [{
       resources: '/api/user/orders',
-      permissions: ['get', 'post', 'put', 'delete']
+      permissions: ['get', 'post', 'put']
+    }, {
+      resources: '/api/user/orders/delete',
+      permissions: ['delete']
     }, {
       resources: '/api/user/orders/status',
       permissions: ['put']
@@ -64,9 +67,9 @@ exports.invokeRolesPolicies = function() {
  * Check If Menu Policy Allows 
  */
 
-var isTimeValid = function(menu) {
+var isTimeValid = function(date) {
   var time = new Date(new Date().getTime() + config.orderTimeCutoff);
-  return time < new Date(menu.timeslot.date);
+  return time < new Date(date);
 };
 
 var isMenuVisible = function(menu) {
@@ -87,12 +90,13 @@ exports.isCreateOrderAllowed = function(req, res, next) {
       where: {
         id: menuIds
       },
-      include: db.timeslot
+      include: [db.timeslot, db.mealinfo]
     }).then((menus) => {
       // console.log(meals);
       if(menus && menus.length === new Set(menuIds).size) {
-        var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu) && isMenuVisible(menu));
+        var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu.timeslot.date) && isMenuVisible(menu));
         if(validation.every((v) => v)) {
+          req.menus = menus;
           return next();
         } else {
           return res.status(400).json({message: "Invalid order"});
@@ -111,7 +115,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
 
 exports.isUpdateOrderAllowed = function(req, res, next) {
   if(req.orders) {
-    var validation = req.orders.map((order) => isMenuFinalized(order.menu) && isTimeValid(order.menu));
+    var validation = req.orders.map((order) => isTimeValid(order.deliveryDate));
     if(validation.every((v) => v)) {
       return next();
     } else {
@@ -131,19 +135,7 @@ exports.isUserOrderAllowed = function(req, res, next) {
         userId: req.user.id,
         groupId: req.body.groupId
       },
-      include: {
-        model: db.menu, 
-        include: [
-          {
-            model: db.timeslot,
-            include: db.restaurant
-          },
-          {
-            model: db.meal,
-            include: db.mealinfo
-          }
-        ]
-      }
+      include: db.restaurant
     }).then((orders) => {
       if(orders && orders.length === new Set(orderIds).size) {
         var validation = orders.map((order) => order.userId === req.user.id);

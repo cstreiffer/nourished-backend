@@ -125,12 +125,12 @@ before((done) => {
 });
 
 before(function(done) {
-  var orders = [
-    {quantity: 4, menuId: menu1.id, userId: userId1, id: uuid(), groupId: group1.id},
-    {quantity: 4, menuId: menu2.id, userId: userId1, id: uuid(), groupId: group1.id},
-    {quantity: 6, menuId: menu1.id, userId: userId1, id: uuid(), groupId: group2.id},
-    {quantity: 8, menuId: menu2.id, userId: userId1, id: uuid(), groupId: group2.id},
-  ];
+    var orders = [
+      {id: uuid(), restaurantId: restaurant1.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: group1.id, total: 20.00},
+      {id: uuid(), restaurantId: restaurant2.id, deliveryDate: timeslot1.date, userId: userId1, id: uuid(), groupId: group1.id, total: 40.00},
+      {id: uuid(), restaurantId: restaurant1.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: group2.id, total: 60.00},
+      {id: uuid(), restaurantId: restaurant2.id, deliveryDate: timeslot2.date, userId: userId2, id: uuid(), groupId: group3.id, total: 80.00},
+    ];
   Order.destroy({where: {}})
     .then(function(){
       Order.bulkCreate(orders).then(function(){done();});
@@ -159,9 +159,9 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.should.have.property('stripeData');
         res.body.should.have.property('stripeOrders');
         res.body.stripeData[0].should.not.have.property('userId');
-        res.body.stripeData[0].should.have.property('amount').eql(4000);
+        res.body.stripeData[0].should.have.property('amount').eql(2000);
         res.body.stripeData[0].should.have.property('groupId');
-        res.body.stripeData[0].should.have.property('timeslotId');
+        res.body.stripeData[0].should.have.property('restaurantId');
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
@@ -181,28 +181,28 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.should.have.property('stripeData');
         res.body.should.have.property('stripeOrders');
         res.body.stripeData[0].should.not.have.property('userId');
-        res.body.stripeData[0].should.have.property('amount').eql(4000);
+        res.body.stripeData[0].should.have.property('amount').eql(2000);
         res.body.stripeData[0].should.have.property('groupId');
-        res.body.stripeData[0].should.have.property('timeslotId');
+        res.body.stripeData[0].should.have.property('restaurantId');
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
   }).timeout(7000);
 
-  // it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
-  //   Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, timeslotId: timeslot1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
-  //     chai.request(app)
-  //       .post('/api/stripe/create-payment-intent')
-  //       .set('Authorization', userJWT1)
-  //       .send({groupId: group1.id})
-  //       .end((err, res) => {
-  //         res.should.have.status(404);
-  //         res.body.should.be.a('object');
-  //         res.body.should.have.property('message').eql('Payment intent already exists');
-  //         done();
-  //       });
-  //   });
-  // });
+  // // it('User with "user" role should NOT be able to create payment intent for if intent already exists', (done) => {
+  // //   Stripe.create({id: uuid(), userId: userId1, groupId: group1.id, timeslotId: timeslot1.id, paymentIntentId: "test", amount: 100.00}).then(function(stripe) {
+  // //     chai.request(app)
+  // //       .post('/api/stripe/create-payment-intent')
+  // //       .set('Authorization', userJWT1)
+  // //       .send({groupId: group1.id})
+  // //       .end((err, res) => {
+  // //         res.should.have.status(404);
+  // //         res.body.should.be.a('object');
+  // //         res.body.should.have.property('message').eql('Payment intent already exists');
+  // //         done();
+  // //       });
+  // //   });
+  // // });
 });
 
 // describe('/POST /stripe/create-payment-intent endpoint', () => {
@@ -297,7 +297,7 @@ describe('/GET /api/user/stripe/:stripeId', () => {
               res.body.stripeOrder.should.not.have.property('userId');
               res.body.stripeOrder.should.not.have.property('paymentIntentId');
               res.body.stripeOrder.should.have.property('groupId');
-              res.body.stripeOrder.should.have.property('amount').equal(4000);
+              res.body.stripeOrder.should.have.property('amount').equal(2000);
               done();
             });
       });

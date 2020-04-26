@@ -192,9 +192,13 @@ describe('/GET /api/menus endpoint', () => {
       .get('/api/menus')
       .end((err, res) => {
        res.body.menus.should.be.a('array');
+       res.body.menus[0].should.have.property('mealName');
+       res.body.menus[0].should.have.property('mealDescription');
+       res.body.menus[0].should.have.property('allergens');
+       res.body.menus[0].should.have.property('dietaryRestrictions');
+       res.body.menus[0].should.have.property('mealinfo');
        res.body.menus[0].should.not.have.property('userId');
        res.body.menus[0].timeslot.should.not.have.property('userId');
-       res.body.menus[0].meal.should.not.have.property('userId');
        res.body.menus.length.should.be.eql(2);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -226,7 +230,11 @@ describe('/GET /api/menus endpoint', () => {
        res.body.menus.should.be.a('array');
        res.body.menus[0].should.not.have.property('userId');
        res.body.menus[0].timeslot.should.not.have.property('userId');
-       res.body.menus[0].meal.should.not.have.property('userId');
+       res.body.menus[0].should.have.property('mealName');
+       res.body.menus[0].should.have.property('mealDescription');
+       res.body.menus[0].should.have.property('allergens');
+       res.body.menus[0].should.have.property('dietaryRestrictions');
+       res.body.menus[0].should.have.property('mealinfo');
        res.body.menus.length.should.be.eql(3);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -259,7 +267,11 @@ describe('/GET /api/rest/menus endpoint', () => {
        res.body.menus.should.be.a('array');
        res.body.menus[0].should.not.have.property('userId');
        res.body.menus[0].timeslot.should.not.have.property('userId');
-       res.body.menus[0].meal.should.not.have.property('userId');
+       res.body.menus[0].should.have.property('mealName');
+       res.body.menus[0].should.have.property('mealDescription');
+       res.body.menus[0].should.have.property('allergens');
+       res.body.menus[0].should.have.property('dietaryRestrictions');
+       res.body.menus[0].should.have.property('mealinfo');
        res.body.menus.length.should.be.eql(1);
        res.body.should.have.property('message').eql('Menus successfully found');
        res.should.have.status(200);
@@ -277,7 +289,11 @@ describe('/GET /api/rest/menus endpoint', () => {
          res.body.menus.should.be.a('array');
          res.body.menus[0].should.not.have.property('userId');
          res.body.menus[0].timeslot.should.not.have.property('userId');
-         res.body.menus[0].meal.should.not.have.property('userId');
+         res.body.menus[0].should.have.property('mealName');
+         res.body.menus[0].should.have.property('mealDescription');
+         res.body.menus[0].should.have.property('allergens');
+         res.body.menus[0].should.have.property('dietaryRestrictions');
+         res.body.menus[0].should.have.property('mealinfo');
          res.body.menus.length.should.be.eql(1);
          res.body.should.have.property('message').eql('Menus successfully found');
          res.should.have.status(200);
@@ -303,6 +319,11 @@ describe('/POST /api/rest/menus endpoint', () => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Menu successfully created');
         res.body.menu.should.have.property('id');
+        res.body.menu.should.have.property('mealName');
+        res.body.menu.should.have.property('mealDescription');
+        res.body.menu.should.have.property('allergens');
+        res.body.menu.should.have.property('dietaryRestrictions');
+        res.body.menu.should.have.property('mealinfoId');
         res.body.menu.should.not.have.property('userId');
         res.body.menu.should.not.have.property('timeslot');
         res.body.menu.should.not.have.property('meal');
@@ -318,8 +339,8 @@ describe('/POST /api/rest/menus endpoint', () => {
       .send({timeslotId: timeslot2.id, mealId: m1.id})
       .end((err, res) => {
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Meal not finalized');
-        res.should.have.status(400);
+        res.body.should.have.property('message').eql('User is not authorized');
+        res.should.have.status(403);
         done();
       });
   });
@@ -395,7 +416,7 @@ describe('/PUT /api/restaurants/:restaurantId/menus/:menuId endpoint', () => {
         .end((err, res) => {
           res.body.should.be.a('object');
           res.body.should.have.property('message').eql('Menu successfully updated');
-          res.body.menu.should.have.property('finalized').eql(true);
+          res.body.menu.should.have.property('finalized').eql(false);
           res.body.menu.should.have.property('id');
           res.body.menu.should.not.have.property('userId');
           res.body.menu.should.not.have.property('timeslot');

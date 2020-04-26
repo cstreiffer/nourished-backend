@@ -517,20 +517,20 @@ describe('/PUT /api/meals/:mealId endpoint', () => {
     });
   });
 
-  it('User with "user" role should not be able to update finalized menu', (done) => {
-    Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
-      chai.request(app)
-        .put('/api/rest/meals/' + meal.id)
-        .set('Authorization', restaurantJWT1)
-        .send({menuId: menu2.id, visible: true, name: "Chicken 2.0"})
-        .end((err, res) => {
-          res.body.should.be.a('object');
-          res.body.should.have.property('message').eql('Meal is finalized');
-          res.should.have.status(400);
-          done();
-        });
-    });
-  });
+  // it('User with "user" role should not be able to update finalized menu', (done) => {
+  //   Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+  //     chai.request(app)
+  //       .put('/api/rest/meals/' + meal.id)
+  //       .set('Authorization', restaurantJWT1)
+  //       .send({menuId: menu2.id, visible: true, name: "Chicken 2.0"})
+  //       .end((err, res) => {
+  //         res.body.should.be.a('object');
+  //         res.body.should.have.property('message').eql('Meal is finalized');
+  //         res.should.have.status(400);
+  //         done();
+  //       });
+  //   });
+  // });
 });
 
 describe('/DELETE /api/meals/:mealId endpoint', () => {
@@ -555,19 +555,19 @@ describe('/DELETE /api/meals/:mealId endpoint', () => {
     });
   });
 
-  it('User with "user" role should not be able to delete finalized meal', (done) => {
-    Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
-      chai.request(app)
-        .delete('/api/rest/meals/' + meal.id)
-        .set('Authorization', restaurantJWT1)
-        .end((err, res) => {
-          res.should.have.status(400);
-          res.body.should.have.property('message');
-          res.body.message.should.be.eql("Meal is finalized");
-          done();
-        });
-    });
-  });
+  // it('User with "user" role should not be able to delete finalized meal', (done) => {
+  //   Meal.create({...meal2, menuId: menu1.id, id: uuid(), userId: restaurantId1}).then((meal) => {
+  //     chai.request(app)
+  //       .delete('/api/rest/meals/' + meal.id)
+  //       .set('Authorization', restaurantJWT1)
+  //       .end((err, res) => {
+  //         res.should.have.status(400);
+  //         res.body.should.have.property('message');
+  //         res.body.message.should.be.eql("Meal is finalized");
+  //         done();
+  //       });
+  //   });
+  // });
 
 });
 

@@ -74,17 +74,12 @@ exports.isValidMeal = function(req, res, next) {
       where: {
         id: req.body.mealId,
         userId: req.user.id
-      }
+      },
+      include: db.mealinfo
     }).then((meal) => {
       if(meal) {
-        if(meal.finalized) {
-          req.meal = meal;
-          return next();
-        } else {
-          return res.status(400).json({
-            message: 'Meal not finalized'
-          });
-        }
+        req.meal = meal;
+        return next();
       } else {
         return res.status(400).json({
           message: 'Meal not found'

@@ -6,16 +6,34 @@
  *        type: object
  *        required:
  *          - id
- *          - mealId
  *          - userId
  *          - timeslotId
  *        properties:
  *          id:
  *            type: string
  *            description: UUID of the menu.
- *          mealId:
+ *          mealName:
  *            type: string
- *            description: UUID of the meal. 
+ *            description: Name of the dish.
+ *          mealDescription:
+ *            type: string
+ *            description: Description of the dish
+ *          allergens:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: Any allergens in food - milk/dairy, eggs, fish, crustacean shellfish, tree nuts, peanuts, wheat, soy
+ *          dietaryRestrictions:
+ *            type: array
+ *            items:
+ *              type: string
+ *            description: Type of food - Vegan, Vegetarian, Gluten-Free
+ *          imageURL:
+ *            type: string
+ *            description: Image URL of the uploaded meal image. 
+ *          mealinfoId:
+ *            type: string
+ *            description: ID of the menu the meal is attached to. Menu contains the timeslot information. 
  *          userId:
  *            type: string
  *            description: UUID of the user who created the meal. Should not be returned.  
@@ -127,7 +145,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Menu'
  *    put:
- *      summary: Will finalize the menu. Menu cannot be deleted after being finalized. Visibility can still be changed.
+ *      summary: Updates the menu. Visibility can be changed.
  *      tags: [Menus]
  *      security:
  *        - bearerAuth: []

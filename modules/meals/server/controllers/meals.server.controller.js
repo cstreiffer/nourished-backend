@@ -75,17 +75,15 @@ exports.update = function(req, res) {
   var updateBuilder = {};
 
   // Unfinalized to update these values
-  if(!meal.finalized) {
-    updateBuilder.name = req.body.name;
-    updateBuilder.description = req.body.description;
-    updateBuilder.allergens = req.body.allergens;
-    updateBuilder.dietaryRestrictions = req.body.dietaryRestrictions;
-    updateBuilder.visible = req.body.visible;
-    updateBuilder.finalized = req.body.finalized;
-    updateBuilder.maxQuantity = req.body.maxQuantity;
-    updateBuilder.restaurantId = req.body.restaurantId;
-    updateBuilder.mealinfoId = req.body.mealinfoId;
-  };
+  updateBuilder.name = req.body.name;
+  updateBuilder.description = req.body.description;
+  updateBuilder.allergens = req.body.allergens;
+  updateBuilder.dietaryRestrictions = req.body.dietaryRestrictions;
+  updateBuilder.visible = req.body.visible;
+  updateBuilder.finalized = req.body.finalized;
+  updateBuilder.maxQuantity = req.body.maxQuantity;
+  updateBuilder.restaurantId = req.body.restaurantId;
+  updateBuilder.mealinfoId = req.body.mealinfoId;
 
   meal.update(updateBuilder).then(function(meal) {
     var ret = _.pick(meal, retAttributes);
@@ -207,7 +205,7 @@ var formatDate = function(query) {
  * List of Meals
  */
 exports.list = function(req, res) {
-  var query = {finalized: true};
+  var query = {finalized: true, visible: true};
   
   Meal.findAll({
     where: query,

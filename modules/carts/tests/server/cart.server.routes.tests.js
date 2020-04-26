@@ -316,9 +316,10 @@ describe('/GET /api/user/carts endpoint', () => {
         res.body.carts.length.should.be.eql(2);
         res.body.carts[0].should.have.property('quantity');
         res.body.carts[0].should.have.property('menuId');
-        res.body.carts[0].should.not.have.property('userId');
+        res.body.carts[0].menu.should.have.property('mealName');
+        res.body.carts[0].menu.should.have.property('mealDescription');
+        res.body.carts[0].menu.should.have.property('mealinfo');
         res.body.carts[0].menu.should.not.have.property('userId');
-        res.body.carts[0].menu.meal.should.not.have.property('userId');
         res.body.carts[0].menu.timeslot.restaurant.should.not.have.property('userId');
         done();
       });
@@ -372,7 +373,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to update their cart', (done) => {
-    Cart.create({quantity: 5, menuId: menu4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, menuId: menu4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .put('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -392,7 +393,7 @@ describe('/PUT /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to update their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .put('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)
@@ -415,7 +416,7 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to delete their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .delete('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -431,7 +432,7 @@ describe('/DELETE /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to delete their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .delete('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)
@@ -453,7 +454,7 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should be able to get their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .get('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT1)
@@ -469,7 +470,7 @@ describe('/GET /api/user/carts/:cartId endpoint', () => {
   });
 
   it('User with "user" role should NOT be able to get their cart', (done) => {
-    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid()}).then(function(cart) {
+    Cart.create({quantity: 5, mealId: ml4.id, userId: userId1, id: uuid(), menuId: menu1.id}).then(function(cart) {
       chai.request(app)
       .get('/api/user/carts/' + cart.id)
       .set('Authorization', userJWT2)

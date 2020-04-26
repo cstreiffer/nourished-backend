@@ -18,11 +18,11 @@ var
   Restaurant = db.restaurant;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'groupId', 'amount', 'paymentIntentId'];
-const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
+const retAttributes = ['id', 'groupId', 'restaurantId', 'amount', 'paymentIntentId'];
+const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
 
 const calculateOrderAmount = orders => {
-  var sum = orders.map((order) => Number(order.quantity) * Number(order.menu.meal.mealinfo.price)).reduce((a,b) => a + b, 0)
+  var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
   return Math.floor(sum * 100);
 };
 
@@ -36,37 +36,35 @@ exports.createPaymentIntent = function(req, res) {
 
   // Remap the orders
   var orders = req.orders.reduce(function(map, obj) {
-    var timeslotid = obj.menu.timeslot.id;
-    if(!(timeslotid in map)) {
-      map[timeslotid] = [];
+    var restaurantId = obj.restaurantId;
+    if(!(restaurantId in map)) {
+      map[restaurantId] = [];
     }
-    map[timeslotid].push(obj);
+    map[restaurantId].push(obj);
     return map;
   }, {});
 
-  // Remap the striper orders by timeslot
+  // Remap the striper orders by restaurantId
   var stripeorders = req.stripeorders.reduce(function(map, obj) {
-    map[obj.timeslotId] = obj;
+    map[obj.restaurantId] = obj;
     return map;
   }, {});
 
   // Map the values to a new array
   var ret = [];
-  Object.keys(orders).forEach(function(timeslotid) {
+  Object.keys(orders).forEach(function(restaurantId) {
     ret.push({
-      timeslotid: timeslotid,
-      amount: calculateOrderAmount(orders[timeslotid]),
-      restaurantid: orders[timeslotid][0].menu.timeslot.restaurant.id,
-      restaurantStripeAccountId: orders[timeslotid][0].menu.timeslot.restaurant.restaurantStripeAccountId,
+      restaurantId: restaurantId,
+      amount: calculateOrderAmount(orders[restaurantId]),
+      restaurantStripeAccountId: orders[restaurantId][0].restaurant.restaurantStripeAccountId,
       metadata: {
         groupId: substr(req.groupId),
-        timeslotId: substr(timeslotid),
         email: substr(req.user.email),
         phoneNumber: substr(req.user.phoneNumber),
         firstName: substr(req.user.firstName),
         lastName: substr(req.user.lastName),
-        restaurantName: substr(orders[timeslotid][0].menu.timeslot.restaurant.name),
-        menuDate: substr(orders[timeslotid][0].menu.timeslot.date),
+        restaurantName: substr(orders[restaurantId][0].restaurant.name),
+        deliveryDate: substr(orders[restaurantId][0].deliveryDate),
       }
     });
   });
@@ -79,8 +77,8 @@ exports.createPaymentIntent = function(req, res) {
   // Check if payment exists 
 
   Promise.all(ret.map((order) => {
-      if(order.timeslotid in stripeorders) {
-        return stripe.paymentIntents.retrieve(stripeorders[order.timeslotid].paymentIntentId)
+      if(order.restaurantId in stripeorders) {
+        return stripe.paymentIntents.retrieve(stripeorders[order.restaurantId].paymentIntentId)
       } 
       else {
         var payload = {
@@ -101,14 +99,14 @@ exports.createPaymentIntent = function(req, res) {
       return [e, paymentIntents[i]];
     });
     Promise.all(retMod.map((order) => {
-        if(order[0].timeslotid in stripeorders) {
-          return stripeorders[order[0].timeslotid];
+        if(order[0].restaurantId in stripeorders) {
+          return stripeorders[order[0].restaurantId];
         } else {
           return Stripe.create({
             id: uuid(),
             userId: req.user.id,
             groupId: req.groupId,
-            timeslotId: order[0].timeslotid,
+            restaurantId: order[0].restaurantId,
             paymentIntentId: order[1].id,
             amount: order[0].amount,
           }); 
@@ -124,7 +122,7 @@ exports.createPaymentIntent = function(req, res) {
             clientSecret: order[1].client_secret,
             amount: order[0].amount,
             groupId: req.groupId,
-            timeslotId: order[0].timeslotid
+            restaurantId: order[0].restaurantId
           }
         }),
         stripeOrders: ret,
@@ -166,6 +164,7 @@ exports.oauth = function(req, res) {
           return res.status(404).json({message: 'No restaurant attached to user'});
         } else {
           restaurant.restaurantStripeAccountId = connected_account_id;
+          restaurant.verified = true;
           restaurant.save()
             .then(function(rest) {
               var ret = _.pick(rest, retAttributes);
@@ -207,9 +206,9 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
           where: {
             groupId: stripeorder.groupId,
           },
-          include: db.menu,
+          include: db.restaurant,
         }).then(function(orders) {
-          var orders = orders.filter((order) => order.menu.timeslotId === stripeorder.timeslotId);
+          var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
           var orderIds = orders.map((order) => order.id);
           Order.update(statusUpdate, {
             where: {

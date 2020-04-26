@@ -35,6 +35,12 @@
  *            type: string
  *          state:
  *            type: string
+ *          restaurantStripeAccountId:
+ *            type: string
+ *            description: Stripe account id.
+ *          verified:
+ *            type: boolean
+ *            description: Whether it's been verified.
  * tags:
  *   name: Restaurants
  *   description: Restaurant management

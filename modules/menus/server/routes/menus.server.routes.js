@@ -56,7 +56,7 @@ module.exports = function(app) {
     .all(menusPolicy.isAllowed)
     .get(menus.read)
     .put(menus.update) // Restaurant update (Good)
-    .all(menusPolicy.isFinalized)
+    // .all(menusPolicy.isFinalized)
     .delete(menus.delete) // Restaurant delete (Good)
     
 

@@ -43,19 +43,19 @@ module.exports = function(app) {
   //   .all(passport.authenticate('jwt', {session: false}))
   //   .get(stripe.checkout); // Good
 
-  if (process.env.NODE_ENV === 'development') {
-    app.route('/api/stripe/create-payment-intent')
+  // if (process.env.NODE_ENV === 'development') {
+  //   app.route('/api/stripe/create-payment-intent')
+  //     .all(passport.authenticate('jwt', {session: false}))
+  //     .all(stripePolicy.isNewOrder)
+  //     .all(stripePolicy.isOrderPaymentAllowed)
+  //     .post(stripe.createPaymentIntent); // Good
+  // } else {
+  app.route('/api/stripe/create-payment-intent')
     .all(passport.authenticate('jwt', {session: false}))
-      .all(stripePolicy.isNewOrder)
-      .all(stripePolicy.isOrderPaymentAllowed)
-      .post(stripe.createPaymentIntent); // Good
-  } else {
-    app.route('/api/stripe/create-payment-intent')
-      .all(passport.authenticate('jwt', {session: false}))
-      .all(stripePolicy.isNewOrder)
-      .all(stripePolicy.isOrderPaymentAllowed)
-      .post(stripe.createPaymentIntent); // Good
-  }
+    .all(stripePolicy.isNewOrder)
+    .all(stripePolicy.isOrderPaymentAllowed)
+    .post(stripe.createPaymentIntent); // Good
+  // }
 
   // the webhook route does not need authentication.  The signature is checked based on the data
   // that is posted to the webhook.

@@ -16,17 +16,24 @@ var
   Order = db.order,
   Cart = db.cart,
   Menu = db.menu,
+  Restaurant = db.restaurant,
   Stripe = db.stripe;
 
 const {Op} = require('sequelize');
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
+
+// const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
+// const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
+// const mealinfoRetAttributes = ['id', 'type', 'price'];
+// const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
+
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
-const retAttributes = ['id', 'date', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId', 'menuId'];
-const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
-const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
-const mealinfoRetAttributes = ['id', 'type', 'price'];
-const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
+const retAttributes = [
+  'id', 'orderDate', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId',
+  'deliveryDate', 'mealName', 'mealDescription',  'allergens', 'dietaryRestrictions', 'type', 'price',
+  'total', 'hospitalId', 'restaurantId'
+];
 const restRetAttributes = ['id', 'name', 'description', 'phoneNumber', 'email'];
 const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddress', 'zip', 'city', 'state', 'dropoffLocation', 'dropoffInfo'];
 
@@ -35,19 +42,42 @@ const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddres
  */
 exports.create = function(req, res) {
   var groupId = uuid();
-  var date = new Date().toISOString();
 
-  // For each, set same date, set same groupId, set individual id, set userId
+  // Map the menu ids to their items
+  var menus = req.menus.reduce(function(acc, cur) {
+      acc[cur.id] = cur;
+      return acc;
+    }, {});
+
+  // Generate the meal copies and add the uuid to each order, then bulk create
+  // the meals, then bulk create the orders
   var orders = req.body.orders.map((order) => {
+    var menu = menus[order.menuId]
+
     var ret = {};
-    ret.groupId = groupId;
-    ret.userId = req.user.id;
-    ret.date= date;
+    // Include info
     ret.id = uuid();
     ret.information = order.information;
     ret.quantity = order.quantity;
-    ret.menuId = order.menuId;
-    ret.hospitalId = order.hospitalId || req.user.hospitalId;
+
+    // Meal info
+    ret.deliveryDate = menu.timeslot.date;
+    ret.mealName = menu.mealName;
+    ret.mealDescription = menu.mealDescription;
+    ret.allergens = menu.allergens;
+    ret.dietaryRestrictions = menu.dietaryRestrictions;
+    ret.type = menu.mealinfo.type;
+    ret.price = menu.mealinfo.price;
+
+    // Compute total
+    ret.total = menu.mealinfo.price*order.quantity;
+
+    // Id info
+    ret.hospitalId = menu.timeslot.hospitalId;
+    ret.restaurantId = menu.timeslot.restaurantId;
+    ret.groupId = groupId;
+    ret.userId = req.user.id;
+
     return ret;
   });
 
@@ -87,30 +117,30 @@ exports.create = function(req, res) {
  * Update an order
  */
 exports.update = function(req, res) {
-  // For each, set same date, set same groupId, set individual id, set userId
-  var updateOrders = {};
-  req.body.orders.map((order)=> updateOrders[order.id] = order);
-  var groupId = '';
-  var orders = req.orders.map((order) => {
-    var order = order.toJSON();
-    var ord = updateOrders[order.id];
-    order.information = ord.information ? ord.information : order.information;
-    order.quantity = ord.quantity ? ord.quantity : order.quantity;
-    order.hospitalId = ord.hospitalId ? ord.hospitalId : order.hospitalId;
-    groupId = order.groupId;
-    return order;
-  });
+  // // For each, set same date, set same groupId, set individual id, set userId
+  // var updateOrders = {};
+  // req.body.orders.map((order)=> updateOrders[order.id] = order);
+  // var groupId = '';
+  // var orders = req.orders.map((order) => {
+  //   var order = order.toJSON();
+  //   var ord = updateOrders[order.id];
+  //   order.information = ord.information ? ord.information : order.information;
+  //   order.quantity = ord.quantity ? ord.quantity : order.quantity;
+  //   order.hospitalId = ord.hospitalId ? ord.hospitalId : order.hospitalId;
+  //   groupId = order.groupId;
+  //   return order;
+  // });
 
-  // TO DO -- SEND OUT EMAIL!!!
+  // // TO DO -- SEND OUT EMAIL!!!
 
-  Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId"]}).then(function() {
-    var ret = orders.map((order)=> _.pick(order, retAttributes));
-    res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully updated"});
-  }).catch(function(err) {
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
-    });
-  });
+  // Order.bulkCreate(orders, {updateOnDuplicate : ["information", "quantity", "hospitalId"]}).then(function() {
+  //   var ret = orders.map((order)=> _.pick(order, retAttributes));
+  //   res.jsonp({orders: ret, groupId: groupId, message: "Orders successfully updated"});
+  // }).catch(function(err) {
+  //   return res.status(400).send({
+  //     message: errorHandler.getErrorMessage(err)
+  //   });
+  // });
 };
 
 /**
@@ -118,11 +148,11 @@ exports.update = function(req, res) {
  */
 exports.userStatusUpdate = function(req, res) {
   // Check to make sure either group or order ids specified
-  if((req.body.orderIds || req.body.menuIds) && req.body.userStatus) {
+  if(req.body.orderIds && req.body.userStatus) {
     var query = {userId: req.user.id}
     if(req.body.orderIds) query.id = req.body.orderIds;
     // if(req.body.groupId) query.groupId = req.body.groupId;
-    if(req.body.menuIds) query.menuId = req.body.menuIds;
+    // if(req.body.menuIds) query.menuId = req.body.menuIds;
 
     Order.update({userStatus: req.body.userStatus}, {
       where: query
@@ -138,60 +168,78 @@ exports.userStatusUpdate = function(req, res) {
 };
 
 /**
- * User status an order
+ * NEEDS TO FIND THEIR RESTAURANT IDS
  */
 exports.restStatusUpdate = function(req, res) {
-  if((req.body.orderIds || req.body.menuIds) && req.body.restStatus) {
+
+  // TODO: Grab restuarant Ids then perform the update
+  if(req.body.orderIds && req.body.restStatus) {
+
     var orderQuery = {};
     if(req.body.orderIds) orderQuery.id = req.body.orderIds;
-    if(req.body.menuIds) orderQuery.menuId = req.body.menuIds;
 
-    var menuQuery = {userId: req.user.id};
-    // if(req.body.mealIds) menuQuery.mealId = req.body.mealIds;
-
-    Order.findAll({
-      where: orderQuery,
-      attributes: retAttributes,
-      include: {
-        model: db.menu,
-        where: menuQuery
+    Restaurant.findAll({
+      where: {
+        userId: req.user.id
       }
-    }).then(function(orders) {
-      if (!orders) {
-        return res.status(404).send({
-          message: 'No orders found'
-        });
-      } else {
-        var orderIds = orders.map((order) => order.id);
-        Order.update({restStatus: req.body.restStatus}, {
-          where: {
-            id: orderIds
+    }).then(function(restuarants) {
+      if(restuarants) {
+        orderQuery.restaurantId = restuarants.map((rest) => rest.id);
+
+
+
+        Order.findAll({
+          where: orderQuery,
+          attributes: retAttributes
+        }).then(function(orders) {
+          if (!orders) {
+            return res.status(404).send({
+              message: 'No orders found'
+            });
+          } else {
+            var orderIds = orders.map((order) => order.id);
+            Order.update({restStatus: req.body.restStatus}, {
+              where: {
+                id: orderIds
+              }
+            }).then(function() {
+              var ret = orders.map((order)=> _.pick(order, retAttributes));
+              return res.jsonp({orders: ret, message: "Orders successfully updated"});
+            }).catch(function(err) {
+              return res.status(400).send({
+                message: errorHandler.getErrorMessage(err)
+              });
+            });
           }
-        }).then(function() {
-          var ret = orders.map((order)=> _.pick(order, retAttributes));
-          return res.jsonp({orders: ret, message: "Orders successfully updated"});
         }).catch(function(err) {
           return res.status(400).send({
             message: errorHandler.getErrorMessage(err)
           });
         });
-      }
+
+
+
+      } else {
+        return res.status(400).send({
+          message: "Please include orderids/menuids/reststatus"
+        });   
+      } 
     }).catch(function(err) {
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
+      return res.status(500).send({
+        message: "An error occured"
+      });   
     });
   } else {
-     return res.status(400).send({
+    return res.status(400).send({
       message: "Please include orderids/menuids/reststatus"
-    });   
+    });    
   }
 };
 
 
 const calculateOrderAmount = orders => {
   if(orders) {
-    var sum = orders.map((order) => Number(order.quantity) * Number(order.menu.meal.mealinfo.price)).reduce((a,b) => a + b, 0)
+    var sum = orders.map((order) => order.total).reduce((a,b) => a + b, 0)
     return Math.floor(sum * 100);
   } else {
     return 0;
@@ -199,7 +247,10 @@ const calculateOrderAmount = orders => {
 };
 
 const calculateTotalAmount = orders => {
-  var sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0)
+  var sum = 0;
+  if(orders.length){
+    sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0);
+  }
   return sum
 }
 
@@ -209,7 +260,6 @@ const calculateTotalAmount = orders => {
 exports.delete = function(req, res) {
   var orderIds = req.orders.map((order) => order.id);
   var groupId = req.body.groupId;
-
   async.waterfall([
       function(done) {
         // Sort the orders by
@@ -219,21 +269,15 @@ exports.delete = function(req, res) {
             groupId: groupId,
             deleted: false
           },
-          include: {
-            model: db.menu,
-            include: {
-              model: db.meal,
-              include: db.mealinfo
-            }
-          }
+          include: db.restaurant
         }).then(function(ordersRet) {
           var orders = ordersRet.reduce(function(map, obj) {
-            var timeslotid = obj.menu.timeslotId;
-            if(!(timeslotid in map)) {
-              map[timeslotid] = [];
+            var restaurantId = obj.restaurantId;
+            if(!(restaurantId in map)) {
+              map[restaurantId] = [];
             }
             if(!(orderIds.includes(obj.id))) {
-              map[timeslotid].push(obj);
+              map[restaurantId].push(obj);
             }
             return map;
           }, {});
@@ -251,7 +295,7 @@ exports.delete = function(req, res) {
         })
         .then(function(stripeorders) {
           var stripeorders = stripeorders.reduce(function(map, obj) {
-            map[obj.timeslotId] = obj;
+            map[obj.restaurantId] = obj;
             return map;
           }, {});
           var refunds = [];
@@ -262,7 +306,7 @@ exports.delete = function(req, res) {
                 newAmount: calculateOrderAmount(orders[key]),
                 refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
                 stripePaymentId: stripeorders[key].paymentIntentId,
-                timeslotid: key
+                restaurantId: key
               });
             }
           });
@@ -275,10 +319,10 @@ exports.delete = function(req, res) {
         if(refunds.length) {
           var ors = req.orders.map((order) => {
               return {
-                name: order.menu.meal.name,
+                name: order.mealName,
                 quantity: order.quantity,
-                totalPrice: order.quantity * order.menu.meal.mealinfo.price,
-                restaurant: order.menu.timeslot.restaurant.name
+                totalPrice: order.total,
+                restaurant: order.restaurant.name
               }
             });
           res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
@@ -371,7 +415,7 @@ exports.delete = function(req, res) {
       // },
       // Mark the orders as deleted
       function(refunds, done) {
-        Order.update({deleted: true, payStatus: 'REFUNDED'}, {
+        Order.update({deleted: true, payStatus: 'REFUNDED', userStatus: 'CANCELLED'}, {
           where: {
             userId: req.user.id,
             id: orderIds
@@ -387,7 +431,6 @@ exports.delete = function(req, res) {
           }
           done(null);
         }).catch(function(err) {
-          console.log(err);
           done(err);
         });
       }
@@ -402,53 +445,6 @@ exports.delete = function(req, res) {
     });
 };
 
-
-// exports.forgot = function(req, res, next) {
-//   async.waterfall([
-//     // Send the email
-    // function(token, user, done) {
-    //   res.render(path.resolve('modules/users/server/templates/password-recovery'), {
-    //     name: user.displayName,
-    //     emailAddress: config.mailer.email,
-    //     url: url + '?passwordToken=' + token
-    //   }, function(err, emailHTML) {
-    //     done(err, emailHTML, user);
-    //   });
-    // },
-//     // If valid email, send reset email using service
-    // function(emailHTML, user, done) {
-    //   var mailOptions = {
-    //     to: user.email,
-    //     from: config.mailer.from,
-    //     subject: 'Password Reset',
-    //     html: emailHTML,
-    //     attachments: [{
-    //       filename: 'nourished_logo.png',
-    //       path: path.resolve('./modules/users/server/images/nourished_logo.png'),
-    //       cid: 'nourishedlogo' //same cid value as in the html img src
-    //     }]
-    //   };
-    //   smtpTransport.sendMail(mailOptions, function(err) {
-    //     if (!err) {
-    //       res.send({
-    //         message: 'An email has been sent to the provided email with further instructions.'
-    //       });
-    //     } else {
-    //       return res.status(400).send({
-    //         message: 'Failure sending email'
-    //       });
-    //     }
-    //     done(err);
-    //   });
-//     }
-//   ], function(err) {
-//     if (err) {
-//       return next(err);
-//     }
-//   });
-// };
-
-
 var formatDate = function(query) {
   if (query.startDate && query.endDate) return{[Op.gte]: query.startDate, [Op.lte] : query.endDate};
   if (query.startDate) return {[Op.gte] : query.startDate};
@@ -460,40 +456,19 @@ var formatDate = function(query) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
-  // if(req.query.menuId) query.menuId = req.query.menuId;
-  // if(req.query.hospitalId) query.hospitalId = req.query.hospitalId;
-  // if(req.query.groupId) query.groupId = req.query.groupId;
-  // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
-  // if(req.query.userStatus) query.userStatus = req.query.userStatus;
-  // if(req.query.restStatus) query.restStatus = req.query.restStatus;
-  // if(req.query.payStatus) query.payStatus = req.query.payStatus;
-  // if(req.query.quantity) query.quantity = req.query.quantity;
+  // if(req.query.startDate || req.query.endDate) query.deliveryDate = formatDate(req.query);
 
   Order.findAll({
     where: query,
     attributes: retAttributes,
-    include: {
-      model: db.menu,
-      attributes: menuRetAttributes,
-      include: [{
-        model: db.meal,
-        attributes: mealRetAttributes,        
-        include: {
-          model: db.mealinfo,
-          attributes: mealinfoRetAttributes
-        }
-      }, {
-        model: db.timeslot,
-        attributes: timeslotRetAttributes,
-        include: [{
-          model: db.restaurant,
-          attributes: restRetAttributes
-        }, {
-          model: db.hospital,
-          attributes: hospRetAttributes
-        }]
-      }]
-    }
+    include: 
+    [{
+      model: db.restaurant,
+      attributes: restRetAttributes
+    }, {
+      model: db.hospital,
+      attributes: hospRetAttributes
+    }]
   }).then(function(orders) {
     if (!orders) {
       return res.status(404).send({
@@ -508,58 +483,56 @@ exports.userList = function(req, res) {
 };
 
 /**
- * List of restaurant orders
+ * List of restaurant orders (NEED TO SOLVE FOR THIS)
  */
 exports.restList = function(req, res) {
   var orderQuery = {};
-  if(req.query.menuId) orderQuery.menuId = req.query.menuId;
-  // if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
-  // if(req.query.userStatus) orderQuery.userStatus = req.query.userStatus;
-  // if(req.query.restStatus) orderQuery.restStatus = req.query.restStatus;
-  // if(req.query.payStatus) orderQuery.payStatus = req.query.payStatus;
 
-  var menuQuery = {userId: req.user.id};
-  if(req.query.mealId) menuQuery.mealId = req.query.mealId;
+  // TODO: Grab restuarant Ids then perform query
+  // if(req.query.startDate || req.query.endDate) orderQuery.deliveryDate = formatDate(req.query);
 
-  Order.findAll({
-    where: orderQuery,
-    attributes: retAttributes,
-    include: {
-      model: db.menu,
-      where: menuQuery,
-      attributes: menuRetAttributes,
-      include: [{
-        model: db.meal,
-        attributes: mealRetAttributes,        
-        include: {
-          model: db.mealinfo,
-          attributes: mealinfoRetAttributes
-        }
-      }, {
-        model: db.timeslot,
-        attributes: timeslotRetAttributes,
-        include: [{
-          model: db.restaurant,
-          attributes: restRetAttributes
-        }, {
-          model: db.hospital,
-          attributes: hospRetAttributes
-        }]
-      }]
+  Restaurant.findAll({
+    where: {
+      userId: req.user.id
     }
-  }).then(function(orders) {
-    if (!orders) {
-      return res.status(404).send({
-        message: 'No orders found'
+  }).then(function(restuarants) {
+    if(restuarants) {
+      orderQuery.restaurantId = restuarants.map((rest) => rest.id);
+
+      Order.findAll({
+        where: orderQuery,
+        attributes: retAttributes,
+        include: 
+          [{
+            model: db.restaurant,
+            attributes: restRetAttributes
+          }, {
+            model: db.hospital,
+            attributes: hospRetAttributes
+          }]
+      }).then(function(orders) {
+        if (!orders) {
+          return res.status(404).send({
+            message: 'No orders found'
+          });
+        } else {
+          res.jsonp({orders: orders, message: "Orders successfully found"});
+        }
+      }).catch(function(err) {
+        console.log(err);
+        return res.status(400).send({
+          message: errorHandler.getErrorMessage(err)
+        });
       });
     } else {
-      res.jsonp({orders: orders, message: "Orders successfully found"});
+      return res.status(400).send({
+        message: "No restuarants associated with user"
+      });   
     }
   }).catch(function(err) {
-    console.log(err);
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
-    });
+    return res.status(500).send({
+      message: "An error occured"
+    });   
   });
 };
 
@@ -568,64 +541,67 @@ exports.restList = function(req, res) {
  */
 exports.restListItemized = function(req, res) {
   var orderQuery = {};
-  if(req.query.menuId) orderQuery.menuId = req.query.menuId;
-  if(req.query.startDate || req.query.endDate) orderQuery.date = formatDate(req.query);
 
-  var menuQuery = {userId: req.user.id};
-  if(req.query.mealId) menuQuery.mealId = req.query.mealId;
+  // TODO: Grab restuarant Ids then perform query
+  // if(req.query.startDate || req.query.endDate) orderQuery.deliveryDate = formatDate(req.query);
 
-  Order.findAll({
-    where: orderQuery,
-    attributes: retAttributes,
-    include: {
-      model: db.menu,
-      where: menuQuery,
-      attributes: menuRetAttributes,
-      include: [{
-        model: db.meal,
-        attributes: mealRetAttributes,        
-        include: {
-          model: db.mealinfo,
-          attributes: mealinfoRetAttributes
-        }
-      }, {
-        model: db.timeslot,
-        attributes: timeslotRetAttributes,
-        include: [{
+  Restaurant.findAll({
+    where: {
+      userId: req.user.id
+    }
+  }).then(function(restuarants) {
+    if(restuarants) {
+      orderQuery.restaurantId = restuarants.map((rest) => rest.id);
+
+      Order.findAll({
+        where: orderQuery,
+        attributes: retAttributes,
+        include: 
+        [{
           model: db.restaurant,
           attributes: restRetAttributes
         }, {
           model: db.hospital,
           attributes: hospRetAttributes
         }]
-      }]
-    }
-  }).then(function(orders) {
-    if (!orders) {
-      return res.status(404).send({
-        message: 'No orders found'
-      });
-    } else {
-      // Map out the orders
-      var ret = orders.map(function(order) {
-        var orderList = [];
-        var orderQuantity = Number(order.quantity);
-        for(var i=0; i < orderQuantity; i++) {
-          var toPush = order.toJSON();
-          toPush.quantity = 1;
-          orderList.push(toPush);
+      }).then(function(orders) {
+        if (!orders) {
+          return res.status(404).send({
+            message: 'No orders found'
+          });
+        } else {
+          // Map out the orders
+          var ret = orders.map(function(order) {
+            var orderList = [];
+            var orderQuantity = Number(order.quantity);
+            for(var i=0; i < orderQuantity; i++) {
+              var toPush = order.toJSON();
+              toPush.quantity = 1;
+              orderList.push(toPush);
+            }
+            return orderList
+          });
+          // Flatten that bad boy
+          ret = ret.flat(1);
+          res.jsonp({orders: ret, message: "Orders successfully found - itemized"});
         }
-        return orderList
+      }).catch(function(err) {
+        console.log(err);
+        return res.status(400).send({
+          message: errorHandler.getErrorMessage(err)
+        });
       });
-      // Flatten that bad boy
-      ret = ret.flat(1);
-      res.jsonp({orders: ret, message: "Orders successfully found - itemized"});
+
+    } else {
+      return res.status(400).send({
+        message: "No restuarants associated with user"
+      });   
     }
   }).catch(function(err) {
     console.log(err);
-    return res.status(400).send({
-      message: errorHandler.getErrorMessage(err)
-    });
+    return res.status(500).send({
+      message: "An error occured"
+    });   
   });
 };
 
@@ -638,7 +614,7 @@ exports.orderByID = function(req, res, next, id) {
     where: {
       id: id
     },
-    include: {model: db.menu, include: [{model: db.meal, include: db.mealinfo}, {model: db.timeslot, include: db.restaurant}]}
+    include: [db.hospital, db.restaurant]
   }).then(function(order) {
     if (!order) {
       return res.status(404).send({

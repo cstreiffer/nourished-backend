@@ -23,10 +23,32 @@ module.exports = function(sequelize, DataTypes) {
     visible: {
       type: Sequelize.BOOLEAN,
       defaultValue: true
-    }
+    },
+    mealName: {
+      type: DataTypes.STRING,
+      defaultValue: ''
+    },
+    mealDescription: {
+      type: DataTypes.TEXT,
+      defaultValue: ''
+    },
+    dietaryRestrictions: {
+      type: DataTypes.JSONB,
+      defaultValue: [],
+      isArray: true
+    },
+    allergens: {
+      type: DataTypes.JSONB,
+      defaultValue: [],
+      isArray: true
+    },
+    imageURL: {
+      type: DataTypes.STRING,
+      defaultValue: ''
+    },
   }, {
     associate: function(models) {
-      Menu.belongsTo(models.meal, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
+      Menu.belongsTo(models.mealinfo, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Menu.belongsTo(models.timeslot, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
       Menu.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
