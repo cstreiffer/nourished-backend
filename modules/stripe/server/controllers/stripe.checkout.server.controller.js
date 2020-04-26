@@ -19,7 +19,7 @@ var
 
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'groupId', 'restaurantId', 'amount', 'paymentIntentId'];
-const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
+const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
 
 const calculateOrderAmount = orders => {
   var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
@@ -164,6 +164,7 @@ exports.oauth = function(req, res) {
           return res.status(404).json({message: 'No restaurant attached to user'});
         } else {
           restaurant.restaurantStripeAccountId = connected_account_id;
+          restaurant.verified = true;
           restaurant.save()
             .then(function(rest) {
               var ret = _.pick(rest, retAttributes);

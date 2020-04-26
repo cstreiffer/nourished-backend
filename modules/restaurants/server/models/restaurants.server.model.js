@@ -86,6 +86,10 @@ module.exports = function(sequelize, DataTypes) {
     restaurantStripeAccountId: {
       type: DataTypes.STRING,
       defaultValue: ''
+    },
+    verified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
     }
   }, {
     associate: function(models) {

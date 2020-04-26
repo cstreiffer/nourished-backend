@@ -14,15 +14,17 @@ var
 
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
-const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId'];
+const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
 
 /**
  * Create a restaurant
  */
 exports.create = function(req, res) {
   delete req.body.id;
-  req.body.id = uuid();
+  delete req.body.restaurantStripeAccountId;
+  delete req.body.verified;
 
+  req.body.id = uuid();
   req.body.userId = req.user.id;
 
   Restaurant.create(req.body).then(function(restaurant) {
