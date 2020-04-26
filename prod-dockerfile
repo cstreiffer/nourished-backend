@@ -1,5 +1,7 @@
 FROM node:13.12
 
+WORKDIR /usr/src/nourished-backend
+
 # Copy the working directory
 COPY ./ ./
 RUN npm install
