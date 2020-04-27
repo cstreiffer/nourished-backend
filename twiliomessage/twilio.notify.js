@@ -14,7 +14,7 @@ var
 
 // var MESSAGE_BODY = 'Hi, Nourished here with your weekly menu of delicious, local meals! Place your orders here: https://forms.gle/V9snRoQNuYbu8KCAA. Our improved platform will arrive later this week - we promise! We’re grapeful for your patience as we get it ready for you! 🍇🙂';
 // var MESSAGE_BODY = 'Don\'t forget that Nourished will be at Preby today with lunch from Baology at 12pm and dinner from On Poin Bistro at 8pm! Place your orders here: https://forms.gle/V9snRoQNuYbu8KCAA';
-var MESSAGE_BODY = 'Don\'t forget that Nourished will be at Presby today with lunch from Baology at 12pm and dinner from On Poin Bistro at 8pm! Place your orders for lunch by 10:30am and dinner by 6pm here:\nhttps://forms.gle/V9snRoQNuYbu8KCAA'
+// var MESSAGE_BODY = 'Don\'t forget that Nourished will be at Presby today with lunch from Baology at 12pm and dinner from On Poin Bistro at 8pm! Place your orders for lunch by 10:30am and dinner by 6pm here:\nhttps://forms.gle/V9snRoQNuYbu8KCAA'
 
 var sendMessage = function(user, textBody) {
   var to = '+' + user.cell_phone;
@@ -39,7 +39,7 @@ async.waterfall([
   function(done) {
     // done(null, USERS);
     csvtojsonV2()
-      .fromFile('twiliomessage/users.csv')
+      .fromFile(path.resolve('twiliomessage/users.csv'))
       .then(function(users) {
         users = users.concat(USERS);
         done(null, users);
