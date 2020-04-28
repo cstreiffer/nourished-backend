@@ -3,7 +3,7 @@
 /**
  * Module dependencies.
  */
-var 
+var
   _ = require('lodash'),
   path = require('path'),
   config = require(path.resolve('./config/config')),
@@ -28,7 +28,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 // const mealinfoRetAttributes = ['id', 'type', 'price'];
 // const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
 
-//  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId 
+//  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId
 const retAttributes = [
   'id', 'orderDate', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId',
   'deliveryDate', 'mealName', 'mealDescription',  'allergens', 'dietaryRestrictions', 'type', 'price',
@@ -163,7 +163,7 @@ exports.userStatusUpdate = function(req, res) {
   } else {
      return res.status(400).send({
       message: "Please include orderids/menuids/userstatus"
-    });  
+    });
   }
 };
 
@@ -222,17 +222,17 @@ exports.restStatusUpdate = function(req, res) {
       } else {
         return res.status(400).send({
           message: "Please include orderids/menuids/reststatus"
-        });   
-      } 
+        });
+      }
     }).catch(function(err) {
       return res.status(500).send({
         message: "An error occured"
-      });   
+      });
     });
   } else {
     return res.status(400).send({
       message: "Please include orderids/menuids/reststatus"
-    });    
+    });
   }
 };
 
@@ -313,11 +313,59 @@ exports.delete = function(req, res) {
           done(null, refunds);
         }).catch(function(err) {
           done(err);
-        })
+        });
       },
-      function(refunds, done) {
-        if(refunds.length) {
-          var ors = req.orders.map((order) => {
+        // Issue the refunds
+        function(refunds, done) {
+          const refundIntents = [];
+
+          refunds.forEach((refund) => {
+            const options = {
+              payment_intent: refund.stripePaymentId,
+              amount: refund.oldAmount - refund.newAmount,
+            };
+            refundIntents.push(stripe.refunds.create(options));
+          });
+
+          Promise
+              .all(refundIntents)
+              .then(function(refundResponses) {
+                const refs = refundResponses.map(function(e, i) {
+                  return [e, refunds[i]];
+                });
+                done(null, refs, refunds);
+              })
+              .catch(function(err) {
+                console.log('Issue refunds error:', err);
+                return done(err);
+              });
+        },
+        // Mark the orders as deleted
+        function(refunds, originalRefundsObj, done) {
+          Order.update({deleted: true, payStatus: 'REFUNDED', userStatus: 'CANCELLED'}, {
+            where: {
+              userId: req.user.id,
+              id: orderIds
+            }
+          }).then(function(orders) {
+            if(refunds.length) {
+              var ret = req.orders.map((order)=> _.pick(order, retAttributes));
+              res.jsonp({orders: ret, message: "Orders marked as deleted"});
+              done(null, originalRefundsObj);
+            } else {
+              return res.status(402).send({
+                message: 'Orders marked as deleted but no associated payment intents'
+              });
+            }
+          }).catch(function(err) {
+            console.log('Mark the orders as deleted error:', err);
+            done(err);
+          });
+        },
+        // send email confirmations
+        function(refunds, done) {
+          if(refunds.length) {
+            var ors = req.orders.map((order) => {
               return {
                 name: order.mealName,
                 quantity: order.quantity,
@@ -325,121 +373,74 @@ exports.delete = function(req, res) {
                 restaurant: order.restaurant.name
               }
             });
-          res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
+            res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
+              date: new Date().toISOString(),
+              emailAddress: config.mailer.email,
+              totalAmount: calculateTotalAmount(refunds),
+              orders: ors
+            }, function(err, emailHTML) {
+              done(err, emailHTML, refunds);
+            });
+          } else {
+            done(null, null, refunds);
+          }
+        },
+        function(emailHTML, refunds, done) {
+          if(refunds.length) {
+            var mailOptions = {
+              to: req.user.email,
+              from: config.mailer.from,
+              subject: 'Order Cancellation - Confirmation',
+              html: emailHTML
+            };
+            smtpTransport.sendMail(mailOptions)
+                .then(function(){
+                  done(null, refunds);
+                }).catch(function(err) {
+              done(err);
+            })
+          } else {
+            done(null, refunds);
+          }
+        },
+        function(refunds, done) {
+          res.render(path.resolve('modules/orders/server/templates/admin-order-cancel-confirmation'), {
+            fullName: req.user.firstName + ' ' + req.user.lastName,
+            phoneNumber: req.user.phoneNumber,
             date: new Date().toISOString(),
-            emailAddress: config.mailer.email,
+            emailAddress: req.user.email,
             totalAmount: calculateTotalAmount(refunds),
-            orders: ors
+            refunds: refunds
           }, function(err, emailHTML) {
             done(err, emailHTML, refunds);
           });
-        } else {
-          done(null, null, refunds);
-        }
-      },
-      function(emailHTML, refunds, done) {
-        if(refunds.length) {
+        },
+        function(emailHTML, refunds, done) {
           var mailOptions = {
-            to: req.user.email,
+            to: config.mailer.errorEmails,
             from: config.mailer.from,
-            subject: 'Order Cancellation - Confirmation',
+            subject: 'Order Cancellation - Report',
             html: emailHTML
           };
           smtpTransport.sendMail(mailOptions)
-            .then(function(){
-              done(null, refunds);
-            }).catch(function(err) {
-              done(err);
-            })
-        } else {
-          done(null, refunds);
-        }
-      },
-      function(refunds, done) {
-        res.render(path.resolve('modules/orders/server/templates/admin-order-cancel-confirmation'), {
-          fullName: req.user.firstName + ' ' + req.user.lastName,
-          phoneNumber: req.user.phoneNumber,
-          date: new Date().toISOString(),
-          emailAddress: req.user.email,
-          totalAmount: calculateTotalAmount(refunds),
-          refunds: refunds
-        }, function(err, emailHTML) {
-          done(err, emailHTML, refunds);
-        });
-      },
-      function(emailHTML, refunds, done) {
-        var mailOptions = {
-          to: config.mailer.errorEmails,
-          from: config.mailer.from,
-          subject: 'Order Cancellation - Report',
-          html: emailHTML
-        };
-        smtpTransport.sendMail(mailOptions)
-          .then(function(){
-            done(null, refunds);
-          }).catch(function(err) {
+              .then(function(){
+                done(null, refunds);
+              }).catch(function(err) {
             done(err);
           });
-      },
-      // // Issue the refunds
-      // function(refunds, done) {
-      //   console.log(refunds);
-
-      //   Promise.all(refunds.map(function(refund) {
-      //       stripe.refunds.create({
-      //         payment_intent: refund.paymentIntentId,
-      //         amount: refund.oldAmount - refund.newAmount
-      //       })
-      //     })
-      //   ).then(function(refundResponses) {
-      //     var refs = refundResponses.map(function(e, i) {
-      //       return [e, refunds[i]];
-      //     });
-      //     done(null, refs);
-      //   }).catch(function(err) {
-      //     done(err);
-      //   })
-      // },
-      // function(refunds, done) {
-      //   Promise.all(refunds.map((refund) => {
-      //     Stripe.update({refundId : refund[0].id}, {
-      //       where: {
-      //         paymentIntentId: refund[1].paymentIntentId,
-      //       }
-      //     })
-      //   })).then(function(stripes) {
-      //     done(null);
-      //   }).catch(function(err) {
-      //     done(err);
-      //   })
-      // },
-      // Mark the orders as deleted
-      function(refunds, done) {
-        Order.update({deleted: true, payStatus: 'REFUNDED', userStatus: 'CANCELLED'}, {
-          where: {
-            userId: req.user.id,
-            id: orderIds
-          }
-        }).then(function(orders) {
-          if(refunds.length) {
-            var ret = req.orders.map((order)=> _.pick(order, retAttributes));
-            res.jsonp({orders: ret, message: "Orders markerd as deleted"});
-          } else {
-            return res.status(402).send({
-              message: 'Orders marked as deleted but no associated payment intents'
-            });   
-          }
-          done(null);
-        }).catch(function(err) {
-          done(err);
-        });
-      }
+        },
     ],
     function(err) {
+      // TODO get actual error messages language from Ryan
       if(err) {
         console.log(err);
-        return res.status(404).send({
-          message: 'Broke something'
+
+        if (err.code === 'charge_already_refunded') {
+          return res.status(400).json({ message: 'This charge has already been refunded.' });
+        }
+
+        return res.status(500).send({
+          message: 'There was a problem processing your payment refund.'
         });
       }
     });
@@ -461,7 +462,7 @@ exports.userList = function(req, res) {
   Order.findAll({
     where: query,
     attributes: retAttributes,
-    include: 
+    include:
     [{
       model: db.restaurant,
       attributes: restRetAttributes
@@ -502,7 +503,7 @@ exports.restList = function(req, res) {
       Order.findAll({
         where: orderQuery,
         attributes: retAttributes,
-        include: 
+        include:
           [{
             model: db.restaurant,
             attributes: restRetAttributes
@@ -527,12 +528,12 @@ exports.restList = function(req, res) {
     } else {
       return res.status(400).send({
         message: "No restuarants associated with user"
-      });   
+      });
     }
   }).catch(function(err) {
     return res.status(500).send({
       message: "An error occured"
-    });   
+    });
   });
 };
 
@@ -556,7 +557,7 @@ exports.restListItemized = function(req, res) {
       Order.findAll({
         where: orderQuery,
         attributes: retAttributes,
-        include: 
+        include:
         [{
           model: db.restaurant,
           attributes: restRetAttributes
@@ -595,13 +596,13 @@ exports.restListItemized = function(req, res) {
     } else {
       return res.status(400).send({
         message: "No restuarants associated with user"
-      });   
+      });
     }
   }).catch(function(err) {
     console.log(err);
     return res.status(500).send({
       message: "An error occured"
-    });   
+    });
   });
 };
 
