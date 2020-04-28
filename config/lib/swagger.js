@@ -15,7 +15,7 @@ const options = {
         "Highlights the different swagger routes",
     },
     servers: [
-      {url: "https://nourished-dev.uphs.upenn.edu/api"},
+      {url: "https://nourished-api-dev.uphs.upenn.edu/api"},
       {
         url: "http://localhost:3000/api"
       }
