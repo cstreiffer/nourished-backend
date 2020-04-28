@@ -74,12 +74,12 @@ exports.createPaymentIntent = function(req, res) {
   //   destination: order.restaurantStripeAccountId,
   // },
 
-  // Check if payment exists 
+  // Check if payment exists
 
   Promise.all(ret.map((order) => {
       if(order.restaurantId in stripeorders) {
         return stripe.paymentIntents.retrieve(stripeorders[order.restaurantId].paymentIntentId)
-      } 
+      }
       else {
         var payload = {
           amount: order.amount,
@@ -109,7 +109,7 @@ exports.createPaymentIntent = function(req, res) {
             restaurantId: order[0].restaurantId,
             paymentIntentId: order[1].id,
             amount: order[0].amount,
-          }); 
+          });
         }
       })
     ).then(function(stripeOrders) {
@@ -173,7 +173,7 @@ exports.oauth = function(req, res) {
             .catch(function(err) {
               console.log(err);
               return res.status(500).json({message: 'Restaurant failed to save'});
-            });  
+            });
         }
       }).catch(function(err) {
         console.log(err);
@@ -226,7 +226,7 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
       } else {
         return res.status(400).send({
           message: "No associated stripe order"
-        });  
+        });
       }
     }).catch(function(err) {
       console.log(err);
@@ -293,6 +293,12 @@ exports.webhook = function(req, res) {
     case 'payment_intent.canceled':
       console.log('stripe.webhook payment_intent.canceled: ');
       updateOrderStatus(data.id, {payStatus: 'REFUNDED'}, res);
+      break;
+
+    case 'charge.succeeded':
+    case 'charge.refunded':
+      console.log('stripe.webhook charge.succeeded or charge.refunded');
+      res.status(200).json({ received: true });
       break;
 
     default:
