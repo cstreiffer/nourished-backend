@@ -10,6 +10,7 @@ var
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Restaurant = db.restaurant,
+  Order = db.order,
   uuid = require('uuid/v4');
 
 // Define return
@@ -147,6 +148,102 @@ exports.userList = function(req, res) {
   }).catch(function(err) {
     res.jsonp(err);
   });
+};
+
+
+const { Parser } = require('json2csv');
+const parser = new Parser();
+var fs = require('fs');
+const {Op} = require('sequelize');
+var  nodemailer = require('nodemailer');
+var  path = require('path');
+var config = require(path.resolve('./config/config'));
+var smtpTransport = nodemailer.createTransport(config.mailer.options);
+
+/**
+ * List of restaurant orders itemized
+ */
+exports.export = function(req, res) {
+  var orderQuery = {
+    restaurantId : req.restaurant.id,
+    deliveryDate: {
+      [Op.gte]: new Date(Date.now()),
+      [Op.lte] : new Date(Date.now() + 24*60*60*1000),
+    }
+  };
+    Order.findAll({
+      where: orderQuery,
+      include: [db.restaurant, db.hospital, db.user]
+    }).then(function(orders) {
+      
+      if (!orders) {
+        return res.status(404).send({
+          message: 'No orders found'
+        });
+      } else {
+        // Map out the orders
+        var ret = orders.map(function(order) {
+          var orderList = [];
+          var orderQuantity = Number(order.quantity);
+          for(var i=0; i < orderQuantity; i++) {
+            var toPush = order.toJSON();
+            toPush.quantity = 1;
+            orderList.push(toPush);
+          }
+          return orderList
+        });
+        // Flatten that bad boy (extract values)
+        ret = ret.flat(1).map((order) => {
+          return {
+            user: order.user.username,
+            order: order.mealName,
+            deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {timeZone: "America/New_York"}),
+            orderDate: new Date(order.orderDate).toLocaleString("en-US", {timeZone: "America/New_York"}),
+            payStatus: order.payStatus,
+            allergies: order.information,
+            hospital: order.hospital.name
+          }
+        });
+
+        var data = parser.parse(ret);
+        var outFile = path.resolve('private/restaurants/' + new Date().toISOString() + '.csv');
+        fs.writeFile(outFile, data, function(err, data) {
+          if(err) {
+            return res.status(400).send({
+              message: errorHandler.getErrorMessage(err)
+            });
+          } else {
+            // To Do (send Email);
+            var date = new Date().toLocaleString("en-US", {timeZone: "America/New_York"})
+            var mailOptions = {
+              to: req.user.email,
+              from: config.mailer.from,
+              subject: 'Nourished Order Report - ' + req.restaurant.name,
+              attachments: [
+                {
+                  filename: req.restaurant.name + ' - ' + date + ' Report.csv',
+                  content: fs.createReadStream(outFile)
+                }
+              ]
+            };
+            smtpTransport.sendMail(mailOptions)
+              .then(function(){
+                // Send the response
+                res.jsonp({message: "Orders successfully sent"});
+              }).catch(function(err) {
+                return res.status(400).send({
+                  message: errorHandler.getErrorMessage(err)
+                });
+              })
+          }
+        });
+      }
+    }).catch(function(err) {
+      console.log(err);
+      return res.status(400).send({
+        message: errorHandler.getErrorMessage(err)
+      });
+    });
 };
 
 /**

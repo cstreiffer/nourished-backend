@@ -122,10 +122,10 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
             <td align="center" valign="top" style="padding:0 25px;" class="em_aside10">
               <table width="100%" border="0" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <th width=25% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Restaurant</th>
-                  <th width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Meal</th>
-                  <th width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Quantity</th>
-                  <th width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Refund</th>
+                  <th width=40% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Restaurant</th>
+                  <th width=40% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Meal</th>
+                  <th width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Quantity</th>
+                  <th width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 10px; color:#264780; font-weight:bold;">Refund</th>
                 </tr>
                 <tr> 
                   <td> <hr /> </td>
@@ -135,10 +135,10 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
                 </tr>
                 {% for x in orders %}
                   <tr>
-                    <td width=25% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.restaurant}}</td>
-                    <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.name}}</td>
-                    <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.quantity}}</td>
-                    <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#FF0000; font-weight:bold;">${{x.totalPrice.toFixed(2)}}</td>
+                    <td width=40% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.restaurant}}</td>
+                    <td width=40% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.name}}</td>
+                    <td width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.quantity}}</td>
+                    <td width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#FF0000; font-weight:bold;">${{x.totalPrice}}</td>
                   </tr>
                 {% endfor %}
                 <tr> 

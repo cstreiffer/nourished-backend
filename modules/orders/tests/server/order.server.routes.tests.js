@@ -64,7 +64,7 @@ var
   menu4 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot2.id,  finalized: true},
   menu5 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot1.id,  finalized: true, visible: false},
   menu6 = {id: uuid(), userId: restaurantCredentials2.id, ...meal2, timeslotId: timeslot1.id,  finalized: false},
-  order = {quantity: 5, information: "Allergic to nuts."};
+  order = {quantity: 5, information: "Allergic to nuts.", mealName: "Fish Tacos from Goldie", total: 25.00};
 
 describe('Order CRUD tests', function() {
 before(function(done) {
