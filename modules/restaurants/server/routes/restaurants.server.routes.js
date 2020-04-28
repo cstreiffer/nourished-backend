@@ -47,6 +47,11 @@ module.exports = function(app) {
     .put(restaurants.update) // Good
     .delete(restaurants.delete); // Good
 
+  app.route('/api/rest/restaurants/:restaurantId/export')
+    .all(passport.authenticate('jwt', {session: false}))
+    .all(restaurantsPolicy.isAllowed)
+    .post(restaurants.export) // Good
+
   // Finish by binding the restaurant middleware
   app.param('restaurantId', restaurants.restaurantByID);
 
