@@ -87,7 +87,7 @@ exports.createPaymentIntent = function(req, res) {
           payment_method_types: ['card'],
           metadata: order.metadata
         }
-        if (order.restaurantStripeAccountId && process.env.NODE_ENV === 'production') {
+        if (order.restaurantStripeAccountId && (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development')) {
           payload.transfer_data = {destination: order.restaurantStripeAccountId}
         }
         return stripe.paymentIntents.create(payload);
