@@ -297,7 +297,9 @@ exports.webhook = function(req, res) {
 
     case 'charge.succeeded':
     case 'charge.refunded':
-      console.log('stripe.webhook charge.succeeded or charge.refunded');
+    case 'transfer.reversed':
+    case 'account.application.authorized':
+      console.log('stripe.webhook charge.succeeded, charge.refunded, transfer.reversed, or account.application.authorized');
       res.status(200).json({ received: true });
       break;
 

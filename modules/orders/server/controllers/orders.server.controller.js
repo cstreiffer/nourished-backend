@@ -323,6 +323,7 @@ exports.delete = function(req, res) {
             const options = {
               payment_intent: refund.stripePaymentId,
               amount: refund.oldAmount - refund.newAmount,
+              reverse_transfer: true,
             };
             refundIntents.push(stripe.refunds.create(options));
           });
