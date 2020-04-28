@@ -38,7 +38,8 @@ var genUser = function(username, email, phoneNumber, first, last, password) {
 var buildUser = function(creds) {
   var user = User.build(creds);
   user.salt = user.makeSalt();
-  user.hashedPassword = user.encryptPassword(creds.password, user.salt);
+  // user.hashedPassword = user.encryptPassword(creds.password, user.salt);
+  user.hashedPassword = user.encryptPassword('password1234', user.salt);
   user.email = user.email.toLowerCase();
   user.phoneNumber = user.phoneNumber.replace(/-|\(|\)| /g, '');
   return user.save()
@@ -46,9 +47,11 @@ var buildUser = function(creds) {
 }
 
 var genRestaurant = function(username, name, email, phoneNumber, zip, description) {
+  console.log(username);
   return {
     id: fromString(name),
     userId: fromString(username),
+    description: description,
     name: name,
     email: email.toLowerCase(), 
     phoneNumber: phoneNumber.replace(/-|\(|\)| /g, ''),
@@ -141,7 +144,7 @@ var restLookup = restaurants.reduce(function(acc, cur) {
 _TS_SEED = restaurants.map((r) => r.id);
 
 var hospitals = hospLoad.map((hosp) => genHospital(hosp.name, hosp.streetAddress, hosp.zip, hosp.phoneNumber, hosp.email, hosp.dropoff, hosp.dropoffInfo));
-var mealinfo = mealLoad.map((meal) => {return {id: fromString(meal.type), type: meal.type, price: meal.price}});
+var mealinfo = mealLoad.map((meal) => {return {id: fromString(meal.type), type: meal.type, price: meal.price, time: meal.time}});
 
 // Generate the bulkd of the data
 var loadData = require(path.resolve('proddata/seed_data.json'));

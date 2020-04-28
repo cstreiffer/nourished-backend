@@ -16,6 +16,7 @@ var
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
 const retAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
+const userRetAttributes = [ 'username', 'email', 'phoneNumber', 'firstName', 'lastName' ]
 
 /**
  * Create a restaurant
@@ -196,6 +197,8 @@ exports.export = function(req, res) {
         ret = ret.flat(1).map((order) => {
           return {
             user: order.user.username,
+            phoneNumber: order.user.phoneNumber,
+            email: order.user.email,
             order: order.mealName,
             deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {timeZone: "America/New_York"}),
             orderDate: new Date(order.orderDate).toLocaleString("en-US", {timeZone: "America/New_York"}),

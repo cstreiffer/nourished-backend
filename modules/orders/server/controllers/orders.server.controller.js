@@ -36,7 +36,7 @@ const retAttributes = [
 ];
 const restRetAttributes = ['id', 'name', 'description', 'phoneNumber', 'email'];
 const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddress', 'zip', 'city', 'state', 'dropoffLocation', 'dropoffInfo'];
-
+const userRetAttributes = [ 'username', 'email', 'phoneNumber', 'firstName', 'lastName' ]
 /**
  * Create a order
  */
@@ -510,6 +510,9 @@ exports.restList = function(req, res) {
           }, {
             model: db.hospital,
             attributes: hospRetAttributes
+          }, {
+            model: db.user,
+            attributes: userRetAttributes
           }]
       }).then(function(orders) {
         if (!orders) {
@@ -564,7 +567,10 @@ exports.restListItemized = function(req, res) {
         }, {
           model: db.hospital,
           attributes: hospRetAttributes
-        }]
+        }, {
+            model: db.user,
+            attributes: userRetAttributes
+          }]
       }).then(function(orders) {
         if (!orders) {
           return res.status(404).send({
