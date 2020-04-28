@@ -180,4 +180,24 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Restaurant'
+ *  /rest/restaurants/{restaurantId}/export:
+ *    post:
+ *      summary: Updates a restaurant attached to user by id
+ *      tags: [Restaurants]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: restaurantId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the restaurant
+ *      responses:
+ *        "200":
+ *          description: Updates a restaurant
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
  */
