@@ -457,7 +457,7 @@ var formatDate = function(query) {
  * List of Orders
  */
 exports.userList = function(req, res) {
-  var query = {userId: req.user.id, payStatus: 'COMPLETE'};
+  var query = {userId: req.user.id};
   // if(req.query.startDate || req.query.endDate) query.deliveryDate = formatDate(req.query);
 
   Order.findAll({
