@@ -5,6 +5,7 @@ var
   config = require(path.resolve('./config/config')),
   twilio = require(path.resolve('./config/lib/twilio')),
   async = require('async'),
+  sequelize = require(path.resolve('./config/lib/sequelize-connect'));
   db = require(path.resolve('./config/lib/sequelize')).models,
   Menu = db.menu,
   Order = db.order,
@@ -64,6 +65,7 @@ var cronDailyUpdate = function() {
     function(done) {
       var query = {
         deleted: false,
+        payStatus: 'COMPLETE',
         deliveryDate: {
           [Op.gte] : getStartDate(),
           [Op.lte] : getEndDate()

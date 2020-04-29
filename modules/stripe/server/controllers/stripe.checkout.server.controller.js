@@ -7,8 +7,10 @@ var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
+  util = require('util'),
   async = require('async'),
   config = require(path.resolve('./config/config')),
+  twilio = require(path.resolve('./config/lib/twilio')),
   stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
@@ -20,6 +22,14 @@ var
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'groupId', 'restaurantId', 'amount', 'paymentIntentId'];
 const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
+
+
+const eventResponses = {
+  'CREATED'   : 'Your payment %s is being processed.',
+  'FAILED'    : 'Your payment for %s has failed.',
+  'SUCCEEDED' : 'Your payment for %s has succeeded,',
+  'CANCELED'  : 'Your payment for %s been refunded.',
+}
 
 const calculateOrderAmount = orders => {
   var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
@@ -191,15 +201,28 @@ exports.oauth = function(req, res) {
   );
 };
 
+var sendMessage = function(user, message) {
+  var to = '+1' + user.phoneNumber;
+  var from = config.twilio.phoneNumber;
+
+  return twilio.messages
+    .create({
+       body: message,
+       from: from,
+       to: to
+     });
+}
+
 /**
  * Updates orders attached to paymentIntentId
  */
 
-const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
+const updateOrderStatus = (messageType, paymentIntentId, statusUpdate, res) => {
     Stripe.findOne({
       where: {
         paymentIntentId: paymentIntentId
-      }
+      },
+      include: db.user
     }).then(function(stripeorder) {
       if(stripeorder) {
         Order.findAll({
@@ -215,7 +238,15 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
               id: orderIds
             }
           }).then(function(orders) {
-            return res.status(200).json({received: true, message: "Orders updated"});
+            var message = util.format(eventResponses[messageType], stripeorder.restaurant.name);
+            
+            // Send Twilio text message to the user
+            sendMessage(stripeorder.user, message)
+              .then(function(success) {
+                return res.status(200).json({received: true, message: "Orders updated"});
+              }).catch(function(err) {
+                return res.status(200).json({received: true, message: "Orders updated. Message not sent"});
+              });
           });
         }).catch(function(err) {
           console.log(err);
@@ -267,7 +298,7 @@ exports.webhook = function(req, res) {
 
     case 'payment_intent.created':
       console.log('stripe.webhook payment_intent.created: ');
-      return res.json({received: true, msg: 'Payment intent created'});
+      updateOrderStatus('CREATED', data.id, {payStatus: 'PENDING'}, res);
       break;
 
     case 'payment_intent.amount_capturable_updated':
@@ -282,17 +313,17 @@ exports.webhook = function(req, res) {
 
     case 'payment_intent.payment_failed':
       console.log('payment_intent.payment_failed: ');
-      updateOrderStatus(data.id, {payStatus: 'ERROR'}, res);
+      updateOrderStatus('FAILED', data.id, {payStatus: 'ERROR'}, res);
       break;
 
     case "payment_intent.succeeded":
       console.log('payment_intent.succeeded: ');
-      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res);
+      updateOrderStatus('SUCCEEDED', data.id, {payStatus: 'COMPLETE'}, res);
       break;
 
     case 'payment_intent.canceled':
       console.log('stripe.webhook payment_intent.canceled: ');
-      updateOrderStatus(data.id, {payStatus: 'REFUNDED'}, res);
+      updateOrderStatus('CANCELED', data.id, {payStatus: 'REFUNDED'}, res);
       break;
 
     case 'charge.succeeded':
