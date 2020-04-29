@@ -257,7 +257,6 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
       },
       include: [db.user, db.restaurant]
     }).then(function(stripeorder) {
-      console.log(stripeorder.toJSON());
       if(stripeorder) {
         Order.findAll({
           where: {
