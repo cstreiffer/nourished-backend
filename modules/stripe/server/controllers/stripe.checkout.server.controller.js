@@ -7,19 +7,42 @@ var
   _ = require('lodash'),
   path = require('path'),
   uuid = require('uuid/v4'),
+  util = require('util'),
   async = require('async'),
   config = require(path.resolve('./config/config')),
+  twilio = require(path.resolve('./config/lib/twilio')),
   stripe = require(path.resolve('./config/lib/stripe')),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Stripe = db.stripe,
   Order = db.order,
   Menu = db.menu,
+  TwilioMessage = db.twiliomessage,
   Restaurant = db.restaurant;
 
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'groupId', 'restaurantId', 'amount', 'paymentIntentId'];
 const restRetAttributes = ['id', 'name', 'email', 'description', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state', 'restaurantStripeAccountId', 'verified'];
+
+
+var eventResponses;
+
+
+const loadResponse = () => {
+  return TwilioMessage.findAll({
+    where: {
+      type: 'STRIPE_RESPONSE',
+      subtype: 'STRIPE_RESPONSE_MESSAGE',
+    }
+  });
+}
+
+const mapResponse = (values) => {
+  return values.reduce(function(acc, cur) {
+    acc[cur.keyword] = cur.messageBody;
+    return acc;
+  }, {});
+}
 
 const calculateOrderAmount = orders => {
   var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
@@ -113,22 +136,42 @@ exports.createPaymentIntent = function(req, res) {
         }
       })
     ).then(function(stripeOrders) {
-      // console.log(stripeOrders);
       var ret = stripeOrders.map((order) => _.pick(order, retAttributes));
-      res.json({
-        publishableKey: config.stripe.pubKey,
-        stripeData: retMod.map(function(order) {
-          return {
-            clientSecret: order[1].client_secret,
-            amount: order[0].amount,
-            groupId: req.groupId,
-            restaurantId: order[0].restaurantId
-          }
-        }),
-        stripeOrders: ret,
-        totalAmount: (retMod.map((order) => order[0].amount).reduce((a,b) => a + b, 0)/100.0).toFixed(2),
-        message: "Payment intents successfully created"
-      });
+      // console.log(stripeOrders);
+      var response = {
+            publishableKey: config.stripe.pubKey,
+            stripeData: retMod.map(function(order) {
+              return {
+                clientSecret: order[1].client_secret,
+                amount: order[0].amount,
+                groupId: req.groupId,
+                restaurantId: order[0].restaurantId
+              }
+            }),
+            stripeOrders: ret,
+            totalAmount: (retMod.map((order) => order[0].amount).reduce((a,b) => a + b, 0)/100.0).toFixed(2),
+            message: "Payment intents successfully created"
+        };
+
+      loadResponse()
+        .then(function(eventResponses) {
+          var respMap = mapResponse(eventResponses);
+          var message = respMap['CREATED'];
+          sendMessage(req.user, message)
+            .then(function(err) {
+              res.json(response);
+            })
+            .catch(function(err) {
+              console.log(err);
+              res.json(response);
+            })
+        })
+        .catch(function(err) {
+          console.log(err);
+          res.json(response);
+        });
+      
+      
     }).catch(function(err) {
       console.log(err);
       res.status(400).send({
@@ -191,15 +234,28 @@ exports.oauth = function(req, res) {
   );
 };
 
+var sendMessage = function(user, message) {
+  var to = '+1' + user.phoneNumber;
+  var from = config.twilio.phoneNumber;
+
+  return twilio.messages
+    .create({
+       body: message,
+       from: from,
+       to: to
+     });
+}
+
 /**
  * Updates orders attached to paymentIntentId
  */
 
-const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
+const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
     Stripe.findOne({
       where: {
         paymentIntentId: paymentIntentId
-      }
+      },
+      include: [db.user, db.restaurant]
     }).then(function(stripeorder) {
       if(stripeorder) {
         Order.findAll({
@@ -207,32 +263,55 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res) => {
             groupId: stripeorder.groupId,
           },
           include: db.restaurant,
-        }).then(function(orders) {
+        })
+        .then(function(orders) {
           var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
           var orderIds = orders.map((order) => order.id);
+          
           Order.update(statusUpdate, {
             where: {
               id: orderIds
             }
-          }).then(function(orders) {
-            return res.status(200).json({received: true, message: "Orders updated"});
-          });
-        }).catch(function(err) {
-          console.log(err);
-          return res.status(400).send({
-            message: errorHandler.getErrorMessage(err)
+          })
+          .then(function(orders) {
+            if (messageType) {            
+                  loadResponse()
+                    .then(function(eventResponses) {
+                      var respMap = mapResponse(eventResponses);
+                      var message = util.format(respMap[messageType], stripeorder.restaurant.name);
+                      sendMessage(stripeorder.user, message)
+                        .then(function(err) {
+                          console.log(err);
+                          return res.status(200).json({received: true, message: "Orders updated"});
+                        })
+                        .catch(function(err) {
+                          console.log(err);
+                          return res.status(200).json({received: true, message: "Orders updated"});
+                        });
+                    }).catch(function(err) {
+                      console.log(err);
+                      return res.status(200).json({received: true, message: "Orders updated"});
+                    });
+
+            } else {
+              return res.status(200).json({received: true, message: "Orders updated"});
+            }
+          })
+          .catch(function(err) {
+            return res.status(400).send({message: errorHandler.getErrorMessage(err)});
           });
         })
+      .catch(function(err) {
+        return res.status(400).send({message: errorHandler.getErrorMessage(err)});
+      })
+
       } else {
-        return res.status(400).send({
-          message: "No associated stripe order"
-        });
+        return res.status(400).send({message: "No associated stripe order"});
       }
-    }).catch(function(err) {
+    })
+    .catch(function(err) {
       console.log(err);
-      return res.status(400).send({
-        message: errorHandler.getErrorMessage(err)
-      });
+      return res.status(400).send({message: errorHandler.getErrorMessage(err)});
     });
 };
 
@@ -268,6 +347,7 @@ exports.webhook = function(req, res) {
     case 'payment_intent.created':
       console.log('stripe.webhook payment_intent.created: ');
       return res.json({received: true, msg: 'Payment intent created'});
+      // updateOrderStatus('CREATED', data.id, {payStatus: 'PENDING'}, res);
       break;
 
     case 'payment_intent.amount_capturable_updated':
@@ -282,7 +362,7 @@ exports.webhook = function(req, res) {
 
     case 'payment_intent.payment_failed':
       console.log('payment_intent.payment_failed: ');
-      updateOrderStatus(data.id, {payStatus: 'ERROR'}, res);
+      updateOrderStatus(data.id, {payStatus: 'ERROR'}, res, 'FAILED');
       break;
 
     case "payment_intent.succeeded":
@@ -292,7 +372,7 @@ exports.webhook = function(req, res) {
 
     case 'payment_intent.canceled':
       console.log('stripe.webhook payment_intent.canceled: ');
-      updateOrderStatus(data.id, {payStatus: 'REFUNDED'}, res);
+      updateOrderStatus(data.id, {payStatus: 'CANCELLED'}, res, 'CANCELLED');
       break;
 
     case 'charge.succeeded':

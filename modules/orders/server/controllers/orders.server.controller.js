@@ -457,7 +457,7 @@ var formatDate = function(query) {
  * List of Orders
  */
 exports.userList = function(req, res) {
-  var query = {userId: req.user.id};
+  var query = {userId: req.user.id, payStatus: 'COMPLETE'};
   // if(req.query.startDate || req.query.endDate) query.deliveryDate = formatDate(req.query);
 
   Order.findAll({
@@ -488,7 +488,7 @@ exports.userList = function(req, res) {
  * List of restaurant orders (NEED TO SOLVE FOR THIS)
  */
 exports.restList = function(req, res) {
-  var orderQuery = {};
+  var orderQuery = {payStatus: 'COMPLETE'};
 
   // TODO: Grab restuarant Ids then perform query
   // if(req.query.startDate || req.query.endDate) orderQuery.deliveryDate = formatDate(req.query);
@@ -545,7 +545,7 @@ exports.restList = function(req, res) {
  * List of restaurant orders itemized
  */
 exports.restListItemized = function(req, res) {
-  var orderQuery = {};
+  var orderQuery = {payStatus: 'COMPLETE'};
 
   // TODO: Grab restuarant Ids then perform query
   // if(req.query.startDate || req.query.endDate) orderQuery.deliveryDate = formatDate(req.query);
