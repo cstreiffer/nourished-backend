@@ -35,15 +35,15 @@ db.connect = function(database, username, password, options) {
     }
   });
 
-  if (config.db.sync) {
-    // Synchronizing any model changes with database.
-    sequelize.sync({force : false})
-      .then(function() {
-        winston.info("Database synchronized");
-      }).catch(function(err) {
-        winston.error("An error occured: %s" % err);
-      });
-  }
+  // if (config.db.sync) {
+  //   // Synchronizing any model changes with database.
+  //   sequelize.sync()
+  //     .then(function() {
+  //       winston.info("Database synchronized");
+  //     }).catch(function(err) {
+  //       winston.error("An error occured: %s" % err);
+  //     });
+  // }
 
   db.sequelize = sequelize;
 
