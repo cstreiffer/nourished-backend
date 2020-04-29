@@ -38,8 +38,7 @@ var genUser = function(username, email, phoneNumber, first, last, password) {
 var buildUser = function(creds) {
   var user = User.build(creds);
   user.salt = user.makeSalt();
-  // user.hashedPassword = user.encryptPassword(creds.password, user.salt);
-  user.hashedPassword = user.encryptPassword('password1234', user.salt);
+  user.hashedPassword = user.encryptPassword(creds.password, user.salt);
   user.email = user.email.toLowerCase();
   user.phoneNumber = user.phoneNumber.replace(/-|\(|\)| /g, '');
   return user.save()
