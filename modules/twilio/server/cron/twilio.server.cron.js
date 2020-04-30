@@ -5,7 +5,7 @@ var
   config = require(path.resolve('./config/config')),
   twilio = require(path.resolve('./config/lib/twilio')),
   async = require('async'),
-  sequelize = require(path.resolve('./config/lib/sequelize-connect'));
+  sequelize = require(path.resolve('./config/lib/sequelize-connect')),
   db = require(path.resolve('./config/lib/sequelize')).models,
   Menu = db.menu,
   Order = db.order,
