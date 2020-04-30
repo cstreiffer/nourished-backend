@@ -54,7 +54,7 @@ const substr = (value) => {
 }
 
 const calculateStripeFee = total => {
-  return Math.ceil(total*(1-.029)-.3*100)
+  return Math.floor(total*(1-.029)-.3*100)
 }
 
 exports.createPaymentIntent = function(req, res) {
