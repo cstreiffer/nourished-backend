@@ -16,6 +16,8 @@ services:
       context: .
       dockerfile: dev-dockerfile
     image: app-backend:dev
+    environment:
+      - DEBUG=${DEBUG}
     command: ["./scripts/wait-for-it.sh", "db:5432", "--", "node", "server.js"]
     environment:
       - NODE_ENV=development
@@ -25,4 +27,16 @@ services:
     ports:
       - "3000:3000"
     depends_on:
+      - db
+
+  migration:
+    image: app-backend:dev
+    command: ["./scripts/wait-for-it.sh", "db:5432", "--", "npm", "run", "migrate"]
+    environment:
+      - NODE_ENV=development
+      - DB_HOST=db
+      - PGPASSWORD=postgres
+    depends_on:
+      - db
+    links:
       - db
