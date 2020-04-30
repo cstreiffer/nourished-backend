@@ -29,7 +29,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 var sendList = function(req) {
   var orderQuery = {
     restaurantId : req.restaurant.id,
-    payStatus: 'COMPLETE',
+    payStatus: ['COMPLETE', 'CANCELLED', 'REFUNDED'],
     deliveryDate: {
       [Op.gte]: new Date(Date.now()),
       [Op.lte] : new Date(Date.now() + 24*60*60*1000),
