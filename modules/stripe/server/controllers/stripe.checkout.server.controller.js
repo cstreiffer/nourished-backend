@@ -53,6 +53,10 @@ const substr = (value) => {
   return (value ? String(value).substring(0, 450) : '');
 }
 
+const calculateStripeFee = total => {
+  return Math.floor(total*(1-.029)-.3*100)
+}
+
 exports.createPaymentIntent = function(req, res) {
   // const { currency } = req.body;
   // Create a PaymentIntent with the order amount and currency
@@ -111,7 +115,10 @@ exports.createPaymentIntent = function(req, res) {
           metadata: order.metadata
         }
         if (order.restaurantStripeAccountId && (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'development')) {
-          payload.transfer_data = {destination: order.restaurantStripeAccountId}
+          payload.transfer_data = {
+            destination: order.restaurantStripeAccountId,
+            amount: calculateStripeFee(order.amount)
+          }
         }
         return stripe.paymentIntents.create(payload);
       }

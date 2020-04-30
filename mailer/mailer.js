@@ -29,7 +29,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 var sendList = function(req) {
   var orderQuery = {
     restaurantId : req.restaurant.id,
-    payStatus: 'COMPLETE',
+    payStatus: ['COMPLETE', 'CANCELLED', 'REFUNDED'],
     deliveryDate: {
       [Op.gte]: new Date(Date.now()),
       [Op.lte] : new Date(Date.now() + 24*60*60*1000),
@@ -139,6 +139,16 @@ var cafeynez = {
   }
 }
 
+var elmerkury = {
+  restaurant : {
+    name: 'El Merkury',
+    id: '571ab7c1-e8cd-5d8f-af51-7cbc35eed917'
+  },
+  user: {
+    email: ['sofia@elmerkury.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
 var opb = {
   restaurant : {
     name: 'On Point Bistro',
@@ -149,7 +159,9 @@ var opb = {
   }
 }
 
-sendList(baology);
-sendList(renatas);
+sendList(elmerkury);
+sendList(cafeynez);
+// sendList(baology);
+// sendList(renatas);
 // sendList(pumpkin);
-sendList(opb);
+// sendList(opb);

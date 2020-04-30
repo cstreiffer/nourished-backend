@@ -1,7 +1,11 @@
 'use strict';
 
 var
-  acl = require('acl');
+  acl = require('acl'),
+  path = require('path'),
+  config = require(path.resolve('./config/config')),
+  db = require(path.resolve('./config/lib/sequelize')).models,
+  Menu = db.menu;
 
 /**
  * Module dependencies.
@@ -47,6 +51,50 @@ exports.invokeRolesPolicies = function() {
       permissions: ['post']
     }]
   }]);
+};
+
+/**
+ * Check If Menu Policy Allows 
+ */
+
+var isTimeValid = function(date) {
+  var time = new Date(new Date().getTime() + config.orderTimeCutoff);
+  return time < new Date(date);
+};
+
+var isMenuVisible = function(menu) {
+  return menu.visible;
+};
+
+var isMenuFinalized = function(menu) {
+  return menu.finalized;
+};
+
+/**
+ * Check If All Orders are Good
+ */
+exports.isCartUpdateAllowed = function(req, res, next) {
+  if(req.body.menuId) {
+    Menu.findOne({
+      where: {
+        id: req.body.menuId
+      },
+      include: [db.timeslot, db.mealinfo]
+    }).then((menu) => {
+      // console.log(meals);
+      if(menu && isMenuFinalized(menu) && isTimeValid(menu.timeslot.date) && isMenuVisible(menu)) {
+        req.menu = menu;
+        return next();
+      } else {
+        return res.status(400).json({message: "Invalid menu IDs"});
+      }
+    }).catch((err) => {
+      console.log(err);
+      return res.status(400).json({message: "An error occurred"});
+    });
+  } else {
+    return res.status(400).json({message: 'Please include menuId'});
+  }
 };
 
 // The USER/MENU/ORDER route (how users interact with )

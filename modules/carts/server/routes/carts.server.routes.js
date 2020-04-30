@@ -15,13 +15,15 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .all(cartsPolicy.isAllowed)
     .get(carts.userList) // Restaurant/User get (Good)
-    .post(carts.create) // Restaurant create (Good)
-    .delete(carts.destroy); // Testing
+    .delete(carts.destroy) // Testing
+    .all(cartsPolicy.isCartUpdateAllowed)
+    .post(carts.create); // Restaurant create (Good)
 
   // Restaurant 
   app.route('/api/user/carts/increment')
     .all(passport.authenticate('jwt', {session: false}))
     .all(cartsPolicy.isAllowed)
+    .all(cartsPolicy.isCartUpdateAllowed)
     .post(carts.increment);
 
    app.route('/api/user/carts/decrement')

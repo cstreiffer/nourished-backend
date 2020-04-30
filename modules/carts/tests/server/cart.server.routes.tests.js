@@ -7,6 +7,7 @@ var
   path = require('path'),
   app = require(path.resolve('./test.js')),
   stop = require(path.resolve('./test.js')).stop,
+  config = require(path.resolve('./config/config')),
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -44,8 +45,10 @@ var
   restaurant2 = {name:"Goldie 2", phoneNumber:"504-613-7325", email:"test22@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant3 = {name:"Goldie 3", phoneNumber:"504-613-7325", email:"test23@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
   restaurant4 = {name:"Goldie 4", phoneNumber:"504-613-7325", email:"test24@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid()},
-  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2020-04-05T18:00:00Z"},
-  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z"},
+  timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z"},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z"},
+  timeslot3 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date().toISOString()},
+  timeslot4 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date(Date.now() + config.orderTimeCutoff + 60*1000).toISOString()},
   meal1 = {name: "Chicken 1", description: "Its Chicken", category: "Meat", price: 7.50, finalized: true, timeslotId: timeslot1.id},
   meal2 = {name: "Chicken 2", description: "Its Chicken", category: "Meat", price: 7.50, finalized: false, timeslotId: timeslot1.id},
   ml1 = {...meal1, id: uuid(), userId: restaurantCredentials1.id},
@@ -53,9 +56,9 @@ var
   ml3 = {...meal1, id: uuid(), userId: restaurantCredentials2.id},
   ml4 = {...meal2, id: uuid(), userId: restaurantCredentials2.id},
   menu1 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml1.id, timeslotId: timeslot1.id, finalized: true},
-  menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: false},
-  menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot2.id,  finalized: true},
-  menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot2.id,  finalized: false};
+  menu2 = {id: uuid(), userId: restaurantCredentials1.id, mealId: ml2.id, timeslotId: timeslot1.id,  finalized: true},
+  menu3 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml3.id, timeslotId: timeslot3.id,  finalized: true},
+  menu4 = {id: uuid(), userId: restaurantCredentials2.id, mealId: ml4.id, timeslotId: timeslot4.id,  finalized: true};
 
 describe('Cart CRUD tests', function() {
 before(function(done) {
@@ -120,6 +123,8 @@ before((done) => {
 
   timeslot1.userId = restaurantId1;
   timeslot2.userId = restaurantId2;
+  timeslot3.userId = restaurantId2;
+  timeslot4.userId = restaurantId2;
 
   menu1.userId = restaurantId1;
   menu2.userId = restaurantId1;
@@ -153,7 +158,7 @@ before((done) => {
 })
 
 before((done) =>{
-  TimeSlot.bulkCreate([timeslot1, timeslot2])
+  TimeSlot.bulkCreate([timeslot1, timeslot2, timeslot3, timeslot4])
     .then(() => {done();}).catch((err) => {console.log("One, " + err)});
 });
 
@@ -221,6 +226,37 @@ describe('/POST /api/user/carts endpoint', () => {
         res.body.cart.should.have.property('quantity').eql(2);
         res.body.cart.should.not.have.property('userId');
         res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to create cart item (close cutoff time)', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/increment')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu4.id})
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Cart item successfully updated');
+        res.body.cart.should.have.property('id');
+        res.body.cart.should.have.property('menuId');
+        res.body.cart.should.have.property('quantity').eql(1);
+        res.body.cart.should.not.have.property('userId');
+        res.body.cart.should.not.have.property('menu');
+        done();
+      });
+  });
+
+  it('User with "user" role should be able to create cart item', (done) => {
+    chai.request(app)
+      .post('/api/user/carts/increment')
+      .set('Authorization', userJWT1)
+      .send({menuId: menu3.id})
+      .end((err, res) => {
+        res.should.have.status(400);
+        res.body.should.be.a('object');
+        res.body.should.have.property('message').eql('Invalid menu IDs');
         done();
       });
   });
