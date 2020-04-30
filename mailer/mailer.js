@@ -29,6 +29,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 var sendList = function(req) {
   var orderQuery = {
     restaurantId : req.restaurant.id,
+    payStatus: ['COMPLETE', 'CANCELLED', 'REFUNDED'],
     deliveryDate: {
       [Op.gte]: new Date(Date.now()),
       [Op.lte] : new Date(Date.now() + 24*60*60*1000),
@@ -98,16 +99,35 @@ var sendList = function(req) {
       });
 };
 
-// var baology = {
-//   restaurant : {
-//     name: 'Baology',
-//     id: 'c22d4fbb-c9df-5cea-a11b-79ecf3c05e43'
-//   },
-//   user: {
-//     email: ['judy.ni@baology.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
-//     // email: 'ccstreiffer@gmail.com'
-//   }
-// }
+var pumpkin = {
+  restaurant : {
+    name: 'Pumpkin',
+    id: '5590ad8f-7f6d-5015-aae5-1ed887e96b60'
+  },
+  user: {
+    email: ['admin@pumpkinphilly.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+var renatas = {
+  restaurant : {
+    name: 'Renata\'s Kitchen',
+    id: 'bac71df9-9968-534d-bd3b-50663f2a9a90'
+  },
+  user: {
+    email: ['katie.steenstra@gmail.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+var baology = {
+  restaurant : {
+    name: 'Baology',
+    id: 'c22d4fbb-c9df-5cea-a11b-79ecf3c05e43'
+  },
+  user: {
+    email: ['judy.ni@baology.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
 
 var cafeynez = {
   restaurant : {
@@ -116,21 +136,32 @@ var cafeynez = {
   },
   user: {
     email: ['jill@jetwinebar.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
-    // email: 'ccstreiffer@gmail.com'
   }
 }
 
-// var opb = {
-//   restaurant : {
-//     name: 'On Point Bistro',
-//     id: 'e18672e4-4f9b-56be-b008-a8c9531edf88'
-//   },
-//   user: {
-//     email: ['fix.mallory@gmail.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
-//     // email: 'ccstreiffer@gmail.com'
-//   }
-// }
+var elmerkury = {
+  restaurant : {
+    name: 'El Merkury',
+    id: '571ab7c1-e8cd-5d8f-af51-7cbc35eed917'
+  },
+  user: {
+    email: ['sofia@elmerkury.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
 
-// sendList(baology);
+var opb = {
+  restaurant : {
+    name: 'On Point Bistro',
+    id: 'e18672e4-4f9b-56be-b008-a8c9531edf88'
+  },
+  user: {
+    email: ['fix.mallory@gmail.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+sendList(elmerkury);
 sendList(cafeynez);
+// sendList(baology);
+// sendList(renatas);
+// sendList(pumpkin);
 // sendList(opb);

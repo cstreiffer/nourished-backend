@@ -10,7 +10,6 @@ var
   Menu = db.menu,
   Order = db.order,
   User = db.user,
-  TwilioMessage = db.twiliomessage,
   crypto = require('crypto'),
   cron = require('node-cron');
 
@@ -20,22 +19,12 @@ const util = require('util');
 var sendDailyMessage = function(tm, user) {
   var to = '+1' + user.user.phoneNumber;
   var from = config.twilio.phoneNumber;
-  var message = util.format(tm.messageBody, user.type, user.restaurant, user.location);
+  var message = util.format(tm.messageBody, user.type, user.restaurant, user.hospital, user.time, user.location);
+  console.log(message);
+  // return message;
   return twilio.messages
     .create({
        body: message,
-       from: from,
-       to: to
-     });
-}
-
-var sendMessage = function(tm, user) {
-  var url = config.app.webURL + '?token=' + user.magicLinkToken;
-  var to = '+1' + user.phoneNumber;
-  var from = config.twilio.phoneNumber;
-  return twilio.messages
-    .create({
-       body: tm.messageBody + url,
        from: from,
        to: to
      });
@@ -46,17 +35,14 @@ var getStartDate = function() {
 }
 
 var getEndDate = function() {
-  return Date.now() + 15*60*1000+5000;
+  return Date.now() + 3*60*60*1000+5000;
 }
 
-module.exports = function() {
-  cron.schedule(config.cron.twilio.dailyUpdate, () => {
-    cronDailyUpdate();
-  }, {timezone: config.cron.twilio.timezone});
-
-  cron.schedule(config.cron.twilio.weeklyUpdate, () => {
-    cronWeeklyUpdate();
-  }, {timezone: config.cron.twilio.timezone});
+const getTime = function(date) {
+	console.log(date);
+	return new Date(date)
+		.toLocaleTimeString("en-US", {timeZone: "America/New_York", hour: '2-digit', minute:'2-digit'})
+		.replace(/^0+/, '')
 }
 
 var cronDailyUpdate = function() {
@@ -73,7 +59,6 @@ var cronDailyUpdate = function() {
       };
       var userQuery = {phoneNumber: {[Op.ne]: ''}};
       Order.findAll({
-        attributes: ['quantity', 'restStatus', 'userStatus', 'payStatus', 'restaurantId', 'type'],
         where: query,
         include: 
         [{
@@ -103,6 +88,8 @@ var cronDailyUpdate = function() {
             user: order.user,
             type: order.type,
             restaurant: order.restaurant.name,
+            hospital: order.hospital.name,
+            time: getTime(order.deliveryDate),
             location: order.hospital.dropoffLocation
           }
         }
@@ -114,15 +101,10 @@ var cronDailyUpdate = function() {
       done(null, users);
     },
     function(users, done) {
-      TwilioMessage.findOne({
-        where: {
-          subtype: 'DAILY_ORDER',
-        }
-      }).then(function(tm) {
-        done(null, users, tm);
-      }).catch(function(err) {
-        done(err);
-      });
+    	var tm = {
+    		messageBody: 'Your %s from %s will be delivered tonight to the %s at %s! You will be able to pick-up your order at the %s. Enjoy!🍴'
+    	};
+    	done(null, users, tm)
     },
     function(users, tm, done) {
       Promise.all(users.map((user) => sendDailyMessage(tm, user)))
@@ -141,59 +123,4 @@ var cronDailyUpdate = function() {
   );
 }
 
-var cronWeeklyUpdate = function() {
-  async.waterfall([
-    function(done) {
-      User.findAll({
-        where: {
-          phoneNumber: {
-            [Op.ne]: ''
-          },
-          roles: {
-            [Op.contains] : ["user"]
-          }
-        }
-      }).then(function(users) {
-        done(null, users);
-      }).catch(function(err) {
-        done(err);
-      });
-    },
-    function(users, done) {
-      Promise.all(users.map((user) => {
-          user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
-          user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
-          return user.save();
-      }))
-      .then(function(users) {
-        done(null, users)
-      }).catch(function(err) {
-        done(err);
-      });
-    },
-    function(users, done) {
-      TwilioMessage.findOne({
-        where: {
-          subtype: 'WEEKLY_MENU',
-        }
-      }).then(function(tm) {
-        done(null, users, tm);
-      }).catch(function(err) {
-        done(err);
-      });
-    },
-    function(users, tm, done) {
-      Promise.all(users.map((user) => sendMessage(tm, user)))
-        .then(function(messageIds) {
-          done(null);
-        }).catch(function(err) {
-          done(err);
-        });
-    }], 
-    function(err){
-      if(err) {
-        console.log(err);
-      }
-    }
-  );
-}
+cronDailyUpdate();

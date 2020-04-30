@@ -113,15 +113,23 @@ var formatDate = function(query) {
 };
 
 /**
+ * Check cutoff time of menu
+ */
+var isTimeValid = function(date) {
+  var time = new Date(new Date().getTime() + config.orderTimeCutoff);
+  return time >= new Date(date);
+};
+
+/**
  * List of restaurant menus
  */
 exports.list = function(req, res) {
   var query = {finalized: true, visible: true};
   // if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
   // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
-  var timeslotQuery = {};
-  if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
-  // if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
+  var timeslotQuery = {date: {
+    [Op.gte]: Date.now() + config.orderTimeCutoff
+  }};
 
   Menu.findAll({
     where: query,
@@ -148,7 +156,15 @@ exports.list = function(req, res) {
         message: 'No menus found for restaurant'
       });
     } else {
-      res.jsonp({menus: menus, message: "Menus successfully found"});
+
+      // Map the menus
+      var menusRet = menus.map((menu) => {
+        var ret = menu.toJSON();
+        ret.expired = isTimeValid(menu.timeslot.date);
+        return ret;
+      });
+
+      res.jsonp({menus: menusRet, message: "Menus successfully found"});
     }
   }).catch(function(err) {
     console.log(err);
@@ -161,9 +177,9 @@ exports.list = function(req, res) {
  */
 exports.userList = function(req, res) {
   var query = {userId: req.user.id};
-  // 
   var timeslotQuery = {};
-  if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
+
+  // if(req.query.startDate || req.query.endDate) timeslotQuery.date = formatDate(req.query);
   // if(req.query.restaurantId) timeslotQuery.restaurantId = req.query.restaurantId;
 
   Menu.findAll({
@@ -191,7 +207,15 @@ exports.userList = function(req, res) {
         message: 'No menus found for restaurant'
       });
     } else {
-      res.jsonp({menus: menus, message: "Menus successfully found"});
+
+      // Map the menus
+      var menusRet = menus.map((menu) => {
+        var ret = menu.toJSON();
+        ret.expired = isTimeValid(menu.timeslot.date);
+        return ret;
+      });
+      
+      res.jsonp({menus: menusRet, message: "Menus successfully found"});
     }
   }).catch(function(err) {
     res.jsonp(err);

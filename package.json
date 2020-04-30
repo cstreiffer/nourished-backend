@@ -15,6 +15,7 @@
     "npm": ">=6.13.4"
   },
   "scripts": {
+    "migrate": "npx sequelize db:migrate --url postgresql://postgres:$PGPASSWORD@db:5432/nourished_dev",
     "start": "grunt",
     "test": "grunt test"
   },
@@ -101,6 +102,7 @@
     "mocha": "^7.1.1",
     "node-sass": "^4.13.1",
     "run-sequence": "^2.2.1",
+    "sequelize-cli": "^5.5.1",
     "should": "^13.2.3",
     "superagent": "^5.2.2",
     "supertest": "^4.0.2"

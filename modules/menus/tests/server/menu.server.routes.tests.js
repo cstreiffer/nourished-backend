@@ -7,6 +7,7 @@ var
   path = require('path'),
   app = require(path.resolve('./test.js')),
   stop = require(path.resolve('./test.js')).stop,
+  config = require(path.resolve('./config/config')),
   request = require('supertest'),
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
@@ -36,8 +37,9 @@ var
   hospital1 = {name:"Presby 1", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   hospital2 = {name:"Presby 2", phoneNumber:"xxx-xxx-xxxx", email:"test@gmail.com", streetAddress:"20 lane", zip:"19146", city:"Philadelphia", state:"PA", id: uuid(), dropoffLocation: "Take the elevator.", dropoffInfo: "Just follow the lights."},
   timeslot1 = {id: uuid(), userId: restaurantCredentials1.id, restaurantId: restaurant1.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital1.id},
-  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2020-04-05T18:00:00Z", hospitalId: hospital2.id},
-  timeslot3 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital2.id},
+  timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital2.id},
+  timeslot3 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date().toISOString()},
+  timeslot4 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date(Date.now() + config.orderTimeCutoff + 60*1000).toISOString()},
   meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false},
   meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true},
   m1 = {...meal1, userId: restaurantCredentials1.id, id: uuid()},
@@ -91,6 +93,8 @@ before((done) => {
   timeslot1.userId = restaurantId1;
   timeslot2.userId = restaurantId2;
   timeslot3.userId = restaurantId2;
+  timeslot4.userId = restaurantId2;
+
   done();
 });
 
@@ -112,7 +116,7 @@ before((done) =>{
 });
 
 before((done) =>{
-  TimeSlot.bulkCreate([timeslot1, timeslot2, timeslot3])
+  TimeSlot.bulkCreate([timeslot1, timeslot2, timeslot3, timeslot4])
     .then(() => {done();}).catch((err) => {console.log("One, " + err)});
 });
 
@@ -129,7 +133,7 @@ describe('/GET /api/timeslots endpoint', () => {
       .end((err, res) => {
        res.body.timeslots.should.be.a('array');
        res.body.timeslots[0].should.not.have.property('userId');
-       res.body.timeslots.length.should.be.eql(3);
+       res.body.timeslots.length.should.be.eql(4);
        res.body.should.have.property('message').eql('Timeslots successfully found');
        res.should.have.status(200);
        done();
@@ -137,16 +141,15 @@ describe('/GET /api/timeslots endpoint', () => {
   });
 });
 
-describe('/GET /api/timeslots endpoint', () => {
+describe('/GET /api/timeslots/index endpoint', () => {
 
   it('User with "user" role should get menus', (done) => {
     chai.request(app)
       .get('/api/timeslots/index')
       .end((err, res) => {
-        console.log("%j",res.body.timeslots);
        res.body.timeslots.should.be.a('array');
        res.body.timeslots[0].should.not.have.property('userId');
-       res.body.timeslots.length.should.be.eql(2);
+       res.body.timeslots.length.should.be.eql(3);
        res.body.should.have.property('message').eql('Timeslots successfully found');
        res.should.have.status(200);
        done();
@@ -176,12 +179,13 @@ describe('/GET /api/menus endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
-    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
-    var menu3 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible: false};
+    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible:false};
+    var menu3 = {timeslotId: timeslot3.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
+    var menu4 = {timeslotId: timeslot4.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
 
     Menu.destroy({where: {}})
       .then(function(){
-        Menu.bulkCreate([menu1, menu2, menu3], {returning: true}).then(function(menus) {
+        Menu.bulkCreate([menu1, menu2, menu3, menu4], {returning: true}).then(function(menus) {
           done();
         }).catch((err)=> {console.log(err)});
       });
@@ -212,12 +216,13 @@ describe('/GET /api/menus endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     var menu1 = {timeslotId: timeslot1.id, id: uuid(), userId: restaurantId1, mealId: m1.id};
-    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
-    var menu3 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible: true};
+    var menu2 = {timeslotId: timeslot2.id, id: uuid(), userId: restaurantId2, mealId: m3.id, visible:true};
+    var menu3 = {timeslotId: timeslot3.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
+    var menu4 = {timeslotId: timeslot4.id, id: uuid(), userId: restaurantId2, mealId: m3.id};
 
     Menu.destroy({where: {}})
       .then(function(){
-        Menu.bulkCreate([menu1, menu2, menu3], {returning: true}).then(function(menus) {
+        Menu.bulkCreate([menu1, menu2, menu3, menu4], {returning: true}).then(function(menus) {
           done();
         }).catch((err)=> {console.log(err)});
       });
