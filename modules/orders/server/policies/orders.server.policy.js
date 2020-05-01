@@ -92,8 +92,9 @@ exports.isCreateOrderAllowed = function(req, res, next) {
       },
       include: [db.timeslot, db.mealinfo]
     }).then((menus) => {
-      // console.log(meals);
-      if(menus && menus.length === new Set(menuIds).size) {
+      var validMenuIds = new Set(menus.map(menu => menu.id));
+      console.log(menuIds, validMenuIds);
+      if(menuIds.every(id => validMenuIds.has(id))) {
         var validation = menus.map((menu) => isMenuFinalized(menu) && isTimeValid(menu.timeslot.date) && isMenuVisible(menu));
         if(validation.every((v) => v)) {
           req.menus = menus;
@@ -102,6 +103,8 @@ exports.isCreateOrderAllowed = function(req, res, next) {
           return res.status(400).json({message: "Invalid order"});
         }
       } else {
+        console.log(req.body);
+        menus.forEach(menu => console.log(menu.toJSON()));
         return res.status(400).json({message: "Invalid menu IDs"});
       }
     }).catch((err) => {
@@ -137,7 +140,8 @@ exports.isUserOrderAllowed = function(req, res, next) {
       },
       include: db.restaurant
     }).then((orders) => {
-      if(orders && orders.length === new Set(orderIds).size) {
+      var validOrderIds = new Set(orders.map(order => order.id));
+      if(orderIds.every(id => validOrderIds.has(id))) {
         var validation = orders.map((order) => order.userId === req.user.id);
         if(validation.every((v) => v)) {
           req.orders = orders;
