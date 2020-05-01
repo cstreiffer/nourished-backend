@@ -100,6 +100,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
           req.menus = menus;
           return next();
         } else {
+          console.log(req.body);
           return res.status(400).json({message: "Invalid order"});
         }
       } else {
