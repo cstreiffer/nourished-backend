@@ -38,8 +38,7 @@ module.exports = function(app) {
     .all(ordersPolicy.isUserAllowed)
     .all(ordersPolicy.isUserOrderAllowed)
     .all(ordersPolicy.isUpdateOrderAllowed)
-    // .put(orders.update)
-    .delete(orders.delete);
+    .put(orders.delete);
 
   app.route('/api/user/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
