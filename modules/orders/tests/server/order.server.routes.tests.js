@@ -496,7 +496,7 @@ describe('/GET /api/orders/:orderId endpoint', () => {
 // //   });
 // // });
 
-describe('/DELETE /api/user/orders endpoint', () => {
+describe('/PUT /api/user/orders/delete endpoint', () => {
   // Clear the database
   beforeEach(function(done) {
     Order.destroy({where: {}})
@@ -522,7 +522,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
       .send({groupId: userId1})
       .end((err, res) => {
           chai.request(app)
-            .delete('/api/user/orders/delete')
+            .put('/api/user/orders/delete')
             .set('Authorization', userJWT1)
             .send({orders: [
                 {...orders[0]},
@@ -557,7 +557,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
     ];
     Order.bulkCreate(orders).then(function() {
       chai.request(app)
-        .delete('/api/user/orders/delete')
+        .put('/api/user/orders/delete')
         .set('Authorization', userJWT1)
         .send({orders: [
             {...orders[0]},
@@ -581,7 +581,7 @@ describe('/DELETE /api/user/orders endpoint', () => {
     ];
     Order.bulkCreate(orders).then(function() {
       chai.request(app)
-      .delete('/api/user/orders/delete')
+      .put('/api/user/orders/delete')
       .set('Authorization', userJWT1)
       .send({orders: orders, groupId: userId1})
       .end((err, res) => {
