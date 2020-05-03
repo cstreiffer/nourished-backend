@@ -8,7 +8,7 @@ var
   path = require('path'),
   sequelize = require(path.resolve('./config/lib/sequelize-connect')),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  User = db.user;
+  Menu = db.menu;
 
 const { Parser } = require('json2csv');
 const parser = new Parser();
@@ -22,22 +22,21 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
  * List of restaurant orders itemized
  */
 var sendUserList = function() {
-    User.findAll({where: {
-      roles: {
-        [Op.contains] : ["user"]
+    Menu.findAll({where: {},
+      include: {
+        model: db.timeslot,
+        include: [db.restaurant, db.hospital]
       }
-    }})
-      .then(function(users) {
+    })
+      .then(function(menus) {
         // Flatten that bad boy (extract values)
-        var ret = users.map((user) => {
+        var ret = menus.map((menu) => {
           return {
-            id: user.id,
-            username: user.username,
-            first_name: user.firstName,
-            last_name: user.lastName,
-            email_address: user.email,
-            cell_phone: user.phoneNumber,
-            role: user.roles
+            id: menu.id,
+            mealName: menu.mealName,
+            date: menu.timeslot.date,
+            restName: menu.timeslot.restaurant.name,
+            hospital: menu.timeslot.hospital.name,
           }
         });
         console.log("Sending this: "  + ret);
@@ -51,12 +50,12 @@ var sendUserList = function() {
             // To Do (send Email);
             var date = new Date().toLocaleString("en-US", {timeZone: "America/New_York"})
             var mailOptions = {
-              to: ['ccstreiffer@gmail.com', 'nourished@pennmedicine.upenn.edu'],
+              to: ['ccstreiffer@gmail.com'],
               from: config.mailer.from,
-              subject: 'Nourished User List',
+              subject: 'Nourished Menu List',
               attachments: [
                 {
-                  filename: 'User List '+ ' - ' + date + ' Report.csv',
+                  filename: 'Menu List '+ ' - ' + date + ' Report.csv',
                   content: fs.createReadStream(outFile)
                 }
               ]

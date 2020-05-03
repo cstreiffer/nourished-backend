@@ -8,7 +8,7 @@ var
   path = require('path'),
   sequelize = require(path.resolve('./config/lib/sequelize-connect')),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  User = db.user;
+  Hospital = db.hospital;
 
 const { Parser } = require('json2csv');
 const parser = new Parser();
@@ -22,22 +22,14 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
  * List of restaurant orders itemized
  */
 var sendUserList = function() {
-    User.findAll({where: {
-      roles: {
-        [Op.contains] : ["user"]
-      }
-    }})
-      .then(function(users) {
+    Hospital.findAll({where: {}
+    })
+      .then(function(hospitals) {
         // Flatten that bad boy (extract values)
-        var ret = users.map((user) => {
+        var ret = hospitals.map((hospital) => {
           return {
-            id: user.id,
-            username: user.username,
-            first_name: user.firstName,
-            last_name: user.lastName,
-            email_address: user.email,
-            cell_phone: user.phoneNumber,
-            role: user.roles
+            id: hospital.id,
+            hospName: hospital.name,
           }
         });
         console.log("Sending this: "  + ret);
@@ -51,12 +43,12 @@ var sendUserList = function() {
             // To Do (send Email);
             var date = new Date().toLocaleString("en-US", {timeZone: "America/New_York"})
             var mailOptions = {
-              to: ['ccstreiffer@gmail.com', 'nourished@pennmedicine.upenn.edu'],
+              to: ['ccstreiffer@gmail.com'],
               from: config.mailer.from,
-              subject: 'Nourished User List',
+              subject: 'Nourished Hospital List',
               attachments: [
                 {
-                  filename: 'User List '+ ' - ' + date + ' Report.csv',
+                  filename: 'Hospital List '+ ' - ' + date + ' Report.csv',
                   content: fs.createReadStream(outFile)
                 }
               ]
