@@ -55,7 +55,7 @@ exports.invokeRolesPolicies = function() {
       permissions: ['get', 'post', 'put']
     }, {
       resources: '/api/user/orders/delete',
-      permissions: ['delete']
+      permissions: ['put']
     }, {
       resources: '/api/user/orders/status',
       permissions: ['put']
