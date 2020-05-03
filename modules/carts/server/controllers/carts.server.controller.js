@@ -9,6 +9,7 @@ var
   uuid = require('uuid/v4'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
+  config = require(path.resolve('./config/config')),
   Cart = db.cart,
   Menu = db.menu;
 
@@ -147,6 +148,11 @@ exports.create = function(req, res) {
   }
 };
 
+var isTimeValid = function(date) {
+  var time = new Date(new Date().getTime() + config.orderTimeCutoff);
+  return time < new Date(date);
+};
+
 /**
  * List of Carts
  */
@@ -177,7 +183,9 @@ exports.userList = function(req, res) {
         message: 'No carts found'
       });
     } else {
-      res.json({carts: carts, message: "Cart items successfully found"});
+
+      var cartsRet = carts.filter(cart => isTimeValid(cart.menu.timeslot.date));
+      res.json({carts: cartsRet, message: "Cart items successfully found"});
     }
   }).catch(function(err) {
     console.log(err);

@@ -333,6 +333,7 @@ describe('/GET /api/user/carts endpoint', () => {
       {quantity: 5, menuId: menu2.id, userId: userId2, id: uuid()},
       {quantity: 5, menuId: menu3.id, userId: userId1, id: uuid()},
       {quantity: 5, menuId: menu4.id, userId: userId2, id: uuid()},
+      {quantity: 5, menuId: menu4.id, userId: userId1, id: uuid()},
     ];
     Cart.destroy({where: {}})
       .then(function(){
