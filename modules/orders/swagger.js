@@ -167,7 +167,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Order'
  *  /user/orders/delete:
- *    delete:
+ *    put:
  *      summary: Deletes a batch of order items. Delete will fail if >=1 individual orders invalid.
  *      tags: [Orders]
  *      security:
