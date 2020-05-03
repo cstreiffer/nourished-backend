@@ -32,7 +32,7 @@ var sendList = function(req) {
     payStatus: ['COMPLETE', 'CANCELLED', 'REFUNDED'],
     deliveryDate: {
       [Op.gte]: new Date(Date.now()),
-      [Op.lte] : new Date(Date.now() + 24*60*60*1000),
+      [Op.lte] : new Date(Date.now() + 4*60*60*1000),
     }
   };
     Order.findAll({
@@ -159,8 +159,19 @@ var opb = {
   }
 }
 
-sendList(elmerkury);
+var satekampar = {
+  restaurant : {
+    name: 'Sate Kampar',
+    id: '5b05ae36-b872-53b2-a67a-7391e90b711c'
+  },
+  user: {
+    email: ['angebranca@kampargroup.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+sendList(satekampar);
 sendList(cafeynez);
+// sendList(elmerkury);
 // sendList(baology);
 // sendList(renatas);
 // sendList(pumpkin);
