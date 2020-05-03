@@ -102,7 +102,7 @@ var cronDailyUpdate = function() {
     },
     function(users, done) {
     	var tm = {
-    		messageBody: 'Your %s from %s will be delivered tonight to the %s at %s! You will be able to pick-up your order at the %s. Enjoy!🍴'
+    		messageBody: 'Your %s from %s will be delivered to the %s at %s! You will be able to pick-up your order at the %s. Enjoy!🍴'
     	};
     	done(null, users, tm)
     },
