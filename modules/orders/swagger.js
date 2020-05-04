@@ -189,9 +189,9 @@
  *                  items:
  *                    type: object
  *                    required:
- *                      - orderId
+ *                      - id
  *                    properties:
- *                      orderId:
+ *                      id:
  *                        type: string
  *      responses:
  *        "200":
