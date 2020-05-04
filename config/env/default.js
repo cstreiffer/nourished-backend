@@ -73,6 +73,7 @@ module.exports = {
     twilio: {
       weeklyUpdate: '0 13 * * *',
       dailyUpdate: '*/30 10-20 * * *',
+      dailyPrenotify: '*/30 7-20 * * *',
       timezone: 'America/New_York'
     },
   },
