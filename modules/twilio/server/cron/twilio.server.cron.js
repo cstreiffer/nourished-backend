@@ -291,32 +291,3 @@ var cronWeeklyUpdate = function() {
     }
   );
 }
-
-
-// cronDailyPrenotify();
-
-// var sendPrenotifyMessage = function(tm, user) {
-//   var to = '+1' + user.user.phoneNumber;
-//   var from = config.twilio.phoneNumber;
-//   var message = util.format(tm.messageBody, user.type, user.restaurant, user.hospital, user.time, user.location);
-//   console.log(message);
-//   // return message;
-//   return twilio.messages
-//     .create({
-//        body: message,
-//        from: from,
-//        to: to
-//      });
-// }
-
-// var sendDailyMessage = function(tm, user) {
-//   var to = '+1' + user.user.phoneNumber;
-//   var from = config.twilio.phoneNumber;
-//   var message = util.format(tm.messageBody, user.type, user.restaurant, user.location);
-//   return twilio.messages
-//     .create({
-//        body: message,
-//        from: from,
-//        to: to
-//      });
-// }
