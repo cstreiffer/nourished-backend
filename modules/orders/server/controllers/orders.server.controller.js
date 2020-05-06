@@ -239,7 +239,7 @@ exports.restStatusUpdate = function(req, res) {
 
 const calculateOrderAmount = orders => {
   if(orders) {
-    var sum = orders.map((order) => order.total).reduce((a,b) => a + b, 0)
+    var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
     return Math.floor(sum * 100);
   } else {
     return 0;
@@ -252,6 +252,10 @@ const calculateTotalAmount = orders => {
     sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0);
   }
   return sum
+}
+
+const calculateStripeFee = total => {
+  return total*(.029)-.3*100
 }
 
 /**
@@ -267,17 +271,20 @@ exports.delete = function(req, res) {
           where: {
             userId: req.user.id,
             groupId: groupId,
-            deleted: false
           },
           include: db.restaurant
         }).then(function(ordersRet) {
           var orders = ordersRet.reduce(function(map, obj) {
             var restaurantId = obj.restaurantId;
             if(!(restaurantId in map)) {
-              map[restaurantId] = [];
+              map[restaurantId] = {toRefund: [], refunded: [], nonRefunded: []};
             }
-            if(!(orderIds.includes(obj.id))) {
-              map[restaurantId].push(obj);
+            if(orderIds.includes(obj.id)) {
+              map[restaurantId].toRefund.push(obj);
+            } else if(obj.deleted) {
+              map[restaurantId].refunded.push(obj);
+            } else {
+              map[restaurantId].nonRefunded.push(obj);
             }
             return map;
           }, {});
@@ -300,16 +307,33 @@ exports.delete = function(req, res) {
           }, {});
           var refunds = [];
           Object.keys(orders).map(function(key) {
-            if(key in stripeorders) {
+            if(key in stripeorders && orders[key].toRefund.length > 0) {
+
+              console.log("To Refund ========================================================");
+              orders[key].toRefund.forEach((order) => console.log(order.toJSON()));
+              console.log("Not Yet Refunded =================================================");
+              orders[key].nonRefunded.forEach((order) => console.log(order.toJSON()));
+              console.log("Already Refunded =================================================");
+              orders[key].refunded.forEach((order) => console.log(order.toJSON()));
+
+              var nonRefundedAmount = calculateOrderAmount(orders[key].nonRefunded)
+              var refundedAmount    = calculateOrderAmount(orders[key].refunded);
+              var toRefundAmount    = calculateOrderAmount(orders[key].toRefund);
               refunds.push({
-                oldAmount: stripeorders[key].amount,
-                newAmount: calculateOrderAmount(orders[key]),
-                refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
+                totalAmount: stripeorders[key].amount,
+                feeAmount: calculateStripeFee(stripeorders[key].amount),
+                oldAmount: nonRefundedAmount+toRefundAmount,
+                refundedAmount: refundedAmount,
+                newAmount: nonRefundedAmount,
+                refundAmount: toRefundAmount,
                 stripePaymentId: stripeorders[key].paymentIntentId,
                 restaurantId: key
               });
+
             }
           });
+          console.log("Refunds =================================================");
+          console.log(refunds);
           done(null, refunds);
         }).catch(function(err) {
           done(err);
@@ -322,9 +346,11 @@ exports.delete = function(req, res) {
           refunds.forEach((refund) => {
             const options = {
               payment_intent: refund.stripePaymentId,
-              amount: refund.oldAmount - refund.newAmount,
-              reverse_transfer: true,
+              amount: refund.refundAmount,
             };
+            var feeCheck = refund.newAmount - refund.feeAmount;
+            if(feeCheck < 0.0) options.amount = options.amount - feeCheck;
+            if(process.env.NODE_ENV === 'production') options.reverse_transfer = true;
             refundIntents.push(stripe.refunds.create(options));
           });
 
