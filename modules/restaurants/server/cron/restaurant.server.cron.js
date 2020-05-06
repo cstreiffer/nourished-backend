@@ -25,9 +25,6 @@ const cron = require("node-cron");
 
 const TIMESLOT_DAYRANGE = 1
 
-//if (process.env.NODE_ENV !== "production") {
-  require("dotenv").config();           //Force DISTRIBUTE_EMAILS variable to be deliberatly set
-//}
 
 /**
  * This module will lookup all orders for the upcoming timeslots for each respective restaurant and
