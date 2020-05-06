@@ -20,6 +20,8 @@ const smtpTransport = nodemailer.createTransport(config.mailer.options)
 const util = require("util")
 const os = require("os")
 const ejs = require("ejs");
+const cron = require("node-cron");
+
 
 const TIMESLOT_DAYRANGE = 1
 
@@ -278,12 +280,19 @@ const cronDailyUpdate = () => {
 
 
 
-module.exports = function () {
-  cron.schedule(
-    config.cron.restaurant.dailyUpdate,
-    () => {      
-      process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
-    },
-    { timezone: config.cron.restaurant.timezone }
-  );
-};
+
+
+if (process.env.NODE_ENV === 'development') {
+  process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
+}
+else {
+  module.exports = function () {
+    cron.schedule(
+      config.cron.restaurant.dailyUpdate,
+      () => {
+        process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
+      },
+      { timezone: config.cron.restaurant.timezone }
+    );
+  };
+}
