@@ -170,74 +170,70 @@ const queryOrders = async (timeslotRange, done) => {
  */
 var sendMessage = function (data) {
     
-    console.debug('<sendMessage>'); console.group()
+  console.debug('<sendMessage>'); console.group()
     
-    // TODO During dev this should be forced to a personal email
-    var receipient = process.env.NODE_ENV === "development" ? "jpatel@syncro-tech.com" : "this should be replace with data.emailRecipient in production"   //data.emailRecipient
-    var restaurantName = data.restaurantName
+  // TODO During dev this should be forced to a personal email
+  var receipient = process.env.NODE_ENV === "development" ? "jpatel@syncro-tech.com" : "this should be replace with data.emailRecipient in production"   //data.emailRecipient
+  var restaurantName = data.restaurantName
 
-    // flatten for csv
-    var ret = data.orders.flat(1).map((order) => {
+  // flatten for csv
+  var ret = data.orders.flat(1).map((order) => {
             
-        return {
-          deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {timeZone: "America/New_York",}),
-          hospital: order.hospital.name,
-          firstName: order.user.firstName,
-          lastName: order.user.lastName,
-          phoneNumber: order.user.phoneNumber,
-          email: order.user.email,
-          order: order.mealName,
-          quantity: order.quantity,
-          price: order.price,
-          total: order.total,
-          orderDate: new Date(order.orderDate).toLocaleString("en-US", {timeZone: "America/New_York",}),
-          payStatus: order.payStatus,
-          dietaryRestrictions: order.dietaryRestrictions,
-          allergies: order.information,
-        };
-    });
-   
-    var csvData = parser.parse(ret);           // turn Json to a csv string    
-    console.log("..sending CSV: ", csvData);
-    
-    var outFile = path.resolve(os.tmpdir() + path.sep + "orderList_" + new Date().toISOString() + ".csv");
-    fs.writeFile(outFile, csvData, function(err, data) {
-        if(err) {
-            console.log(err);
-        } else {
-            // To Do (send Email);
-            var date = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
-            
-            var mailOptions = {
-              to: [receipient],
-              from: config.mailer.from,
-              subject: "Nourished Order List for " + restaurantName,
-              html:
-                "See attached for complete list of orders for upcoming delivery</br></br>Regards,</br>Team Nourshed",
-              attachments: [
-                {
-                  filename:
-                    "Order List " +
-                    " - " +
-                    new Date().toDateString() +
-                    " Report.csv",
-                  content: fs.createReadStream(outFile),
-                },
-              ],
-            };
-
-            (async () => {
-                try {
-                    await smtpTransport.sendMail(mailOptions);
-                    console.log('Email sent')
-                } catch (err) {
-                    console.log(err)
-                }
-            })();
+    return {
+      deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", { timeZone: "America/New_York", }),
+      hospital: order.hospital.name,
+      firstName: order.user.firstName,
+      lastName: order.user.lastName,
+      phoneNumber: order.user.phoneNumber,
+      email: order.user.email,
+      order: order.mealName,
+      quantity: order.quantity,
+      price: order.price,
+      total: order.total,
+      orderDate: new Date(order.orderDate).toLocaleString("en-US", { timeZone: "America/New_York", }),
+      payStatus: order.payStatus,
+      dietaryRestrictions: order.dietaryRestrictions,
+      allergies: order.information,
+    };
+  });
         
-        }
-    });
-    console.groupEnd(); console.log('</sendMessage>')
+  new Promise((resolve, reject) => {      
+    resolve(new Buffer.from(parser.parse(ret)));
+  })
+  .then((data) => {
+        
+        // To Do (send Email);
+        var date = new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+        
+        var mailOptions = {
+          to: [receipient],
+          from: config.mailer.from,
+          subject: "Nourished Order List for " + restaurantName,
+          html:
+            "See attached for complete list of orders for upcoming delivery</br></br>Regards,</br>Team Nourshed",
+          attachments: [
+            {
+              filename:
+                "Order List " +
+                " - " +
+                new Date().toDateString() +
+                " Report.csv",
+              content: data.toString()  //fs.createReadStream(outFile),
+            },
+          ],
+        };
+
+        (async () => {
+            try {
+                await smtpTransport.sendMail(mailOptions);
+                console.log('Email sent')
+            } catch (err) {
+                console.log(err)
+            }
+        })();        
+  })
+
+  console.groupEnd(); console.log('</sendMessage>')
 }
 
 const cronDailyUpdate = () => {
