@@ -281,8 +281,7 @@ const cronDailyUpdate = () => {
 module.exports = function () {
   cron.schedule(
     config.cron.restaurant.dailyUpdate,
-    () => {
-      cronDailyUpdate();
+    () => {      
       process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
     },
     { timezone: config.cron.restaurant.timezone }
