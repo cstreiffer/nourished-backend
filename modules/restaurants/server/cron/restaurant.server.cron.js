@@ -23,6 +23,9 @@ const ejs = require("ejs");
 
 const TIMESLOT_DAYRANGE = 1
 
+//if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config();           //Force DISTRIBUTE_EMAILS variable to be deliberatly set
+//}
 
 /**
  * This module will lookup all orders for the upcoming timeslots for each respective restaurant and
@@ -171,7 +174,7 @@ var sendMessage = function (data) {
     console.debug('<sendMessage>'); console.group()
     
     // TODO During dev this should be forced to a personal email
-    var receipient = "<replace with personal email for dev>"   //data.emailRecipient
+    var receipient = process.env.NODE_ENV === "development" ? "jpatel@syncro-tech.com" : "this should be replace with data.emailRecipient in production"   //data.emailRecipient
     var restaurantName = data.restaurantName
 
     // flatten for csv
@@ -211,7 +214,7 @@ var sendMessage = function (data) {
               from: config.mailer.from,
               subject: "Nourished Order List for " + restaurantName,
               html:
-                "See attached for complete list of orders for upcoming menu</br></br>Team Nourshed",
+                "See attached for complete list of orders for upcoming delivery</br></br>Regards,</br>Team Nourshed",
               attachments: [
                 {
                   filename:
@@ -238,40 +241,50 @@ var sendMessage = function (data) {
     console.groupEnd(); console.log('</sendMessage>')
 }
 
-const processRestaurantNotifaction = () => {
-    async.waterfall([
-        function (done) {
-            //first pull all order 
-              var timeslotRange = {
-                date: {
-                [Op.gte]: new Date(Date.now()),
-                [Op.lte]: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-                },
-            };
-            queryOrders(timeslotRange, done)
+const cronDailyUpdate = () => {
+  async.waterfall([
+    function (done) {
+      //first pull all order
+      var timeslotRange = {
+        date: {
+          [Op.gte]: new Date(Date.now()),
+          [Op.lte]: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
         },
-        function (ordermap, done) {
-            //send email            
-            Promise.all(Object.keys(orderMap).map((r) => {
-                console.log(chalk.italic('..sending to restaurant id: '), r)
-                let data = ordermap[r]                
-                
-                sendMessage(data);
-                
-            }))
-            .then(function() {
-                done(null);
-            }).catch(function(err) {
-                done(err);
-            });
-        },
-        function (done) {
-            console.log(chalk.green.bold('Finished sending emails'))            
-        }
-    ])
+      };
+      queryOrders(timeslotRange, done);
+    },
+    function (ordermap, done) {
+      //send email
+      Promise.all(
+        Object.keys(orderMap).map((r) => {
+          console.log(chalk.italic("..sending to restaurant id: "), r);
+          let data = ordermap[r];
 
-}
+          sendMessage(data);
+        })
+      )
+        .then(function () {
+          done(null);
+        })
+        .catch(function (err) {
+          done(err);
+        });
+    },
+    function (done) {
+      console.log(chalk.green.bold("Finished sending emails"));
+    },
+  ]);
+};
 
-processRestaurantNotifaction()
-          
-module.exports = processRestaurantNotifaction
+
+
+module.exports = function () {
+  cron.schedule(
+    config.cron.restaurant.dailyUpdate,
+    () => {
+      cronDailyUpdate();
+      process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
+    },
+    { timezone: config.cron.restaurant.timezone }
+  );
+};
