@@ -35,11 +35,11 @@ module.exports = {
   },
   mailer: {
     errorEmails: [
-      "jpatel@syncro-tech.com",
-      "jpatel@syncro-tech.com",
-      "jpatel@syncro-tech.com",
+      "christopher.streiffer@pennmedicine.upenn.edu",
+      "ccstreiffer@gmail.com",
+      "nourished@pennmedicine.upenn.edu",
     ],
-    email: process.env.MAILER_EMAIL || "jpatel@syncro-tech.com",
+    email: process.env.MAILER_EMAIL || "nourished@pennmedicine.upenn.edu",
     from:
       process.env.MAILER_FROM || "Nourished <nourished@pennmedicine.upenn.edu>",
     options: {
@@ -53,8 +53,8 @@ module.exports = {
     },
   },
   cron: {
-    restaurant: {     
-      dailyUpdate: "*/30 9,15 * * *",
+    restaurant: {
+      dailyUpdate: "30 9 * * *",
       timezone: "America/New_York",
     },
   },

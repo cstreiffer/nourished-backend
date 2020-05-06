@@ -279,7 +279,7 @@ const cronDailyUpdate = () => {
 
 
 
-if (process.env.NODE_ENV === 'development') {
+if (process.env.NODE_ENV === 'development' && process.argv[2] == '--adhoc') {
   process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
 }
 else {
