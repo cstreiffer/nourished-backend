@@ -246,16 +246,24 @@ const calculateOrderAmount = orders => {
   }
 };
 
-const calculateTotalAmount = orders => {
+const calculateTotalFee = orders => {
   var sum = 0;
   if(orders.length){
-    sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0);
+    sum = orders.map((order) => (order.stripeFee)/100.00).reduce((a,b) => a + b, 0);
+  }
+  return sum
+}
+
+const calculateTotalRefund = orders => {
+  var sum = 0;
+  if(orders.length){
+    sum = orders.map((order) => (order.netRefund)/100.00).reduce((a,b) => a + b, 0);
   }
   return sum
 }
 
 const calculateStripeFee = total => {
-  return total*(.029)-.3*100
+  return Math.ceil(total*(.029)+.3*100)
 }
 
 /**
@@ -319,9 +327,14 @@ exports.delete = function(req, res) {
               var nonRefundedAmount = calculateOrderAmount(orders[key].nonRefunded)
               var refundedAmount    = calculateOrderAmount(orders[key].refunded);
               var toRefundAmount    = calculateOrderAmount(orders[key].toRefund);
+              var totalAmount = nonRefundedAmount + refundedAmount + toRefundAmount;
+
+              var stripeFee = Math.ceil(toRefundAmount/totalAmount*calculateStripeFee(totalAmount));
+              
               refunds.push({
-                totalAmount: stripeorders[key].amount,
-                feeAmount: calculateStripeFee(stripeorders[key].amount),
+                totalAmount: totalAmount,
+                stripeFee: stripeFee,
+                netRefund: toRefundAmount - stripeFee,
                 oldAmount: nonRefundedAmount+toRefundAmount,
                 refundedAmount: refundedAmount,
                 newAmount: nonRefundedAmount,
@@ -346,10 +359,9 @@ exports.delete = function(req, res) {
           refunds.forEach((refund) => {
             const options = {
               payment_intent: refund.stripePaymentId,
-              amount: refund.refundAmount,
+              amount: refund.refundAmount - refund.stripeFee,
             };
-            var feeCheck = refund.newAmount - refund.feeAmount;
-            if(feeCheck < 0.0) options.amount = options.amount - feeCheck;
+
             if(process.env.NODE_ENV === 'production') options.reverse_transfer = true;
             refundIntents.push(stripe.refunds.create(options));
           });
@@ -403,7 +415,8 @@ exports.delete = function(req, res) {
             res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
               date: new Date().toISOString(),
               emailAddress: config.mailer.email,
-              totalAmount: calculateTotalAmount(refunds),
+              stripeFee: calculateTotalFee(refunds),
+              totalAmount: calculateTotalRefund(refunds),
               orders: ors
             }, function(err, emailHTML) {
               done(err, emailHTML, refunds);
@@ -424,7 +437,7 @@ exports.delete = function(req, res) {
                 .then(function(){
                   done(null, refunds);
                 }).catch(function(err) {
-              done(err);
+                  done(err);
             })
           } else {
             done(null, refunds);
@@ -436,7 +449,8 @@ exports.delete = function(req, res) {
             phoneNumber: req.user.phoneNumber,
             date: new Date().toISOString(),
             emailAddress: req.user.email,
-            totalAmount: calculateTotalAmount(refunds),
+            stripeFee: calculateTotalFee(refunds),
+            totalAmount: calculateTotalRefund(refunds),
             refunds: refunds
           }, function(err, emailHTML) {
             done(err, emailHTML, refunds);
