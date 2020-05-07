@@ -28,15 +28,15 @@ jobs:
       - run:
           name: Move jwt tokens to correct location
           command: mkdir config/jwttokens && mv nourished-config/config/jwt* config/jwttokens/
-      - run:
-          name: Get the seed data to the correct location
-          command: |
-            mkdir proddata/data
-            mv nourished-config/config/users.csv proddata/data/users.csv
-            mv nourished-config/config/restaurants.csv proddata/data/restaurants.csv
-            mv nourished-config/config/hospitals.csv proddata/data/hospitals.csv
-            mv nourished-config/config/mealinfo.csv proddata/data/mealinfo.csv
-            mv nourished-config/config/seed_data.json proddata/seed_data.json
+      # - run:
+      #     name: Get the seed data to the correct location
+      #     command: |
+      #       mkdir proddata/data
+      #       mv nourished-config/config/users.csv proddata/data/users.csv
+      #       mv nourished-config/config/restaurants.csv proddata/data/restaurants.csv
+      #       mv nourished-config/config/hospitals.csv proddata/data/hospitals.csv
+      #       mv nourished-config/config/mealinfo.csv proddata/data/mealinfo.csv
+      #       mv nourished-config/config/seed_data.json proddata/seed_data.json
       - run:
           name: Remove the config
           command: rm -rf nourished-config
