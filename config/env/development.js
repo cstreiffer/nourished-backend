@@ -54,7 +54,7 @@ module.exports = {
   },
   cron: {
     restaurant: {
-      dailyUpdate: "30 9 * * *",
+      dailyUpdate: "30 8,16 * * *",
       timezone: "America/New_York",
     },
   },

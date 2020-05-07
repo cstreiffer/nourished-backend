@@ -24,7 +24,7 @@ const cron = require("node-cron");
 
 
 const TIMESLOT_DAYRANGE = 1
-
+const TIMESLOT_HOURRANGE = 4
 
 /**
  * This module will lookup all orders for the upcoming timeslots for each respective restaurant and
@@ -43,18 +43,18 @@ const queryOrders = async (timeslotRange, done) => {
     for (const i in restaurants) {
       //restaurants.map(r => {
       let r = restaurants[i];
-    //   console.log(
-    //     "Restaurant to be processed: ",
-    //     r.name,
-    //     "(",
-    //     r.id,
-    //     ")  ...find scheduled timeslots for restaurant..."
-    //   );
+      console.log(
+        "Restaurant to be processed: ",
+        r.name,
+        "(",
+        r.id,
+        ")  ...find scheduled timeslots for restaurant..."
+      );
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
             [Op.gte]: new Date(Date.now()),
-            [Op.lte]: new Date(Date.now() + TIMESLOT_DAYRANGE * 24 * 60 * 60 * 1000),
+            [Op.lte]: new Date(Date.now() + TIMESLOT_DAYRANGE * TIMESLOT_HOURRANGE * 60 * 60 * 1000),
           },
           restaurantId: r.id,
         },
@@ -85,6 +85,7 @@ const queryOrders = async (timeslotRange, done) => {
               },
               restaurantId: t.restaurantId,
               hospitalId: t.hospitalId,
+              payStatus: 'COMPLETE'
             },
             include: [
               {
@@ -173,11 +174,22 @@ var sendMessage = function (data) {
   console.debug('<sendMessage>'); console.group()
     
   // TODO During dev this should be forced to a personal email
-  var receipient = process.env.NODE_ENV === "development" ? "jpatel@syncro-tech.com" : "this should be replace with data.emailRecipient in production"   //data.emailRecipient
+  var receipient = process.env.NODE_ENV === "development" ? "ccstreiffer@gmail.com" : "ccstreiffer@gmail.com"   //data.emailRecipient
   var restaurantName = data.restaurantName
 
+  var orders = data.orders.map(function(order) {
+    var orderList = [];
+    var orderQuantity = Number(order.quantity);
+    for(var i=0; i < orderQuantity; i++) {
+      var toPush = order.toJSON();
+      toPush.quantity = 1;
+      orderList.push(toPush);
+    }
+    return orderList
+  });
+
   // flatten for csv
-  var ret = data.orders.flat(1).map((order) => {
+  var ret = orders.flat(1).map((order) => {
             
     return {
       deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", { timeZone: "America/New_York", }),
@@ -189,7 +201,7 @@ var sendMessage = function (data) {
       order: order.mealName,
       quantity: order.quantity,
       price: order.price,
-      total: order.total,
+      total: order.price,
       orderDate: new Date(order.orderDate).toLocaleString("en-US", { timeZone: "America/New_York", }),
       payStatus: order.payStatus,
       dietaryRestrictions: order.dietaryRestrictions,
