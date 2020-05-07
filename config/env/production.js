@@ -49,7 +49,11 @@ module.exports = {
       weeklyUpdate: '0 13 * * SUN',
       dailyUpdate: '*/30 9,10,11,15,16,17 * * *',
       timezone: 'America/New_York'
-    }
+    },
+    restaurant: {     
+      dailyUpdate: "*/30 9,15 * * *",
+      timezone: "America/New_York",
+    },
   },
   stripe: {
     pubKey: process.env.STRIPE_PUBLISHABLE_KEY,
