@@ -138,7 +138,7 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
                     <td width=40% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.restaurant}}</td>
                     <td width=40% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.name}}</td>
                     <td width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">{{x.quantity}}</td>
-                    <td width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#FF0000; font-weight:bold;">${{x.totalPrice}}</td>
+                    <td width=10% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">${{x.totalPrice}}</td>
                   </tr>
                 {% endfor %}
                 <tr> 
@@ -148,10 +148,16 @@ u + .em_body .em_full_wrap { width:100% !important; width:100vw !important;}
                   <td> <hr /> </td>                
                 </tr>
                 <tr> 
+                  <td width=25% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 15px; color:#000000; font-weight:bold;"></td>
+                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 15px; color:#000000; font-weight:bold;"></td>
+                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 15px; color:#000000; font-weight:bold;">Processing Fee:</td>
+                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 15px; color:#FF0000; font-weight:bold;">(${{stripeFee.toFixed(2)}})</td>              
+                </tr>
+                <tr> 
                   <td width=25% class="em_blue " align="left" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;"></td>
                   <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;"></td>
-                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#FF0000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
+                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">Net Refund:</td>
+                  <td width=25% class="em_blue " align="center" style="font-family: Arial, sans-serif; font-size: 10px; line-height: 29px; color:#000000; font-weight:bold;">${{totalAmount.toFixed(2)}}</td>              
                 </tr>
               </table>
             </td>

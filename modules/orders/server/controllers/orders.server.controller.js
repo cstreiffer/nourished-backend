@@ -32,7 +32,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 const retAttributes = [
   'id', 'orderDate', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId',
   'deliveryDate', 'mealName', 'mealDescription',  'allergens', 'dietaryRestrictions', 'type', 'price',
-  'total', 'hospitalId', 'restaurantId'
+  'total', 'hospitalId', 'restaurantId', 'deleted'
 ];
 const restRetAttributes = ['id', 'name', 'description', 'phoneNumber', 'email'];
 const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddress', 'zip', 'city', 'state', 'dropoffLocation', 'dropoffInfo'];
@@ -239,19 +239,31 @@ exports.restStatusUpdate = function(req, res) {
 
 const calculateOrderAmount = orders => {
   if(orders) {
-    var sum = orders.map((order) => order.total).reduce((a,b) => a + b, 0)
+    var sum = orders.map((order) => Number(order.total)).reduce((a,b) => a + b, 0)
     return Math.floor(sum * 100);
   } else {
     return 0;
   }
 };
 
-const calculateTotalAmount = orders => {
+const calculateTotalFee = orders => {
   var sum = 0;
   if(orders.length){
-    sum = orders.map((order) => (order.oldAmount - order.newAmount)/100.00).reduce((a,b) => a + b, 0);
+    sum = orders.map((order) => (order.stripeFee)/100.00).reduce((a,b) => a + b, 0);
   }
   return sum
+}
+
+const calculateTotalRefund = orders => {
+  var sum = 0;
+  if(orders.length){
+    sum = orders.map((order) => (order.netRefund)/100.00).reduce((a,b) => a + b, 0);
+  }
+  return sum
+}
+
+const calculateStripeFee = total => {
+  return Math.ceil(total*(.029)+.3*100)
 }
 
 /**
@@ -267,17 +279,20 @@ exports.delete = function(req, res) {
           where: {
             userId: req.user.id,
             groupId: groupId,
-            deleted: false
           },
           include: db.restaurant
         }).then(function(ordersRet) {
           var orders = ordersRet.reduce(function(map, obj) {
             var restaurantId = obj.restaurantId;
             if(!(restaurantId in map)) {
-              map[restaurantId] = [];
+              map[restaurantId] = {toRefund: [], refunded: [], nonRefunded: []};
             }
-            if(!(orderIds.includes(obj.id))) {
-              map[restaurantId].push(obj);
+            if(orderIds.includes(obj.id)) {
+              map[restaurantId].toRefund.push(obj);
+            } else if(obj.deleted) {
+              map[restaurantId].refunded.push(obj);
+            } else {
+              map[restaurantId].nonRefunded.push(obj);
             }
             return map;
           }, {});
@@ -300,16 +315,38 @@ exports.delete = function(req, res) {
           }, {});
           var refunds = [];
           Object.keys(orders).map(function(key) {
-            if(key in stripeorders) {
+            if(key in stripeorders && orders[key].toRefund.length > 0) {
+
+              console.log("To Refund ========================================================");
+              orders[key].toRefund.forEach((order) => console.log(order.toJSON()));
+              console.log("Not Yet Refunded =================================================");
+              orders[key].nonRefunded.forEach((order) => console.log(order.toJSON()));
+              console.log("Already Refunded =================================================");
+              orders[key].refunded.forEach((order) => console.log(order.toJSON()));
+
+              var nonRefundedAmount = calculateOrderAmount(orders[key].nonRefunded)
+              var refundedAmount    = calculateOrderAmount(orders[key].refunded);
+              var toRefundAmount    = calculateOrderAmount(orders[key].toRefund);
+              var totalAmount = nonRefundedAmount + refundedAmount + toRefundAmount;
+
+              var stripeFee = Math.ceil(toRefundAmount/totalAmount*calculateStripeFee(totalAmount));
+              
               refunds.push({
-                oldAmount: stripeorders[key].amount,
-                newAmount: calculateOrderAmount(orders[key]),
-                refundAmount: stripeorders[key].amount - calculateOrderAmount(orders[key]),
+                totalAmount: totalAmount,
+                stripeFee: stripeFee,
+                netRefund: toRefundAmount - stripeFee,
+                oldAmount: nonRefundedAmount+toRefundAmount,
+                refundedAmount: refundedAmount,
+                newAmount: nonRefundedAmount,
+                refundAmount: toRefundAmount,
                 stripePaymentId: stripeorders[key].paymentIntentId,
                 restaurantId: key
               });
+
             }
           });
+          console.log("Refunds =================================================");
+          console.log(refunds);
           done(null, refunds);
         }).catch(function(err) {
           done(err);
@@ -322,9 +359,10 @@ exports.delete = function(req, res) {
           refunds.forEach((refund) => {
             const options = {
               payment_intent: refund.stripePaymentId,
-              amount: refund.oldAmount - refund.newAmount,
-              reverse_transfer: true,
+              amount: refund.refundAmount - refund.stripeFee,
             };
+
+            if(process.env.NODE_ENV === 'production') options.reverse_transfer = true;
             refundIntents.push(stripe.refunds.create(options));
           });
 
@@ -377,7 +415,8 @@ exports.delete = function(req, res) {
             res.render(path.resolve('modules/orders/server/templates/user-order-cancel-confirmation'), {
               date: new Date().toISOString(),
               emailAddress: config.mailer.email,
-              totalAmount: calculateTotalAmount(refunds),
+              stripeFee: calculateTotalFee(refunds),
+              totalAmount: calculateTotalRefund(refunds),
               orders: ors
             }, function(err, emailHTML) {
               done(err, emailHTML, refunds);
@@ -398,7 +437,7 @@ exports.delete = function(req, res) {
                 .then(function(){
                   done(null, refunds);
                 }).catch(function(err) {
-              done(err);
+                  done(err);
             })
           } else {
             done(null, refunds);
@@ -410,7 +449,8 @@ exports.delete = function(req, res) {
             phoneNumber: req.user.phoneNumber,
             date: new Date().toISOString(),
             emailAddress: req.user.email,
-            totalAmount: calculateTotalAmount(refunds),
+            stripeFee: calculateTotalFee(refunds),
+            totalAmount: calculateTotalRefund(refunds),
             refunds: refunds
           }, function(err, emailHTML) {
             done(err, emailHTML, refunds);

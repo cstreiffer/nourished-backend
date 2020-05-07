@@ -382,8 +382,8 @@ exports.webhook = function(req, res) {
       updateOrderStatus(data.id, {payStatus: 'CANCELLED'}, res, 'CANCELLED');
       break;
 
-    case 'charge.succeeded':
     case 'charge.refunded':
+    case 'charge.succeeded':
     case 'transfer.reversed':
     case 'account.application.authorized':
       console.log('stripe.webhook charge.succeeded, charge.refunded, transfer.reversed, or account.application.authorized');
