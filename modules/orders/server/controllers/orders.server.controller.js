@@ -32,7 +32,7 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 const retAttributes = [
   'id', 'orderDate', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId',
   'deliveryDate', 'mealName', 'mealDescription',  'allergens', 'dietaryRestrictions', 'type', 'price',
-  'total', 'hospitalId', 'restaurantId'
+  'total', 'hospitalId', 'restaurantId', 'deleted'
 ];
 const restRetAttributes = ['id', 'name', 'description', 'phoneNumber', 'email'];
 const hospRetAttributes = [ 'id' , 'name', 'phoneNumber', 'email', 'streetAddress', 'zip', 'city', 'state', 'dropoffLocation', 'dropoffInfo'];
