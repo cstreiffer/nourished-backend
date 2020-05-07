@@ -128,7 +128,7 @@ exports.list = function(req, res) {
   // if(req.query.restaurantId) query.restaurantId = req.query.restaurantId;
   // if(req.query.startDate || req.query.endDate) query.date = formatDate(req.query);
   var timeslotQuery = {date: {
-    [Op.gte]: Date.now() + config.orderTimeCutoff
+    [Op.gte]: Date.now()
   }};
 
   Menu.findAll({
