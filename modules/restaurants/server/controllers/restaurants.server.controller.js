@@ -11,7 +11,12 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   Restaurant = db.restaurant,
   Order = db.order,
+  TwilioMessage = db.twiliomessage,
+  twilio = require(path.resolve('./config/lib/twilio')),
+  async = require('async'),
   uuid = require('uuid/v4');
+
+const util = require('util');
 
 // Define return
 // id | name | phoneNumber | email | streetAddress | zip | city | state | createdAt | updatedAt | userId 
@@ -151,6 +156,125 @@ exports.userList = function(req, res) {
   });
 };
 
+var sendMessage = function(message, user) {
+  console.log(user.username, message);
+  var to = '+1' + user.phoneNumber;
+  var from = config.twilio.phoneNumber;
+  return twilio.messages
+    .create({
+       body: message,
+       from: from,
+       to: to
+     });
+}
+
+var getStartDate = function(date, minutes, offset) {
+  var ret = new Date(date).getTime() - minutes*60*1000 + offset - 5000;
+  // console.log(new Date(ret).toLocaleString("en-US", {timeZone: "America/New_York"}));
+  return ret;
+}
+
+var getEndDate = function(date, minutes, offset) {
+  var ret = new Date(date).getTime() + minutes*60*1000 + offset + 5000;
+  // console.log(new Date(ret).toLocaleString("en-US", {timeZone: "America/New_York"}));
+  return ret;
+}
+
+/**
+ *
+ */
+exports.notify = function(req, res) {
+  var restaurant = req.restaurant;
+  var deliveryDate = req.query.deliveryDate || new Date();
+
+  async.waterfall([
+    function(done) {
+      var query = {
+        restaurantId: restaurant.id,
+        deleted: false,
+        payStatus: 'COMPLETE',
+        deliveryDate: {
+          [Op.gte] : getStartDate(deliveryDate, 15, 0),
+          [Op.lte] : getEndDate(deliveryDate, 15, 0)
+        }
+      };
+      if (req.query.hospitalId) query.hospitalId = req.query.hospitalId;
+
+      var userQuery = {phoneNumber: {[Op.ne]: ''}};
+      Order.findAll({
+        where: query,
+        include: 
+        [{
+          model: db.user,
+          where: userQuery
+        },
+        {
+          model: db.hospital,
+        },
+        {
+          model: db.restaurant
+        }]
+      }).then(function(orders) {
+        done(null, orders);
+      }).catch(function(err) {
+        done(err);
+      })
+    }, 
+    function(orders, done) {
+      // console.log(orders);
+      var userKeys = {};
+      orders.map((order) => {
+        var key = order.user.id + order.restaurantId;
+        console.log(key);
+        if(! (key in userKeys)) {
+          userKeys[key] = {
+            user: order.user,
+            type: order.type,
+            restaurant: order.restaurant.name,
+            location: order.hospital.dropoffLocation
+          }
+        }
+      });
+      var users = [];
+      Object.keys(userKeys).forEach(function(key) {
+        users.push(userKeys[key]);
+      });
+      done(null, users);
+    },
+    function(users, done) {
+      TwilioMessage.findOne({
+        where: {
+          subtype: 'DAILY_ORDER',
+        }
+      }).then(function(tm) {
+        done(null, users, tm);
+      }).catch(function(err) {
+        done(err);
+      });
+    },
+    function(users, tm, done) {
+      Promise.all(users.map((user) => {
+        var message = util.format(tm.messageBody, user.restaurant, user.location);
+        sendMessage(message, user.user);
+      }))
+        .then(function(messageIds) {
+          done(null);
+        }).catch(function(err) {
+          done(err);
+        });
+    }
+    ], 
+    function(err){
+      if(err) {
+        console.log(err);
+        return res.status(404).send({
+          message: 'No restaurants found for user'
+        });
+      }
+      return res.json({message: "Messages successfully sent"});
+    }
+  );
+}
 
 const { Parser } = require('json2csv');
 const parser = new Parser();

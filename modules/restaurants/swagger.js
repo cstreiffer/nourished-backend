@@ -200,4 +200,36 @@
  *            application/json:
  *              schema:
  *                $ref: '#/components/schemas/Restaurant'
+ *  /rest/restaurants/{restaurantId}/notify?hospitalId={hospitalId}&deliveryDate={deliveryDate}:
+ *    post:
+ *      summary: Updates a restaurant attached to user by id
+ *      tags: [Restaurants]
+ *      security:
+ *        - bearerAuth: []
+ *      parameters:
+ *        - in: path
+ *          name: restaurantId
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: Id of the restaurant
+ *        - in: path
+ *          name: hospitalId
+ *          schema:
+ *            type: string
+ *          required: false
+ *          description: Id of the hospital where meal delivered
+ *        - in: path
+ *          name: deliveryDate
+ *          schema:
+ *            type: string
+ *          required: false
+ *          description: Delivery time of the meal
+ *      responses:
+ *        "200":
+ *          description: Updates a restaurant
+ *          content:
+ *            application/json:
+ *              schema:
+ *                $ref: '#/components/schemas/Restaurant'
  */
