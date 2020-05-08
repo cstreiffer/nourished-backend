@@ -154,9 +154,9 @@ var sendMessage = function (data) {
   console.group();
 
   
-  //var receipient = process.env.NODE_ENV === "development" ? "ccstreiffer@gmail.com" : "ccstreiffer@gmail.com"   //data.emailRecipient
+  var receipient = process.env.NODE_ENV === "development" ? "ccstreiffer@gmail.com" : "ccstreiffer@gmail.com"   //data.emailRecipient
   
-  var receipient = process.env.NODE_ENV === "development" ? "jpatel@syncro-tech.com" : "jpatel@syncro-tech.com"; 
+  
   
   var restaurantName = data.restaurantName
   var hospitalName = data.hospitalName
