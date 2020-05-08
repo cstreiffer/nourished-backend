@@ -5,6 +5,7 @@
  */
 var path = require('path'),
   passport = require('passport'),
+  restAlias = require(path.resolve('./util/useralias')),
   mealsPolicy = require('../policies/meals.server.policy'),
   meals = require('../controllers/meals.server.controller');
 
@@ -37,6 +38,7 @@ module.exports = function(app) {
   // RESTAURANT ROUTES ---------------------------------------
   app.route('/api/rest/meals')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(mealsPolicy.isAllowed)
     .get(meals.userList) // Restaurant/User get (Good)
     .all(mealsPolicy.isRestaurantRequired)
@@ -46,6 +48,7 @@ module.exports = function(app) {
   // Restaurant 
   app.route('/api/rest/meals/:mealId')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(mealsPolicy.isAllowed)
     // .all(mealsPolicy.isFinalized)
     .delete(meals.delete) // Restaurant delete (Good)
@@ -55,6 +58,7 @@ module.exports = function(app) {
   // Restaurant profile picture update
   app.route('/api/rest/meals/:mealId/picture')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(mealsPolicy.isAllowed)
     // .all(mealsPolicy.isFinalized)
     .post(meals.changeMealPicture); // Restaurant update (Untested)
