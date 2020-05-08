@@ -72,6 +72,7 @@ exports.signup = function(req, res) {
       // Set the roles
       if (req.body.account_type === "provider") user.roles = ["user"];
       else if (req.body.account_type === "restaurant") user.roles = ["restaurant"];
+      else if (req.body.account_type === "restaurant_subaccount") user.roles = ["restaurant", "alias"];
       else user.roles = ["user"];
 
       // Let's save the model!
