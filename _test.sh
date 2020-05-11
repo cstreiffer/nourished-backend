@@ -1,7 +1,10 @@
 node_modules/mocha/bin/mocha modules/hospitals/tests/server/hospital.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/restaurants/tests/server/restaurant.server.routes.tests.js --exit
+node_modules/mocha/bin/mocha modules/restaurants/tests/server/restaurant.alias.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/menus/tests/server/menu.server.routes.tests.js --exit
+node_modules/mocha/bin/mocha modules/menus/tests/server/menu.alias.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/meals/tests/server/meal.server.routes.tests.js --exit
+node_modules/mocha/bin/mocha modules/meals/tests/server/meal.alias.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/orders/tests/server/order.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/carts/tests/server/cart.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/stripe/tests/server/stripe.server.routes.tests.js --exit
