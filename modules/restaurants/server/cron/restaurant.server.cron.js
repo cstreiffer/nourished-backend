@@ -32,7 +32,7 @@ const TIMESLOT_HOURRANGE = 4
  */
 
 
-var orderMapKeys = {}
+
 
 const queryOrders = async (timeslotRange, done) => {      
 
