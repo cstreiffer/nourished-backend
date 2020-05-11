@@ -279,9 +279,7 @@ const cronDailyUpdate = () => {
     },
     function (ordermap, done) {
       //send email
-      Promise.all(
-
-        
+      Promise.all(      
         Object.keys(ordermap).map((r) => {
           console.log(chalk.italic("..sending to restaurant id: "), r);
           let data = ordermap[r];
