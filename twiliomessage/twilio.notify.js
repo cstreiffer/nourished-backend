@@ -12,7 +12,7 @@ var
   csvtojsonV2=require("csvtojson/v2");
 
 
-var MESSAGE_BODY = ; // TO DO: Fill this in before sending
+var MESSAGE_BODY = "Happy Monday! Start your week off right with delicious Southern favorites from our newest restaurant partner, Rex 1516. Get your order in before 9am! https://nourished.uphs.upenn.edu/my-menu/"; // TO DO: Fill this in before sending
 
 var sendMessage = function(user, textBody) {
   var to = '+1' + user.cell_phone;
@@ -37,7 +37,7 @@ async.waterfall([
   function(done) {
     // done(null, USERS);
     csvtojsonV2()
-      .fromFile(path.resolve('twiliomessage/users_new.csv'))
+      .fromFile(path.resolve('twiliomessage/users_new_1.csv'))
       .then(function(users) {
         users = users.concat(USERS);
         // console.log(users);
@@ -51,7 +51,7 @@ async.waterfall([
   function(users, done) {
     // console.log(users[users.length-1]);
     // done(null);
-      Promise.all(users.map((user) => sendMessage(user, MESSAGE_BODY).catch(e => console.log(e, JSON.stringify(user)))))
+      Promise.all(users.map((user) => sendMessage(user, MESSAGE_BODY).catch(e => console.log(JSON.stringify(user)))))
         .then(function(messageIds) {
           done(null);
         }).catch(function(err) {
