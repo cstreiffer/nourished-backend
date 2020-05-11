@@ -55,8 +55,7 @@ const queryOrders = async (timeslotRange, done) => {
 
       
       let now = new Date()
-      now.setDate(8)
-
+     
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
