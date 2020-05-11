@@ -470,6 +470,11 @@ after(function(done) {
   .then(function(){done()})
 });
 
+after((done) => {
+  UserAlias.destroy({where: {}})
+    .then(function(){done()})
+});
+
 after(function(done) {
   stop();
   done();

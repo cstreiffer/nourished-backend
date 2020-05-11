@@ -6,6 +6,7 @@ node_modules/mocha/bin/mocha modules/menus/tests/server/menu.alias.server.routes
 node_modules/mocha/bin/mocha modules/meals/tests/server/meal.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/meals/tests/server/meal.alias.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/orders/tests/server/order.server.routes.tests.js --exit
+node_modules/mocha/bin/mocha modules/orders/tests/server/order.alias.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/carts/tests/server/cart.server.routes.tests.js --exit
 node_modules/mocha/bin/mocha modules/stripe/tests/server/stripe.server.routes.tests.js --exit
 
