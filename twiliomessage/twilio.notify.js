@@ -53,9 +53,9 @@ function sleep(n) {
 
 const run = async function(){
 
-  var users = [];
-  // let users = await csvtojsonV2()
-  //     .fromFile(path.resolve('twiliomessage/users_new.csv'));
+  // var users = [];
+  let users = await csvtojsonV2()
+      .fromFile(path.resolve('twiliomessage/users_new_1.csv'));
 
   users = users.concat(USERS);
   var i = 0;
