@@ -22,7 +22,7 @@ const os = require("os")
 const ejs = require("ejs");
 const cron = require("node-cron");
 
-
+const DEFAULT_EMAIL = "ccstreiffer@gmail.com";
 const TIMESLOT_DAYRANGE = 1
 const TIMESLOT_HOURRANGE = 4
 
@@ -31,10 +31,12 @@ const TIMESLOT_HOURRANGE = 4
  * send an email notification with order details (the email will contain a CSV file attachment)
  */
 
-var orderMap = {};
+
+var orderMapKeys = {}
 
 const queryOrders = async (timeslotRange, done) => {      
 
+  var orderMap = {};
 
   // iterate through all restaurants that signed up for the given timeslot range
   try {
@@ -50,12 +52,17 @@ const queryOrders = async (timeslotRange, done) => {
         r.id,
         ")  ...find scheduled timeslots for restaurant..."
       );
+
+      
+      let now = new Date()
+      now.setDate(8)
+
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
-            [Op.gte]: new Date(Date.now()),
+            [Op.gte]: new Date(now),
             [Op.lte]: new Date(
-              Date.now() +
+              now.getTime() +
                 TIMESLOT_DAYRANGE * TIMESLOT_HOURRANGE * 60 * 60 * 1000
             ),
           },
@@ -124,6 +131,8 @@ const queryOrders = async (timeslotRange, done) => {
             hospitalName: t.hospital.name
           };
 
+            
+            
           console.log("Orders for restaurant: ", r.name);
           //for (const o in orders) {
           orders.map((el) => {
@@ -154,7 +163,10 @@ var sendMessage = function (data) {
   console.group();
 
   
-  var receipient = process.env.NODE_ENV === "development" ? "ccstreiffer@gmail.com" : "ccstreiffer@gmail.com"   //data.emailRecipient
+  var receipient =
+    process.env.NODE_ENV === "development"
+      ? DEFAULT_EMAIL
+      : DEFAULT_EMAIL;  //data.emailRecipient
   
   
   
@@ -268,7 +280,9 @@ const cronDailyUpdate = () => {
     function (ordermap, done) {
       //send email
       Promise.all(
-        Object.keys(orderMap).map((r) => {
+
+        
+        Object.keys(ordermap).map((r) => {
           console.log(chalk.italic("..sending to restaurant id: "), r);
           let data = ordermap[r];
 
