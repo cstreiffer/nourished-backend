@@ -225,6 +225,15 @@
  *            type: string
  *          required: false
  *          description: Delivery time of the meal
+ *      requestBody:
+ *        required: false
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                message:
+ *                  type: string
  *      responses:
  *        "200":
  *          description: Updates a restaurant
