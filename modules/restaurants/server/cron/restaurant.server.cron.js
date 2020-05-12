@@ -164,8 +164,8 @@ var sendMessage = function (data) {
   
   var receipient =
     process.env.NODE_ENV === "development"
-      ? DEFAULT_EMAIL
-      : DEFAULT_EMAIL;  //data.emailRecipient
+      ? [DEFAULT_EMAIL]
+      : [DEFAULT_EMAIL, data.emailRecipient]
   
   
   
@@ -224,7 +224,7 @@ var sendMessage = function (data) {
     });
 
     var mailOptions = {
-      to: [receipient],
+      to: receipient,
       from: config.mailer.from,
       subject: "Orders for " + hospitalName + " - " + restaurantName,
       text:
