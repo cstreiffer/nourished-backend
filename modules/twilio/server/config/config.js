@@ -13,7 +13,8 @@ var
 var 
   twilioMessages = [
     // {id: uuid(), type: 'INCOMING', subtype: 'RESPONSE_MESSAGE', keyword: 'DEFAULT', messageBody: 'Time to get Nourished 🍜! Click here to see the menu and place an order for Monday 4/27 - Tuesday 4/28:\n https://forms.gle/V9snRoQNuYbu8KCAA'},
-    {id: uuid(), type: 'STRIPE_RESPONSE', subtype: 'STRIPE_RESPONSE_MESSAGE', keyword: 'CREATED', messageBody: 'Thanks for your Nourished order! 🎉 Your completed order will appear in the Orders dashboard unless there\'s an issue processing your payment. You\'ll receive a text at pick-up time for your order(s), yum! 🍜'},
+    {id: uuid(), type: 'STRIPE_RESPONSE', subtype: 'STRIPE_RESPONSE_MESSAGE', keyword: 'CREATED', messageBody: 'Your Nourished order is pending. If you do not receive a confirmation text shortly, please message 203-962-4261 to help make sure your order gets delivered!'},
+    {id: uuid(), type: 'STRIPE_RESPONSE', subtype: 'STRIPE_RESPONSE_MESSAGE', keyword: 'SUCCEEDED', messageBody: 'Thanks for your Nourished order! 🎉 Your completed order will appear in the Orders dashboard. You\'ll receive a text at pick-up time for your order(s), yum! 🍜'},
     {id: uuid(), type: 'STRIPE_RESPONSE', subtype: 'STRIPE_RESPONSE_MESSAGE', keyword: 'FAILED', messageBody: 'Oops, there was an error with your credit card payment on your most recent order. If you\'d still like to receive this order, please try to place the order again.'},
     {id: uuid(), type: 'STRIPE_RESPONSE', subtype: 'STRIPE_RESPONSE_MESSAGE', keyword: 'CANCELLED', messageBody: 'Your refund for your order is on its way! It is being processed and should appear on account in 3-5 business days. Please check your email for a complete receipt.'},
     {id: uuid(), type: 'INCOMING', subtype: 'RESPONSE_MESSAGE', keyword: 'nourished', messageBody: 'Thanks for your interest in Nourished 🍜! Click here to create your account and get started: https://nourished.uphs.upenn.edu/sign-up/'},
