@@ -100,11 +100,11 @@ console.log(seedData.meals);
 
 var timeslotSeed = function() {
     async.waterfall([
-    function(done) {
-      MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
-          done()
-        }).catch((err) => {console.log("Meal info error" + err); done()});
-      }, 
+    // function(done) {
+    //   MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
+    //       done()
+    //     }).catch((err) => {console.log("Meal info error" + err); done()});
+    //   }, 
       function(done) {
         console.log("Seeding Timeslots");
         var ts = seedData['timeslots'];
