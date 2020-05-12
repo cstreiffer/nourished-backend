@@ -345,7 +345,7 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
           include: db.restaurant,
         })
         .then(function(orders) {
-          var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
+          // var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
           var orderIds = orders.map((order) => order.id);
           
           Order.update(statusUpdate, {
@@ -447,7 +447,7 @@ exports.webhook = function(req, res) {
 
     case "payment_intent.succeeded":
       console.log('payment_intent.succeeded: ');
-      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res);
+      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res, 'CREATED');
       break;
 
     case 'payment_intent.canceled':
