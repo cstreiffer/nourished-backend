@@ -12,7 +12,7 @@ var
   csvtojsonV2=require("csvtojson/v2");
 
 
-var MESSAGE_BODY = "Last call for dinner orders is 5pm! Don't miss out on a variety of delicious Taiwanese salads from Baology! https://nourished.uphs.upenn.edu/my-menu/"; // TO DO: Fill this in before sending
+var MESSAGE_BODY = "Daydreaming about lunch already? We are! Last call for Nourished orders is 9am! https://nourished.uphs.upenn.edu/my-menu/"; // TO DO: Fill this in before sending
 
 var sendMessage = async function(user, textBody) {
   console.log(user.username, textBody);
@@ -40,9 +40,9 @@ var USERS = [
   {cell_phone: '5046137325'},
 ]
 
-for(var i=0; i<100; i++) {
-  USERS.push({cell_phone: '5046137325'});
-}
+// for(var i=0; i<100; i++) {
+//   USERS.push({cell_phone: '5046137325'});
+// }
 
 function msleep(n) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n);
@@ -58,17 +58,18 @@ const run = async function(){
       .fromFile(path.resolve('twiliomessage/users_new_1.csv'));
 
   users = users.concat(USERS);
+  console.log(users);
   var i = 0;
-    for (const user of users) {
-      let msg;
-      try {
-        msg = await sendMessage(user, MESSAGE_BODY);
-        console.log(msg);
-      } catch (err) {
-        console.log("Error sending to user: %j", user);
-      }
-      sleep(300);
+  for (const user of users) {
+    let msg;
+    try {
+      msg = await sendMessage(user, MESSAGE_BODY);
+      console.log(msg);
+    } catch (err) {
+      console.log("Error sending to user: %j", user);
     }
+    sleep(300);
+  }
 }
 
 run();

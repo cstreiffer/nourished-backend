@@ -12,7 +12,7 @@ var
   csvtojsonV2=require("csvtojson/v2");
 
 
-var MESSAGE_BODY = ; // TO DO: Fill this in before sending
+var MESSAGE_BODY = "Daydreaming about lunch already? We are! Last call for Nourished orders is 9am! https://nourished.uphs.upenn.edu/my-menu/"; // TO DO: Fill this in before sending
 
 var sendMessage = function(user, textBody) {
   var to = '+1' + user.cell_phone;
