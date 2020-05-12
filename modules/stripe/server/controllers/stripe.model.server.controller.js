@@ -23,7 +23,9 @@ const retAttributes = ['id', 'groupId', 'restaurantId', 'amount'];
  */
 exports.read = function(req, res) {
 
+  console.log("Entering the function");
   var ret = _.pick(req.stripe, retAttributes);
+  console.log("got the goods: " + ret);
 
   // Get the payment intent
   stripe.paymentIntents.retrieve(req.stripe.paymentIntentId)

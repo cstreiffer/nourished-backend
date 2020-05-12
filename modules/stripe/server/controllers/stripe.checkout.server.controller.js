@@ -58,6 +58,79 @@ const calculateStripeFee = total => {
 }
 
 exports.createPaymentIntent = function(req, res) {
+  var amount = calculateOrderAmount(req.orders);
+  var response = {
+    publishableKey: config.stripe.pubKey,
+    totalAmount: amount,
+    message: "Payment intents successfully created"
+  };
+
+  if(req.stripeOrder) {
+    stripe.paymentIntents.retrieve(req.stripeOrder.paymentIntentId)
+      .then(function(paymentIntent) {
+        response.stripeData = [{
+                  clientSecret: paymentIntent.client_secret,
+                  amount: amount,
+                  groupId: req.groupId,
+                }],
+        response.stripeOrders = [_.pick(req.stripeOrder, retAttributes)];
+        res.json(response)
+      })
+      .catch(function(err) {
+        console.log(err);
+        res.status(400).send({
+          message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+        });
+      })
+  } else {
+    var payload = {
+      amount: amount,
+      currency: 'usd',
+      payment_method_types: ['card'],
+      metadata: {
+        groupId: substr(req.groupId),
+        email: substr(req.user.email),
+        phoneNumber: substr(req.user.phoneNumber),
+        firstName: substr(req.user.firstName),
+        lastName: substr(req.user.lastName),
+      }
+    }
+    stripe.paymentIntents.create(payload)
+      .then(function(paymentIntent) {
+        // Create the stripe payment
+        Stripe.create({
+            id: uuid(),
+            userId: req.user.id,
+            groupId: req.groupId,
+            paymentIntentId: paymentIntent.id,
+            amount: amount,
+          })
+          .then(function(stripeOrder) {
+            response.stripeData = [{
+                  clientSecret: paymentIntent.client_secret,
+                  amount: amount,
+                  groupId: req.groupId,
+                }],
+            response.stripeOrders = [_.pick(stripeOrder, retAttributes)];
+            res.json(response);
+          })
+          .catch(function(err) {
+            console.log(err);
+            res.status(400).send({
+              message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+            });            
+          })
+      })
+      .catch(function(err) {
+        console.log(err);
+        res.status(400).send({
+          message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+        });
+      }); 
+  }
+};
+
+exports.createPaymentIntentDepricated = function(req, res) {
   // const { currency } = req.body;
   // Create a PaymentIntent with the order amount and currency
 
@@ -272,7 +345,7 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
           include: db.restaurant,
         })
         .then(function(orders) {
-          var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
+          // var orders = orders.filter((order) => order.restaurantId === stripeorder.restaurantId);
           var orderIds = orders.map((order) => order.id);
           
           Order.update(statusUpdate, {
@@ -285,7 +358,8 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
                   loadResponse()
                     .then(function(eventResponses) {
                       var respMap = mapResponse(eventResponses);
-                      var message = util.format(respMap[messageType], stripeorder.restaurant.name);
+                      // var message = util.format(respMap[messageType], stripeorder.restaurant.name);
+                      var message = respMap[messageType];
                       sendMessage(stripeorder.user, message)
                         .then(function(err) {
                           console.log(err);
@@ -353,8 +427,8 @@ exports.webhook = function(req, res) {
 
     case 'payment_intent.created':
       console.log('stripe.webhook payment_intent.created: ');
-      return res.json({received: true, msg: 'Payment intent created'});
-      // updateOrderStatus('CREATED', data.id, {payStatus: 'PENDING'}, res);
+      // return res.json({received: true, msg: 'Payment intent created'});
+      updateOrderStatus(data.id, {payStatus: 'PENDING'}, res, 'CREATED');
       break;
 
     case 'payment_intent.amount_capturable_updated':
@@ -374,7 +448,7 @@ exports.webhook = function(req, res) {
 
     case "payment_intent.succeeded":
       console.log('payment_intent.succeeded: ');
-      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res);
+      updateOrderStatus(data.id, {payStatus: 'COMPLETE'}, res, 'SUCCEEDED');
       break;
 
     case 'payment_intent.canceled':
