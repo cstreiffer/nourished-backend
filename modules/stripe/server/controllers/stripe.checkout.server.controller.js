@@ -358,7 +358,8 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
                   loadResponse()
                     .then(function(eventResponses) {
                       var respMap = mapResponse(eventResponses);
-                      var message = util.format(respMap[messageType], stripeorder.restaurant.name);
+                      // var message = util.format(respMap[messageType], stripeorder.restaurant.name);
+                      var message = respMap[messageType];
                       sendMessage(stripeorder.user, message)
                         .then(function(err) {
                           console.log(err);
