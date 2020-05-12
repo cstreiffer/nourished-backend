@@ -242,19 +242,24 @@ exports.notify = function(req, res) {
       done(null, users);
     },
     function(users, done) {
-      TwilioMessage.findOne({
-        where: {
-          subtype: 'DAILY_ORDER',
-        }
-      }).then(function(tm) {
-        done(null, users, tm);
-      }).catch(function(err) {
-        done(err);
-      });
+      if(req.body.message) {
+        done(null, users, req.body.message);
+      } else {
+        TwilioMessage.findOne({
+          where: {
+            subtype: 'DAILY_ORDER',
+          }
+        }).then(function(tm) {
+          var message = util.format(tm.messageBody, user.restaurant, user.location);
+          done(null, users, message);
+        }).catch(function(err) {
+          done(err);
+        });
+      }
     },
-    function(users, tm, done) {
+    function(users, message, done) {
       Promise.all(users.map((user) => {
-        var message = util.format(tm.messageBody, user.restaurant, user.location);
+        
         sendMessage(message, user.user);
       }))
         .then(function(messageIds) {

@@ -169,10 +169,32 @@ var satekampar = {
   }
 }
 
-sendList(satekampar);
-sendList(cafeynez);
+var simplygood = {
+  restaurant : {
+    name: 'Simply Good Jars',
+    id: 'd2cfddd5-5157-4f88-b263-6c27db4237c9'
+  },
+  user: {
+    email: ['jared@simplygoodjars.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+var rex1516 = {
+  restaurant: {
+    name: 'Rex 1516',
+    id: '1b02b116-61d2-4bb9-b9b3-090e1ba4015a'
+  },
+  user: {
+    email: ['lucio@sojournphilly.com', 'nourished@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com']
+  }
+}
+
+sendList(rex1516);
+// sendList(simplygood);
+// sendList(satekampar);
+// sendList(cafeynez);
 // sendList(elmerkury);
-// sendList(baology);
+//sendList(baology);
 // sendList(renatas);
 // sendList(pumpkin);
 // sendList(opb);
