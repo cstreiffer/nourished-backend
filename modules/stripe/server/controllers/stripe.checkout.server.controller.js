@@ -428,7 +428,7 @@ exports.webhook = function(req, res) {
     case 'payment_intent.created':
       console.log('stripe.webhook payment_intent.created: ');
       // return res.json({received: true, msg: 'Payment intent created'});
-      updateOrderStatus('CREATED', data.id, {payStatus: 'PENDING'}, res, 'CREATED');
+      updateOrderStatus(data.id, {payStatus: 'PENDING'}, res, 'CREATED');
       break;
 
     case 'payment_intent.amount_capturable_updated':
