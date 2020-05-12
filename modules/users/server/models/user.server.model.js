@@ -109,6 +109,7 @@ module.exports = function(sequelize, DataTypes) {
     magicLinkExpires: DataTypes.BIGINT
   }, {
     associate: function(models) {
+      User.hasOne(models.useralias);
       // User.belongsTo(models.hospital, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });
     }
   });

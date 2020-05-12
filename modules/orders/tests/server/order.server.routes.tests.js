@@ -885,10 +885,10 @@ after((done) => {
 });
 
 
-// after(function(done) {
-//   Order.destroy({where: {}})
-//   .then(function(){done()})
-// });
+after(function(done) {
+  Order.destroy({where: {}})
+  .then(function(){done()})
+});
 
 after(function(done) {
   Restaurant.destroy({where: {}})
@@ -905,10 +905,10 @@ after(function(done) {
   .then(function(){done()})
 });
 
-// after(function(done) {
-//   Menu.destroy({where: {}})
-//   .then(function(){done()})
-// });
+after(function(done) {
+  Menu.destroy({where: {}})
+  .then(function(){done()})
+});
 
 after(function(done) {
   Stripe.destroy({where: {}})

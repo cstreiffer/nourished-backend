@@ -5,6 +5,7 @@
  */
 var path = require('path'),
   passport = require('passport'),
+  restAlias = require(path.resolve('./util/useralias')),
   ordersPolicy = require('../policies/orders.server.policy'),
   orders = require('../controllers/orders.server.controller');
 
@@ -48,17 +49,20 @@ module.exports = function(app) {
   // RESTAURANT ROUTES --------------------------------------
   app.route('/api/rest/orders')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(ordersPolicy.isUserAllowed)
     .get(orders.restList); // User only get orders
 
   app.route('/api/rest/orders/itemized')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(ordersPolicy.isUserAllowed)
     .get(orders.restListItemized); // User only get orders
 
   // Single order routes
   app.route('/api/rest/orders/status')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(ordersPolicy.isUserAllowed)
     .put(orders.restStatusUpdate);
 

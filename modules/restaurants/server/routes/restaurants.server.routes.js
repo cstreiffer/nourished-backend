@@ -5,6 +5,7 @@
  */
 var path = require('path'),
   passport = require('passport'),
+  restAlias = require(path.resolve('./util/useralias')),
   restaurantsPolicy = require('../policies/restaurants.server.policy'),
   restaurants = require('../controllers/restaurants.server.controller');
 
@@ -37,12 +38,14 @@ module.exports = function(app) {
   // RESTAURANT ROUTES ---------------------------------- 
   app.route('/api/rest/restaurants')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(restaurantsPolicy.isAllowed)
     .get(restaurants.userList) // Good
     .post(restaurants.create); // Good
 
   app.route('/api/rest/restaurants/:restaurantId')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(restaurantsPolicy.isAllowed)
     .put(restaurants.update) // Good
     .delete(restaurants.delete); // Good
@@ -50,11 +53,13 @@ module.exports = function(app) {
 
   app.route('/api/rest/restaurants/:restaurantId/notify')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(restaurantsPolicy.isAllowed)
     .post(restaurants.notify); // Good
 
   app.route('/api/rest/restaurants/:restaurantId/export')
     .all(passport.authenticate('jwt', {session: false}))
+    .all(restAlias.findAlias)
     .all(restaurantsPolicy.isAllowed)
     .post(restaurants.export) // Good
 
