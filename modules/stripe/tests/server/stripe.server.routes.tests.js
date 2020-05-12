@@ -159,9 +159,8 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.should.have.property('stripeData');
         res.body.should.have.property('stripeOrders');
         res.body.stripeData[0].should.not.have.property('userId');
-        res.body.stripeData[0].should.have.property('amount').eql(2000);
+        res.body.stripeData[0].should.have.property('amount').eql(6000);
         res.body.stripeData[0].should.have.property('groupId');
-        res.body.stripeData[0].should.have.property('restaurantId');
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
@@ -181,9 +180,8 @@ describe('/POST /stripe/create-payment-intent endpoint', () => {
         res.body.should.have.property('stripeData');
         res.body.should.have.property('stripeOrders');
         res.body.stripeData[0].should.not.have.property('userId');
-        res.body.stripeData[0].should.have.property('amount').eql(2000);
+        res.body.stripeData[0].should.have.property('amount').eql(6000);
         res.body.stripeData[0].should.have.property('groupId');
-        res.body.stripeData[0].should.have.property('restaurantId');
         res.body.stripeData[0].should.have.property('clientSecret');
         done();
       });
@@ -297,7 +295,7 @@ describe('/GET /api/user/stripe/:stripeId', () => {
               res.body.stripeOrder.should.not.have.property('userId');
               res.body.stripeOrder.should.not.have.property('paymentIntentId');
               res.body.stripeOrder.should.have.property('groupId');
-              res.body.stripeOrder.should.have.property('amount').equal(2000);
+              res.body.stripeOrder.should.have.property('amount').equal(6000);
               done();
             });
       });

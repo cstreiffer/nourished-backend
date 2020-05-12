@@ -283,50 +283,48 @@ exports.delete = function(req, res) {
           include: db.restaurant
         }).then(function(ordersRet) {
           var orders = ordersRet.reduce(function(map, obj) {
-            var restaurantId = obj.restaurantId;
-            if(!(restaurantId in map)) {
-              map[restaurantId] = {toRefund: [], refunded: [], nonRefunded: []};
-            }
+            // var restaurantId = obj.restaurantId;
+            // if(!(restaurantId in map)) {
+            //   map[restaurantId] = {toRefund: [], refunded: [], nonRefunded: []};
+            // }
             if(orderIds.includes(obj.id)) {
-              map[restaurantId].toRefund.push(obj);
+              map.toRefund.push(obj);
             } else if(obj.deleted) {
-              map[restaurantId].refunded.push(obj);
+              map.refunded.push(obj);
             } else {
-              map[restaurantId].nonRefunded.push(obj);
+              map.nonRefunded.push(obj);
             }
             return map;
-          }, {});
+          }, {toRefund: [], refunded: [], nonRefunded: []});
           done(null, orders);
         }).catch(function(err) {
           done(err);
         });
       },
       function(orders, done) {
-        Stripe.findAll({
+        Stripe.findOne({
           where: {
             userId: req.user.id,
             groupId: groupId
           }
         })
-        .then(function(stripeorders) {
-          var stripeorders = stripeorders.reduce(function(map, obj) {
-            map[obj.restaurantId] = obj;
-            return map;
-          }, {});
+        .then(function(stripeorder) {
+          // var stripeorders = stripeorders.reduce(function(map, obj) {
+          //   map[obj.restaurantId] = obj;
+          //   return map;
+          // }, {});
           var refunds = [];
-          Object.keys(orders).map(function(key) {
-            if(key in stripeorders && orders[key].toRefund.length > 0) {
-
+          if(stripeorder && orders.toRefund.length > 0) {
               console.log("To Refund ========================================================");
-              orders[key].toRefund.forEach((order) => console.log(order.toJSON()));
+              orders.toRefund.forEach((order) => console.log(order.toJSON()));
               console.log("Not Yet Refunded =================================================");
-              orders[key].nonRefunded.forEach((order) => console.log(order.toJSON()));
+              orders.nonRefunded.forEach((order) => console.log(order.toJSON()));
               console.log("Already Refunded =================================================");
-              orders[key].refunded.forEach((order) => console.log(order.toJSON()));
+              orders.refunded.forEach((order) => console.log(order.toJSON()));
 
-              var nonRefundedAmount = calculateOrderAmount(orders[key].nonRefunded)
-              var refundedAmount    = calculateOrderAmount(orders[key].refunded);
-              var toRefundAmount    = calculateOrderAmount(orders[key].toRefund);
+              var nonRefundedAmount = calculateOrderAmount(orders.nonRefunded)
+              var refundedAmount    = calculateOrderAmount(orders.refunded);
+              var toRefundAmount    = calculateOrderAmount(orders.toRefund);
               var totalAmount = nonRefundedAmount + refundedAmount + toRefundAmount;
 
               var stripeFee = Math.ceil(toRefundAmount/totalAmount*calculateStripeFee(totalAmount));
@@ -339,12 +337,42 @@ exports.delete = function(req, res) {
                 refundedAmount: refundedAmount,
                 newAmount: nonRefundedAmount,
                 refundAmount: toRefundAmount,
-                stripePaymentId: stripeorders[key].paymentIntentId,
-                restaurantId: key
+                stripePaymentId: stripeorder.paymentIntentId,
+                // restaurantId: key
               });
+          }
 
-            }
-          });
+          // Object.keys(orders).map(function(key) {
+          //   if(key in stripeorders && orders[key].toRefund.length > 0) {
+
+          //     console.log("To Refund ========================================================");
+          //     orders[key].toRefund.forEach((order) => console.log(order.toJSON()));
+          //     console.log("Not Yet Refunded =================================================");
+          //     orders[key].nonRefunded.forEach((order) => console.log(order.toJSON()));
+          //     console.log("Already Refunded =================================================");
+          //     orders[key].refunded.forEach((order) => console.log(order.toJSON()));
+
+          //     var nonRefundedAmount = calculateOrderAmount(orders[key].nonRefunded)
+          //     var refundedAmount    = calculateOrderAmount(orders[key].refunded);
+          //     var toRefundAmount    = calculateOrderAmount(orders[key].toRefund);
+          //     var totalAmount = nonRefundedAmount + refundedAmount + toRefundAmount;
+
+          //     var stripeFee = Math.ceil(toRefundAmount/totalAmount*calculateStripeFee(totalAmount));
+              
+          //     refunds.push({
+          //       totalAmount: totalAmount,
+          //       stripeFee: stripeFee,
+          //       netRefund: toRefundAmount - stripeFee,
+          //       oldAmount: nonRefundedAmount+toRefundAmount,
+          //       refundedAmount: refundedAmount,
+          //       newAmount: nonRefundedAmount,
+          //       refundAmount: toRefundAmount,
+          //       stripePaymentId: stripeorders[key].paymentIntentId,
+          //       restaurantId: key
+          //     });
+
+          //   }
+          // });
           console.log("Refunds =================================================");
           console.log(refunds);
           done(null, refunds);
@@ -362,7 +390,7 @@ exports.delete = function(req, res) {
               amount: refund.refundAmount - refund.stripeFee,
             };
 
-            if(process.env.NODE_ENV === 'production') options.reverse_transfer = true;
+            // if(process.env.NODE_ENV === 'production') options.reverse_transfer = true;
             refundIntents.push(stripe.refunds.create(options));
           });
 

@@ -58,6 +58,79 @@ const calculateStripeFee = total => {
 }
 
 exports.createPaymentIntent = function(req, res) {
+  var amount = calculateOrderAmount(req.orders);
+  var response = {
+    publishableKey: config.stripe.pubKey,
+    totalAmount: amount,
+    message: "Payment intents successfully created"
+  };
+
+  if(req.stripeOrder) {
+    stripe.paymentIntents.retrieve(req.stripeOrder.paymentIntentId)
+      .then(function(paymentIntent) {
+        response.stripeData = [{
+                  clientSecret: paymentIntent.client_secret,
+                  amount: amount,
+                  groupId: req.groupId,
+                }],
+        response.stripeOrders = [_.pick(req.stripeOrder, retAttributes)];
+        res.json(response)
+      })
+      .catch(function(err) {
+        console.log(err);
+        res.status(400).send({
+          message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+        });
+      })
+  } else {
+    var payload = {
+      amount: amount,
+      currency: 'usd',
+      payment_method_types: ['card'],
+      metadata: {
+        groupId: substr(req.groupId),
+        email: substr(req.user.email),
+        phoneNumber: substr(req.user.phoneNumber),
+        firstName: substr(req.user.firstName),
+        lastName: substr(req.user.lastName),
+      }
+    }
+    stripe.paymentIntents.create(payload)
+      .then(function(paymentIntent) {
+        // Create the stripe payment
+        Stripe.create({
+            id: uuid(),
+            userId: req.user.id,
+            groupId: req.groupId,
+            paymentIntentId: paymentIntent.id,
+            amount: amount,
+          })
+          .then(function(stripeOrder) {
+            response.stripeData = [{
+                  clientSecret: paymentIntent.client_secret,
+                  amount: amount,
+                  groupId: req.groupId,
+                }],
+            response.stripeOrders = [_.pick(stripeOrder, retAttributes)];
+            res.json(response);
+          })
+          .catch(function(err) {
+            console.log(err);
+            res.status(400).send({
+              message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+            });            
+          })
+      })
+      .catch(function(err) {
+        console.log(err);
+        res.status(400).send({
+          message: 'Error processing the order: ' + errorHandler.getErrorMessage(err)
+        });
+      }); 
+  }
+};
+
+exports.createPaymentIntentDepricated = function(req, res) {
   // const { currency } = req.body;
   // Create a PaymentIntent with the order amount and currency
 

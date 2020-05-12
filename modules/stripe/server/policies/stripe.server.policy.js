@@ -51,13 +51,13 @@ exports.invokeRolesPolicies = function() {
 
  exports.isNewOrder = function(req, res, next) {
   if(req.body.groupId) {
-    Stripe.findAll({
+    Stripe.findOne({
       where: {
         groupId: req.body.groupId,
         userId: req.user.id
       }
     }).then(function(stripeOrder) {
-      req.stripeorders = stripeOrder;
+      req.stripeorder = stripeOrder;
       next();
       // if (stripeOrder) {
       //   return res.status(404).send({
