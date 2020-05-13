@@ -1,28 +1,29 @@
 "use strict";
 
+const debug = require('debug')('mailer')
+const moment = require('moment')
 const _ = require("lodash")
 const path = require("path")
-const sequelize = require(path.resolve("./config/lib/sequelize-connect"))
+var sequelize = require(path.resolve('./config/lib/sequelize-connect'))
 var db = require(path.resolve("./config/lib/sequelize")).models,
   Restaurant = db.restaurant,
   TimeSlot = db.timeslot,
-  Order = db.order,
-  uuid = require("uuid/v4");
+  Order = db.order
 const async = require("async")
 const { Parser } = require("json2csv")
 const parser = new Parser()
-const  fs = require("fs")
 const { Op } = require("sequelize")
 const  nodemailer = require("nodemailer")
 const chalk = require('chalk')
 const config = require(path.resolve("./config/config"))
 const smtpTransport = nodemailer.createTransport(config.mailer.options)
-const util = require("util")
-const os = require("os")
-const ejs = require("ejs");
 const cron = require("node-cron");
 
-const DEFAULT_EMAIL = "ccstreiffer@gmail.com";
+
+
+
+const TEST_DATE = process.env.TEST_DATE || null
+const DEFAULT_EMAIL = "jpatel@syncro-tech.com";
 const TIMESLOT_DAYRANGE = 1
 const TIMESLOT_HOURRANGE = 4
 
@@ -30,10 +31,6 @@ const TIMESLOT_HOURRANGE = 4
  * This module will lookup all orders for the upcoming timeslots for each respective restaurant and
  * send an email notification with order details (the email will contain a CSV file attachment)
  */
-
-
-
-
 const queryOrders = async (timeslotRange, done) => {      
 
   var orderMap = {};
@@ -45,17 +42,12 @@ const queryOrders = async (timeslotRange, done) => {
     for (const i in restaurants) {
       //restaurants.map(r => {
       let r = restaurants[i];
-      console.log(
-        "Restaurant to be processed: ",
-        r.name,
-        "(",
-        r.id,
-        ")  ...find scheduled timeslots for restaurant..."
-      );
-
+      debug("Restaurant to be processed: ",r.name,"(",r.id,")  ...find scheduled timeslots for restaurant...");
       
       let now = new Date()
-     
+      if (TEST_DATE != null)
+          now.setDate(TEST_DATE)
+        
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
@@ -85,9 +77,7 @@ const queryOrders = async (timeslotRange, done) => {
         console.warn(chalk.red("No timeslot found\n"));
       else
         for (const t of timeslots) {
-          //timeslots.map( t => {
-          //console.log(t)
-          console.log("Timeslot (",t.date, "/",t.id,")=> ",t.restaurant.name,", ",t.restaurantId,", ",t.user.email,", ",t.user.username,", ",t.date," for hospital: ",t.hospitalId);
+          debug("Timeslot (",t.date, "/",t.id,")=> ",t.restaurant.name,", ",t.restaurantId,", ",t.user.email,", ",t.user.username,", ",t.date," for hospital: ",t.hospitalId);
 
           console.log("Run " + chalk.blue.bold("order") + " query...");
           let orders = await Order.findAll({
@@ -120,7 +110,7 @@ const queryOrders = async (timeslotRange, done) => {
           });
 
           //Push into map
-          orderMap[t.restaurantId+t.hospitalId] = {
+          orderMap[t.restaurantId+":"+t.hospitalId] = {
             orders: orders,
             emailRecipient: r.email,
             timeslot: t.date,            
@@ -129,19 +119,12 @@ const queryOrders = async (timeslotRange, done) => {
             hospitalId: t.hospitalId,
             hospitalName: t.hospital.name
           };
+          
+          debug("Orders for restaurant: ", r.name);            
+          orders.map((el) => { debug("[Restaurant/", el.restaurant.id, "],", "[Timeslot/ ", t.id, "],", "[Hospital/ ", el.hospitalId, "],", "[GroupId/", el.groupId, "],", "[OrderId/", el.id, "],", "[MealName/", el.mealName, "], ", "[User/", el.user.username, "], ", "]"); });
+          debug("Done querying orders for restaurant ", t.restaurantId, ", Email: ", t.restaurant.email);
+          debug("\n\n");
 
-            
-            
-          console.log("Orders for restaurant: ", r.name);
-          //for (const o in orders) {
-          orders.map((el) => {
-            //let el = orders[o];
-            //console.log(JSON.stringify(el,null,4))
-            console.log("[Restaurant/",el.restaurant.id,"],","[Timeslot/ ",t.id,"],","[Hospital/ ",el.hospitalId,"],","[GroupId/",el.groupId,"],","[OrderId/",el.id,"],","[MealName/",el.mealName,"], ","[User/",el.user.username,"], ","]");
-          });
-
-          console.log("Done querying orders for restaurant ",t.restaurantId,", Email: ",t.restaurant.email);
-          console.log("\n\n");
         } //end timeslot mapping
     }
     done(null, orderMap)
@@ -157,22 +140,14 @@ const queryOrders = async (timeslotRange, done) => {
  * 
  * @param {object} data     JSON object representing the restaurant recipient and all the orders
  */
-var sendMessage = function (data) {
-  console.debug("<sendMessage>");
-  console.group();
+var parseOrders = function (data) {
 
-  
   var receipient =
     process.env.NODE_ENV === "development"
       ? DEFAULT_EMAIL
-      : DEFAULT_EMAIL;  //data.emailRecipient
-  
-  
-  
-  var restaurantName = data.restaurantName
-  var hospitalName = data.hospitalName
-  var deliveryDate = data.timeslot
+      : DEFAULT_EMAIL; // "ccstreiffer@gmail.com"   //data.emailRecipient
 
+  // flatten multi quantity orders into single orders
   var orders = data.orders.map(function (order) {
     var orderList = [];
     var orderQuantity = Number(order.quantity);
@@ -208,66 +183,30 @@ var sendMessage = function (data) {
     };
   });
 
-  new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     let parsedData = "No orders available"
     try {
       parsedData = parser.parse(ret);
     } catch (ex) {
-      console.error('Caught exception while parsing JSON data - ex: ', ex)      
+      console.error('Caught exception while parsing JSON data - ex: ', ex)
     }
+    
     resolve(new Buffer.from(parsedData));
 
-  }).then((data) => {
-    // To Do (send Email);
-    var date = new Date().toLocaleString("en-US", {
-      timeZone: "America/New_York",
-    });
-
-    var mailOptions = {
-      to: [receipient],
-      from: config.mailer.from,
-      subject: "Orders for " + hospitalName + " - " + restaurantName,
-      text:
-        "See attached report for complete list of orders for upcoming delivery at " +
-        deliveryDate.toLocaleString("en-US", {
-          timeZone: "America/New_York",
-        }) +
-        "\n\nRegards,\nTeam Nourshed",
-      attachments: [
-        {
-          filename:
-            "Orders for " +
-            hospitalName +
-            " - " +
-            new Date().toDateString() +
-            " Report.csv",
-          content: data.toString(),
-        },
-      ],
-    };
-
-    (async () => {
-      try {
-        //console.log("sending email...", config.mailer.options)
-        await smtpTransport.sendMail(mailOptions);
-        console.log(new Date() + " - Email sent to: ", receipient);
-      } catch (err) {
-        console.log(err);
-      }
-    })();
-  });
-
-  console.groupEnd();
-  console.log("</sendMessage>");
-};
+  })
+    
+    
+}
 
 
 
-
+/**
+ * 
+ */
 const cronDailyUpdate = () => {
   async.waterfall([
     function (done) {
-      //first pull all order
+      //first pull all the orders
       var timeslotRange = {
         date: {
           [Op.gte]: new Date(Date.now()),
@@ -277,21 +216,94 @@ const cronDailyUpdate = () => {
       queryOrders(timeslotRange, done);
     },
     function (ordermap, done) {
-      //send email
-      Promise.all(      
-        Object.keys(ordermap).map((r) => {
-          console.log(chalk.italic("..sending to restaurant id: "), r);
-          let data = ordermap[r];
+      let orderMapKeys = {}
+      let orderMetaData = {}
 
-          sendMessage(data);
+      Promise.all(
+        Object.keys(ordermap).map(key => {
+          let orderArray = ordermap[key]
+          
+          // not ideal but let's track all keys           
+          let restaurantId = key.substring(0, key.indexOf(":"))
+        
+          if (_.isNil(orderMapKeys[restaurantId])) {
+            orderMapKeys[restaurantId] = [];
+            orderMetaData[restaurantId] = [];
+          }
+                           
+          (async () => {
+            let orderBuffer = await parseOrders(orderArray);
+
+            orderMapKeys[restaurantId].push(orderBuffer);
+            orderMetaData[restaurantId].push({
+              restaurantName: orderArray.restaurantName,
+              emailReceipient: orderArray.emailRecipient,
+              timeslot: orderArray.timeslot,
+              fileName:
+                "Orders for " +
+                orderArray.hospitalName +
+                " - Delivery for " + moment(orderArray.timeslot).format("MMMM Do YYYY h.mm A") + ".csv"
+            });
+            
+            //debug("Buffers for ",restaurantId,": ",orderMapKeys[restaurantId]);
+          })();
+          
         })
-      )
-        .then(function () {
-          done(null);
-        })
-        .catch(function (err) {
-          done(err);
-        });
+      ).then(result => {
+        done(null, orderMapKeys, orderMetaData)
+      })
+        
+    },
+    function (ordermapkeys, ordermetadata, done) {
+      //send email
+      Promise.all(
+        Object.keys(ordermapkeys).map((r) => {
+          debug(chalk.italic("\n\n\n..sending to restaurant id: "), r);
+          let dataBuffers = ordermapkeys[r];
+          
+          // console.log("ordermetadata[r]: ", ordermetadata[r]);
+          var restaurantName = ordermetadata[r][0]["restaurantName"];          
+          var receipient = DEFAULT_EMAIL  // TODO: For production remove the DEFAULT_EMAIL to the following ordermetadata[r][0]["emailReceipient"]
+              
+          // console.log('following databuffers as attachemnts: ', dataBuffers)
+          var mailOptions = {
+              to: [receipient],
+              from: config.mailer.from,
+              subject: "Orders for restaurant "+restaurantName,
+              text: "See attached report for complete list of orders for upcoming deliveries." +"\n\nRegards,\nTeam Nourshed",
+              attachments: [],
+          };
+          
+         
+          (async () => {
+            try {
+              let i = 0
+              // reduce all attachements to single mail option object
+              dataBuffers
+                .reduce( (acc, cur, idx, src) => {
+                  var fileName = ordermetadata[r][idx]["fileName"];
+
+                  mailOptions.attachments.push({
+                    filename: fileName,
+                    content: cur.toString(),
+                  });
+
+                  return mailOptions;
+                },0)
+              
+              debug("sending email...", mailOptions)
+              await smtpTransport.sendMail(mailOptions);
+              debug(new Date() + " - Email sent to: ", receipient);
+            } catch (err) {
+              console.log(err);
+            }
+          })();
+                  
+        })        
+      ).then(result => {
+        done()
+      })
+      
     },
     function (done) {
       console.log(chalk.green.bold("Finished sending emails"));
@@ -302,7 +314,9 @@ const cronDailyUpdate = () => {
 
 
 
-
+/**
+ * 
+ */
 if (process.env.NODE_ENV === 'development' && process.argv[2] == '--adhoc') {
   process.env.DISTRIBUTE_EMAILS == "ALLOW" && cronDailyUpdate();
 }
