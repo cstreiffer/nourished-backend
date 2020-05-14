@@ -51,7 +51,8 @@ exports.create = function(req, res) {
         });
       } else {
         var ret = _.pick(menu, retAttributes);
-        res.jsonp({menu: ret, message: "Menu successfully created"});
+        var tsRet = _.pick(req.timeslot, timeslotRetAttributes);
+        res.jsonp({menu: ret, timeslot: tsRet, message: "Menu successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
