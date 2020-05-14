@@ -122,7 +122,7 @@ const queryOrders = async (timeslotRange, done) => {
           //Push into map
           orderMap[t.restaurantId+t.hospitalId] = {
             orders: orders,
-            emailRecipient: r.email,
+            emailRecipient: r.user.email,
             timeslot: t.date,            
             restaurantName: r.name,   
             restaurantId: t.restaurantId,

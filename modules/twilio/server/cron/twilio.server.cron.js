@@ -189,6 +189,7 @@ var cronDailyUpdate = function() {
             user: order.user,
             type: order.type,
             restaurant: order.restaurant.name,
+            phoneNumber: order.restaurant.phoneNumber.replace(/-|\(|\)| /g, ''),
             location: order.hospital.dropoffLocation
           }
         }
@@ -212,7 +213,8 @@ var cronDailyUpdate = function() {
     },
     function(users, tm, done) {
       Promise.all(users.map((user) => {
-        var message = util.format(tm.messageBody, user.restaurant, user.location);
+        var ph = util.format('%s-%s-%s', user.phoneNumber.substring(0,3), user.phoneNumber.substring(3,6), user.phoneNumber.substring(6,10));
+        var message = util.format(tm.messageBody, user.restaurant, user.location, ph);
         sendMessage(message, user.user);
       }))
         .then(function(messageIds) {
