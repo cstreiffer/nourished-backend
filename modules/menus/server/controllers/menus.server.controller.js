@@ -14,7 +14,7 @@ var
   Menu = db.menu;
 
 const {Op} = require('sequelize');
-const retAttributes = ['id', 'timeslotId', 'visible', 'finalized', 'mealName', 'allergens', 'dietaryRestrictions', 'mealDescription', 'imageURL', 'mealinfoId'];
+const retAttributes = ['id', 'timeslotId', 'price', 'visible', 'finalized', 'mealName', 'allergens', 'dietaryRestrictions', 'mealDescription', 'imageURL', 'mealinfoId'];
 const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
@@ -38,6 +38,7 @@ exports.create = function(req, res) {
     req.body.mealinfoId = req.meal.mealinfoId;
     req.body.allergens = req.meal.allergens;
     req.body.dietaryRestrictions = req.meal.dietaryRestrictions;
+    req.body.price = req.meal.price || req.meal.mealinfo.price;
 
     // Add the timeslotId
     req.body.timeslotId = req.timeslot.id;

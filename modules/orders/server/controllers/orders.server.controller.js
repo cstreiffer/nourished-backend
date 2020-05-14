@@ -67,10 +67,10 @@ exports.create = function(req, res) {
     ret.allergens = menu.allergens;
     ret.dietaryRestrictions = menu.dietaryRestrictions;
     ret.type = menu.mealinfo.type;
-    ret.price = menu.mealinfo.price;
+    ret.price = menu.price || menu.mealinfo.price;
 
     // Compute total
-    ret.total = menu.mealinfo.price*order.quantity;
+    ret.total = ret.price*order.quantity;
 
     // Id info
     ret.hospitalId = menu.timeslot.hospitalId;

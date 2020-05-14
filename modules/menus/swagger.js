@@ -31,6 +31,9 @@
  *          imageURL:
  *            type: string
  *            description: Image URL of the uploaded meal image. 
+ *          price:
+ *            type: decimal
+ *            description: Price of the meal.
  *          mealinfoId:
  *            type: string
  *            description: ID of the menu the meal is attached to. Menu contains the timeslot information. 

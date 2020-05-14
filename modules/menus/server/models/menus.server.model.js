@@ -24,6 +24,10 @@ module.exports = function(sequelize, DataTypes) {
       type: Sequelize.BOOLEAN,
       defaultValue: true
     },
+    price: {
+      type: DataTypes.DECIMAL(10,2),
+      defaultValue: 5.00
+    },
     mealName: {
       type: DataTypes.STRING,
       defaultValue: ''

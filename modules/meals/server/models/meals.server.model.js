@@ -59,6 +59,10 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       defaultValue: 25
     },
+    price: {
+      type: DataTypes.DECIMAL(10,2),
+      defaultValue: 5.00
+    },
     visible: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
