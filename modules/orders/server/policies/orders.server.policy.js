@@ -105,7 +105,7 @@ exports.isCreateOrderAllowed = function(req, res, next) {
         }
       } else {
         // console.log(req.body);
-        menus.forEach(menu => console.log(menu.toJSON()));
+        // menus.forEach(menu => console.log(menu.toJSON()));
         return res.status(400).json({message: "Invalid menu IDs"});
       }
     }).catch((err) => {

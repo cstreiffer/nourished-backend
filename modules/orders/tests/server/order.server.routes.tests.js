@@ -190,7 +190,7 @@ before(function(done) {
 });
 
 before((done) => {
-  var m1 = {...menu1, restaurantId: restaurant1.id, userId: restaurantId1};
+  var m1 = {...menu1, restaurantId: restaurant1.id, userId: restaurantId1, price: 12.50};
   var m2 = {...menu2, restaurantId: restaurant1.id, userId: restaurantId1};
   var m3 = {...menu3, restaurantId: restaurant2.id, userId: restaurantId2};
   var m4 = {...menu4, restaurantId: restaurant2.id, userId: restaurantId2};
@@ -230,9 +230,12 @@ describe('/POST /api/user/orders endpoint', () => {
         res.body.orders[0].should.have.property('groupId');
         res.body.orders[0].should.have.property('hospitalId');
         res.body.orders[0].should.have.property('restaurantId');
-        res.body.orders[0].should.have.property('total');
-        res.body.orders[0].should.have.property('quantity');
-        res.body.orders[0].should.have.property('price');
+        res.body.orders[0].should.have.property('total').eql(62.50);
+        res.body.orders[0].should.have.property('quantity').eql(5);
+        res.body.orders[0].should.have.property('price').eql('12.50');
+        res.body.orders[1].should.have.property('total').eql(37.5);
+        res.body.orders[1].should.have.property('quantity').eql(5);
+        res.body.orders[1].should.have.property('price').eql('7.50');
         res.body.orders.length.should.be.eql(2);
         done();
       });
