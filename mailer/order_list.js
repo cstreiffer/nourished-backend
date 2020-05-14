@@ -1,5 +1,7 @@
 'use strict';
 
+const DAYS = 7;
+
 /**
  * Module dependencies.
  */
@@ -21,8 +23,21 @@ var smtpTransport = nodemailer.createTransport(config.mailer.options);
 /**
  * List of restaurant orders itemized
  */
+
+var getStartDate = function(days) {
+  var ret = new Date().getTime() - days*24*60*60*1000;
+  // console.log(new Date(ret).toLocaleString("en-US", {timeZone: "America/New_York"}));
+  return ret;
+}
+
+var query = {
+  deliveryDate: {
+      [Op.gte]: getStartDate(DAYS),
+    }
+}
+
 var sendUserList = function() {
-    Order.findAll({where: {},
+    Order.findAll({where: query,
       include: [db.restaurant, db.user, db.hospital]
     })
       .then(function(orders) {
