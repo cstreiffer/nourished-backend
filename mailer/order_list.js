@@ -38,10 +38,16 @@ var sendUserList = function() {
             restName: order.restaurant.name,
             mealName: order.mealName,
             payStatus: order.payStatus,
+            userStatus: order.userStatus,
+            restStatus: order.restStatus,
             quantity: order.quantity,
             price: order.price,
             total: order.total,
             hospital: order.hospital.name,
+            hospitalId: order.hospitalId,
+            restaurantId: order.restaurantId,
+            accountCreatedDate: order.user.createdAt,
+            mealType: order.type,
             orderId: order.id,
             groupId: order.groupId
           }
