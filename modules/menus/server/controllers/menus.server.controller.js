@@ -35,7 +35,7 @@ exports.create = function(req, res) {
     // Extract the data from the meal
     req.body.mealName = req.meal.name;
     req.body.mealDescription = req.meal.description;
-    req.body.mealinfoId = req.meal.mealinfoId;
+    // req.body.mealinfoId = req.meal.mealinfoId;
     req.body.allergens = req.meal.allergens;
     req.body.dietaryRestrictions = req.meal.dietaryRestrictions;
     req.body.price = req.meal.price || req.meal.mealinfo.price;
