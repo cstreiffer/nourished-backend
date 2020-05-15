@@ -96,7 +96,7 @@ var mealinfo = [
   {id: fromString('dinnerNew'), type: 'dinner - 7.50', price: 7.50}
 ]
 
-console.log(seedData.meals);
+console.log(seedData.timeslots);
 
 var timeslotSeed = function() {
     async.waterfall([
@@ -117,27 +117,27 @@ var timeslotSeed = function() {
         })
       },
 
-      function(done) {
-        console.log("Seeding Meals");
-        var meals = seedData['meals'];
-        Meal.bulkCreate(meals, {validate: true}).then(()=> {
-          console.log("Seeded Meals");
-          done()
-        }).catch(function(err) {
-          console.log(err);
-          console.log("Error seeding Meals");
-        })
-      },
-      function(done) {
-        console.log("Seeding Menus");
-        var menus = seedData['menus'];
-        Menu.bulkCreate(menus, {validate: true}).then(()=> {
-          console.log("Seeded Menus");
-          done()
-        }).catch(function(err) {
-          console.log("Error seeding Menus");
-        })
-      },
+      // function(done) {
+      //   console.log("Seeding Meals");
+      //   var meals = seedData['meals'];
+      //   Meal.bulkCreate(meals, {validate: true}).then(()=> {
+      //     console.log("Seeded Meals");
+      //     done()
+      //   }).catch(function(err) {
+      //     console.log(err);
+      //     console.log("Error seeding Meals");
+      //   })
+      // },
+      // function(done) {
+      //   console.log("Seeding Menus");
+      //   var menus = seedData['menus'];
+      //   Menu.bulkCreate(menus, {validate: true}).then(()=> {
+      //     console.log("Seeded Menus");
+      //     done()
+      //   }).catch(function(err) {
+      //     console.log("Error seeding Menus");
+      //   })
+      // },
     ], function(err) {
       if(err) {
         console.log(err);
