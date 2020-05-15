@@ -101,13 +101,23 @@
  *            schema:
  *              type: object
  *              required:
- *                - timeslotId
- *                - mealId
+ *                - menus
+ *                - finalized
  *              properties:
- *                timeslotId:
- *                  type: string
- *                mealId:
- *                  type: string
+ *                menus:
+ *                  type: array
+ *                  items:
+ *                    type: object
+ *                    required:
+ *                      - mealId
+ *                      - timeslotId
+ *                    properties:
+ *                      mealId:
+ *                        type: string
+ *                      timeslotId:
+ *                        type: string
+ *                finalized:
+ *                  type: boolean
  *      responses:
  *        "200":
  *          description: Get menu

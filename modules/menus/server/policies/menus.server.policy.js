@@ -69,16 +69,18 @@ exports.invokeRolesPolicies = function() {
  * Check if Restaurant belongs to User
  */
 exports.isValidMeal = function(req, res, next) {
-  if(req.body.mealId) {
-    Meal.findOne({
+  var mealIds = req.body.menus.map((menu) => menu.mealId);
+  if(mealIds.length) {
+    Meal.findAll({
       where: {
-        id: req.body.mealId,
+        id: mealIds,
         userId: req.user.id
       },
       include: db.mealinfo
-    }).then((meal) => {
-      if(meal) {
-        req.meal = meal;
+    }).then((meals) => {
+      var validMealIds = new Set(meals.map(meal => meal.id));
+      if(mealIds.every(id => validMealIds.has(id))) {
+        req.meals = meals;
         return next();
       } else {
         return res.status(400).json({
@@ -86,6 +88,7 @@ exports.isValidMeal = function(req, res, next) {
         });
       }
     }).catch((err) => {
+      console.log(err);
         return res.status(403).json({
           message: 'Unexpected authorization error'
         });
@@ -101,15 +104,17 @@ exports.isValidMeal = function(req, res, next) {
  * Check if Restaurant belongs to User
  */
 exports.isValidTimeSlot = function(req, res, next) {
-  if(req.body.timeslotId) {
-    TimeSlot.findOne({
+  var timeslotIds = req.body.menus.map((menu) => menu.timeslotId);
+  if(timeslotIds.length) {
+    TimeSlot.findAll({
       where: {
-        id: req.body.timeslotId,
+        id: timeslotIds,
         userId: req.user.id
       }
-    }).then((timeslot) => {
-      if(timeslot) {
-        req.timeslot = timeslot;
+    }).then((timeslots) => {
+      var validTimeslotIds = new Set(timeslots.map(timeslot => timeslot.id));
+      if(timeslotIds.every(id => validTimeslotIds.has(id))) {
+        req.timeslots = timeslots;
         return next();
       } else {
         return res.status(403).json({

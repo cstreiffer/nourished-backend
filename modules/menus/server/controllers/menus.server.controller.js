@@ -11,7 +11,8 @@ var
   fs = require('fs'),
   errorHandler = require(path.resolve('./modules/core/server/controllers/errors.server.controller')),
   db = require(path.resolve('./config/lib/sequelize')).models,
-  Menu = db.menu;
+  Menu = db.menu,
+  TimeSlot = db.timeslot;
 
 const {Op} = require('sequelize');
 const retAttributes = ['id', 'timeslotId', 'price', 'visible', 'finalized', 'mealName', 'allergens', 'dietaryRestrictions', 'mealDescription', 'imageURL', 'mealinfoId'];
@@ -23,43 +24,73 @@ const hospRetAttributes = ['name', 'phoneNumber', 'email'];
  * Create a menu
  */
 exports.create = function(req, res) {
-  delete req.body.id;
-  req.body.id = uuid();
-  req.body.userId = req.user.id;
-  
-  if( !req.body.timeslotId || !req.body.mealId) {
-      return res.status(400).send({
-        message: "Please include timeslot/meal id"
-      });
-  } else {
-    // Extract the data from the meal
-    req.body.mealName = req.meal.name;
-    req.body.mealDescription = req.meal.description;
-    // req.body.mealinfoId = req.meal.mealinfoId;
-    req.body.allergens = req.meal.allergens;
-    req.body.dietaryRestrictions = req.meal.dietaryRestrictions;
-    req.body.price = req.meal.price || req.meal.mealinfo.price;
 
-    // Add the timeslotId
-    req.body.timeslotId = req.timeslot.id;
+  var mealLookup = req.meals.reduce(function(acc, cur) {
+    acc[cur.id] = cur;
+    return acc;
+  }, {});
 
+  var timeslotLookup = req.timeslots.reduce(function(acc, cur) {
+    acc[cur.id] = cur;
+    return acc;
+  }, {});
+
+
+  let newMenus = [];
+  req.body.menus.forEach(menu => {
     // Create the menu
-    Menu.create(req.body).then(function(menu) {
-      if (!menu) {
+    var meal = mealLookup[menu.mealId];
+    var timeslot = timeslotLookup[menu.timeslotId];
+
+    newMenus.push({
+      id: uuid(),
+      userId: req.user.id,
+      mealName: meal.name,
+      mealDescription : meal.description,
+      allergens : meal.allergens,
+      dietaryRestrictions : meal.dietaryRestrictions,
+      price : meal.price || meal.mealinfo.price,
+      timeslotId: timeslot.id,
+      finalized: req.body.finalized,
+    });
+  });
+
+  Menu.destroy({
+    where: {
+      timeslotId: req.body.menus.map(menu => menu.timeslotId)
+    }
+  })
+  .then(function() {
+        // Create the menu
+    Menu.bulkCreate(newMenus, {validate: true, returning: true}).then(function(menus) {
+      if (!menus) {
         return res.status(404).send({
-          message: "Could not create the menu item"
+          message: "Could not create the menu items"
         });
       } else {
-        var ret = _.pick(menu, retAttributes);
-        var tsRet = _.pick(req.timeslot, timeslotRetAttributes);
-        res.jsonp({menu: ret, timeslot: tsRet, message: "Menu successfully created"});
+        var ret = menus.map(menu => {
+          var timeslot = timeslotLookup[menu.timeslotId];
+          var ret = _.pick(menu, retAttributes);
+          ret.timeslot = _.pick(timeslot, timeslotRetAttributes);
+          return ret;
+          // return {
+          //   menu: _.pick(menu, retAttributes),
+          //   timeslot: _.pick(timeslot, timeslotRetAttributes),
+          // }
+        });
+        res.jsonp({menus: ret, message: "Menu items successfully created"});
       }
     }).catch(function(err) {
       return res.status(400).send({
         message: errorHandler.getErrorMessage(err)
       });
     });
-  }
+  })
+  .catch(function(err) {
+    return res.status(400).send({
+      message: errorHandler.getErrorMessage(err)
+    });
+  });
 };
 
 /**
