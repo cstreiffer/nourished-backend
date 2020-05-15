@@ -29,7 +29,6 @@ const mealinfoRetAttributes = ['id', 'type', 'price'];
 exports.create = function(req, res) {
   delete req.body.id;
   delete req.body.imageURL;
-  delete req.body.price;
 
   req.body.id = uuid();
   req.body.userId = req.user.id;
