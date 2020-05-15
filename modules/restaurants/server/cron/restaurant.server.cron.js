@@ -165,7 +165,7 @@ var sendMessage = function (data) {
   var receipient =
     process.env.NODE_ENV === "development"
       ? [DEFAULT_EMAIL]
-      : [DEFAULT_EMAIL, data.emailRecipient]
+      : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
   
   
   

@@ -1,5 +1,9 @@
 'use strict';
 
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
+
 var 
   path = require('path'),
   config = require(path.resolve('./config/config')),
@@ -232,10 +236,36 @@ var cronDailyUpdate = function() {
   );
 }
 
-var cronWeeklyUpdate = function() {
-  async.waterfall([
-    function(done) {
-      User.findAll({
+var sendMessageAsync = async function(user, textBody) {
+  console.log(user.cell_phone, textBody);
+  var to = '+1' + user.cell_phone;
+  var from = config.twilio.phoneNumber;
+  var message = textBody;
+
+  let ret;
+  try {
+    ret = await twilio.messages
+    .create({
+       body: message,
+       from: from,
+       to: to
+     });
+  } catch (err) {
+    console.log(err);
+    console.log("Error sending to user: %j", user);
+  }
+  return await ret;
+}
+
+function msleep(n) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n);
+}
+
+var cronWeeklyUpdate = async function() {
+  
+  try {
+
+    let users = await User.findAll({
         where: {
           phoneNumber: {
             [Op.ne]: ''
@@ -244,52 +274,37 @@ var cronWeeklyUpdate = function() {
             [Op.contains] : ["user"]
           }
         }
-      }).then(function(users) {
-        done(null, users);
-      }).catch(function(err) {
-        done(err);
       });
-    },
-    function(users, done) {
-      Promise.all(users.map((user) => {
-          user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
-          user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
-          return user.save();
-      }))
-      .then(function(users) {
-        done(null, users)
-      }).catch(function(err) {
-        done(err);
-      });
-    },
-    function(users, done) {
-      TwilioMessage.findOne({
+
+    let tm = await TwilioMessage.findOne({
         where: {
           subtype: 'WEEKLY_MENU',
         }
-      }).then(function(tm) {
-        done(null, users, tm);
-      }).catch(function(err) {
-        done(err);
       });
-    },
-    function(users, tm, done) {
-      Promise.all(users.map((user) => {
-        // var url = config.app.webURL + '?token=' + user.magicLinkToken;
-        var url = config.app.webURL + 'my-menu';
-        var message = tm.messageBody + url;
-        return sendMessage(message, user);
-      }))
-        .then(function(messageIds) {
-          done(null);
-        }).catch(function(err) {
-          done(err);
-        });
-    }], 
-    function(err){
-      if(err) {
-        console.log(err);
-      }
+
+    var userMessages = [];
+    for (const user of users) {
+      user.magicLinkToken = crypto.randomBytes(20).toString('hex');;
+      user.magicLinkExpires = Date.now() + config.twilio.tokenExpiry; // 3 hours
+      let usr = await user.save();
+      userMessages.push(usr);
     }
-  );
+
+    for (const user of userMessages) {
+      var url = config.app.webURL + 'my-menu';
+      var message = tm.messageBody + url;      
+      let msg;
+      try {
+        msg = await sendMessageAsync(user, message);
+        console.log(msg);
+      } catch (err) {
+        console.log("Error sending to user: %j", user);
+      }
+      msleep(300); 
+    };
+
+  } catch (err) {
+    console.log("Error sending to message");
+    console.log(err);
+  }
 }
