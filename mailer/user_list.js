@@ -37,7 +37,8 @@ var sendUserList = function() {
             last_name: user.lastName,
             email_address: user.email,
             cell_phone: user.phoneNumber,
-            role: user.roles
+            role: user.roles,
+            accountCreatedDate: user.createdAt
           }
         });
         console.log("Sending this: "  + ret);

@@ -33,6 +33,7 @@ exports.create = function(req, res) {
 
   req.body.id = uuid();
   req.body.userId = req.user.id;
+  req.body.phoneNumber = req.body.phoneNumber.replace(/-|\(|\)| /g, '');
 
   Restaurant.create(req.body).then(function(restaurant) {
     if (!restaurant) {
@@ -231,6 +232,7 @@ exports.notify = function(req, res) {
             user: order.user,
             type: order.type,
             restaurant: order.restaurant.name,
+            phoneNumber: order.restaurant.phoneNumber.replace(/-|\(|\)| /g, ''),
             location: order.hospital.dropoffLocation
           }
         }
@@ -250,8 +252,7 @@ exports.notify = function(req, res) {
             subtype: 'DAILY_ORDER',
           }
         }).then(function(tm) {
-          var message = util.format(tm.messageBody, user.restaurant, user.location);
-          done(null, users, message);
+          done(null, users, tm.messageBody);
         }).catch(function(err) {
           done(err);
         });
@@ -259,8 +260,13 @@ exports.notify = function(req, res) {
     },
     function(users, message, done) {
       Promise.all(users.map((user) => {
-        
-        sendMessage(message, user.user);
+        if(!req.body.message) {
+          var ph = util.format('%s-%s-%s', user.phoneNumber.substring(0,3), user.phoneNumber.substring(3,6), user.phoneNumber.substring(6,10));
+          var msg = util.format(message, user.restaurant, user.location, ph);
+          sendMessage(msg, user.user);
+        } else {
+          sendMessage(message, user.user);
+        }
       }))
         .then(function(messageIds) {
           done(null);

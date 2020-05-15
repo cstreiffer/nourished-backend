@@ -122,7 +122,7 @@ const queryOrders = async (timeslotRange, done) => {
           //Push into map
           orderMap[t.restaurantId+t.hospitalId] = {
             orders: orders,
-            emailRecipient: r.email,
+            emailRecipient: r.user.email,
             timeslot: t.date,            
             restaurantName: r.name,   
             restaurantId: t.restaurantId,
@@ -165,7 +165,7 @@ var sendMessage = function (data) {
   var receipient =
     process.env.NODE_ENV === "development"
       ? [DEFAULT_EMAIL]
-      : [DEFAULT_EMAIL, data.emailRecipient]
+      : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
   
   
   
