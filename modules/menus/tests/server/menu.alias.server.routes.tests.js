@@ -216,19 +216,20 @@ describe('/POST /api/rest/menus endpoint', () => {
     chai.request(app)
       .post('/api/rest/menus')
       .set('Authorization', restaurantJWT1alias)
-      .send({timeslotId: timeslot1.id, mealId: m3.id})
+      .send({menus: [{timeslotId: timeslot1.id, mealId: m3.id}], finalized: true})
       .end((err, res) => {
         res.body.should.be.a('object');
-        res.body.should.have.property('message').eql('Menu successfully created');
-        res.body.menu.should.have.property('id');
-        res.body.menu.should.have.property('mealName');
-        res.body.menu.should.have.property('mealDescription');
-        res.body.menu.should.have.property('allergens');
-        res.body.menu.should.have.property('dietaryRestrictions');
-        res.body.menu.should.have.property('mealinfoId');
-        res.body.menu.should.not.have.property('userId');
-        res.body.menu.should.not.have.property('timeslot');
-        res.body.menu.should.not.have.property('meal');
+        res.body.menus.should.be.a('array');
+        res.body.menus[0].should.have.property('mealName');
+        res.body.menus[0].should.have.property('mealDescription');
+        res.body.menus[0].should.have.property('allergens');
+        res.body.menus[0].should.have.property('dietaryRestrictions');
+        res.body.menus[0].should.have.property('price');
+        res.body.menus[0].should.not.have.property('userId');
+        res.body.menus[0].timeslot.should.have.property('id');
+        res.body.menus[0].timeslot.should.have.property('restaurantId');
+        res.body.menus[0].timeslot.should.have.property('date');
+        res.body.menus[0].timeslot.should.not.have.property('userId');
         res.should.have.status(200);
         done();
       });
@@ -237,8 +238,8 @@ describe('/POST /api/rest/menus endpoint', () => {
   it('User with "restaurant" role should get their menus', (done) => {
     chai.request(app)
       .post('/api/rest/menus')
-      .set('Authorization', restaurantJWT1alias)
-      .send({timeslotId: timeslot2.id, mealId: m1.id})
+      .set('Authorization', restaurantJWT1)
+      .send({menus: [{timeslotId: timeslot2.id, mealId: m1.id}], finalized: true})
       .end((err, res) => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('User is not authorized');
@@ -251,7 +252,7 @@ describe('/POST /api/rest/menus endpoint', () => {
     chai.request(app)
       .post('/api/rest/menus')
       .set('Authorization', restaurantJWT1alias)
-      .send({timeslotId: timeslot1.id, mealId: m2.id})
+      .send({menus: [{timeslotId: timeslot1.id, mealId: m2.id}], finalized: true})
       .end((err, res) => {
         res.body.should.be.a('object');
         res.body.should.have.property('message').eql('Meal not found');

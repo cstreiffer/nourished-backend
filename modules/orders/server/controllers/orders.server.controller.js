@@ -22,12 +22,6 @@ var
 const {Op} = require('sequelize');
 var smtpTransport = nodemailer.createTransport(config.mailer.options);
 
-
-// const menuRetAttributes = ['id', 'timeslotId', 'mealId', 'finalized', 'visible'];
-// const mealRetAttributes = ['id', 'name', 'description', 'allergens', 'dietaryRestrictions', 'mealinfoId'];
-// const mealinfoRetAttributes = ['id', 'type', 'price'];
-// const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
-
 //  id | date | userStatus | restStatus | payStatus | quantity | information | groupId | deleted | createdAt | updatedAt | hospitalId | mealId | userId
 const retAttributes = [
   'id', 'orderDate', 'userStatus', 'restStatus', 'payStatus', 'quantity', 'information', 'groupId',
@@ -66,11 +60,10 @@ exports.create = function(req, res) {
     ret.mealDescription = menu.mealDescription;
     ret.allergens = menu.allergens;
     ret.dietaryRestrictions = menu.dietaryRestrictions;
-    ret.type = menu.mealinfo.type;
-    ret.price = menu.mealinfo.price;
+    ret.price = menu.price || menu.mealinfo.price;
 
     // Compute total
-    ret.total = menu.mealinfo.price*order.quantity;
+    ret.total = ret.price*order.quantity;
 
     // Id info
     ret.hospitalId = menu.timeslot.hospitalId;

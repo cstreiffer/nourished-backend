@@ -18,7 +18,7 @@ const {Op} = require('sequelize');
 
 // Define return
  // id | name | description | category | imageURL | price | minQuantity | maxQuantity | visible | finalized | createdAt | updatedAt | userId | menuId 
-const retAttributes = ['id', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId', 'restaurantId'];
+const retAttributes = ['id', 'price', 'name', 'allergens', 'dietaryRestrictions', 'description', 'imageURL', 'visible', 'finalized', 'mealinfoId', 'restaurantId'];
 // const menuRetAttributes = ['id', 'date', 'restaurantId'];
 // const restRetAttributes = ['id', 'name', 'description'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
@@ -29,14 +29,13 @@ const mealinfoRetAttributes = ['id', 'type', 'price'];
 exports.create = function(req, res) {
   delete req.body.id;
   delete req.body.imageURL;
-  delete req.body.price;
 
   req.body.id = uuid();
   req.body.userId = req.user.id;
 
-  if(!req.body.mealinfoId || !req.body.restaurantId) {
+  if(!req.body.restaurantId) {
       return res.status(400).send({
-        message: "Please include mealinfo and restaurant id"
+        message: "Please include restaurant id"
       });
   } else {
     Meal.create(req.body).then(function(meal) {
@@ -83,7 +82,7 @@ exports.update = function(req, res) {
   updateBuilder.finalized = req.body.finalized;
   updateBuilder.maxQuantity = req.body.maxQuantity;
   updateBuilder.restaurantId = req.body.restaurantId;
-  updateBuilder.mealinfoId = req.body.mealinfoId;
+  updateBuilder.price = req.body.price;
 
   meal.update(updateBuilder).then(function(meal) {
     var ret = _.pick(meal, retAttributes);

@@ -31,6 +31,9 @@
  *          imageURL:
  *            type: string
  *            description: Image URL of the uploaded meal image. 
+ *          price:
+ *            type: decimal
+ *            description: Price of the meal.
  *          mealinfoId:
  *            type: string
  *            description: ID of the menu the meal is attached to. Menu contains the timeslot information. 
@@ -98,13 +101,23 @@
  *            schema:
  *              type: object
  *              required:
- *                - timeslotId
- *                - mealId
+ *                - menus
+ *                - finalized
  *              properties:
- *                timeslotId:
- *                  type: string
- *                mealId:
- *                  type: string
+ *                menus:
+ *                  type: array
+ *                  items:
+ *                    type: object
+ *                    required:
+ *                      - mealId
+ *                      - timeslotId
+ *                    properties:
+ *                      mealId:
+ *                        type: string
+ *                      timeslotId:
+ *                        type: string
+ *                finalized:
+ *                  type: boolean
  *      responses:
  *        "200":
  *          description: Get menu
