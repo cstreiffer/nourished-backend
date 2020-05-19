@@ -409,7 +409,13 @@ exports.delete = function(req, res) {
             }
           }).then(function(orders) {
             if(refunds.length) {
-              var ret = req.orders.map((order)=> _.pick(order, retAttributes));
+              var ret = req.orders.map((order)=> {
+                var orderRet = order.toJSON();
+                orderRet.payStatus = 'REFUNDED';
+                orderRet.deleted = true;
+                orderRet.userStatus = 'CANCELLED';
+                return _.pick(orderRet, retAttributes);
+              });
               res.jsonp({orders: ret, message: "Orders marked as deleted"});
               done(null, originalRefundsObj);
             } else {
