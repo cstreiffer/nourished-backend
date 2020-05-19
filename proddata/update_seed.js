@@ -34,14 +34,15 @@ var genTimeslot = function(ts) {
 
 var genMeal = function(ts) {
   return {
-    id: fromString(ts.name + ts.restaurantId),
+    id: fromString(ts.name + ts.restaurantId + ts.mealinfoId),
     name: ts.name,
     dietaryRestrictions: ts.dietaryRestrictions,
     allergens: ts.allergens,
     description: ts.description,
     mealinfoId: fromString(ts.mealinfoId),
     userId: ts.userId,
-    restaurantId: ts.restaurantId
+    restaurantId: ts.restaurantId,
+    price: ts.price,
   }
 }
 
@@ -55,10 +56,26 @@ var genMenu = function(ts) {
     allergens: ts.allergens,
     mealinfoId: fromString(ts.mealinfoId),
     userId: ts.userId,
+    price: ts.price
+  }
+}
+
+var getMealInfo = function(ts) {
+  return {
+    id: fromString(ts.id),
+    type: ts.type,
+    price: ts.price
   }
 }
 
 const start = async function() {
+// Generate the mealInfo data
+var mealData = require(path.resolve('proddata/mi_update_data.json'));
+var mealinfo = [];
+Object.keys(mealData).forEach(key => {
+  mealinfo.push(getMealInfo(mealData[key]))
+})
+
 // Generate the bulkd of the data
 var loadData = require(path.resolve('proddata/update_data.json'));
 var seedData = {
@@ -78,7 +95,7 @@ Object.keys(loadData).forEach((key) => {
     return genMeal(ts);
   });
 
-  console.log(meals);
+  // console.log(meals);
 
   // Construct the menus
   var menus = loadData[key]['menus'].map(ts => {
@@ -90,21 +107,15 @@ Object.keys(loadData).forEach((key) => {
   seedData.menus = seedData.menus.concat(menus);
 });
 
-
-var mealinfo = [
-  {id: fromString('lunchNew'), type: 'lunch - 7.50', price: 7.50},
-  {id: fromString('dinnerNew'), type: 'dinner - 7.50', price: 7.50}
-]
-
-console.log(seedData.timeslots);
+// console.log(seedData.timeslots);
 
 var timeslotSeed = function() {
     async.waterfall([
-    // function(done) {
-    //   MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
-    //       done()
-    //     }).catch((err) => {console.log("Meal info error" + err); done()});
-    //   }, 
+      function(done) {
+        MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
+            done()
+          }).catch((err) => {console.log("Meal info error" + err); done()});
+      }, 
       function(done) {
         console.log("Seeding Timeslots");
         var ts = seedData['timeslots'];
@@ -117,27 +128,28 @@ var timeslotSeed = function() {
         })
       },
 
-      // function(done) {
-      //   console.log("Seeding Meals");
-      //   var meals = seedData['meals'];
-      //   Meal.bulkCreate(meals, {validate: true}).then(()=> {
-      //     console.log("Seeded Meals");
-      //     done()
-      //   }).catch(function(err) {
-      //     console.log(err);
-      //     console.log("Error seeding Meals");
-      //   })
-      // },
-      // function(done) {
-      //   console.log("Seeding Menus");
-      //   var menus = seedData['menus'];
-      //   Menu.bulkCreate(menus, {validate: true}).then(()=> {
-      //     console.log("Seeded Menus");
-      //     done()
-      //   }).catch(function(err) {
-      //     console.log("Error seeding Menus");
-      //   })
-      // },
+      function(done) {
+        console.log("Seeding Meals");
+        var meals = seedData['meals'];
+        Meal.bulkCreate(meals, {validate: true}).then(()=> {
+          console.log("Seeded Meals");
+          done()
+        }).catch(function(err) {
+          console.log(err);
+          console.log("Error seeding Meals");
+        })
+      },
+
+      function(done) {
+        console.log("Seeding Menus");
+        var menus = seedData['menus'];
+        Menu.bulkCreate(menus, {validate: true}).then(()=> {
+          console.log("Seeded Menus");
+          done()
+        }).catch(function(err) {
+          console.log("Error seeding Menus");
+        })
+      },
     ], function(err) {
       if(err) {
         console.log(err);
