@@ -71,11 +71,15 @@ module.exports = {
   },
   cron: {
     twilio: {
-      weeklyUpdate: '0 13 * * *',
-      dailyUpdate: '*/30 10-20 * * *',
-      dailyPrenotify: '*/30 7-20 * * *',
+      weeklyUpdate: '0 13 * * 0',
+      dailyUpdate: '0,15 7-22 * * *',
+      dailyPrenotify: '0,15 7-22 * * *',
       timezone: 'America/New_York'
     },
+    restaurant: {
+      dailyUpdate: "0,15 8,9,16,17 * * *",
+      timezone: "America/New_York",
+    }
   },
   twilio: {
     tokenExpiry : 3600000*3
