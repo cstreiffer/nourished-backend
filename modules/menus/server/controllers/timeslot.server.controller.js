@@ -18,7 +18,7 @@ var
 
 const retAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
 const restRetAttributes = ['id', 'name', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
-const hospRetAttributes = ['name', 'phoneNumber', 'email'];
+const hospRetAttributes = ['id', 'name', 'phoneNumber', 'email'];
 
 
 /**

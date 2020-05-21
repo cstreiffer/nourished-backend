@@ -19,7 +19,7 @@ const retAttributes = ['id', 'timeslotId', 'price', 'visible', 'finalized', 'mea
 const restRetAttributes = ['id', 'name', 'description', 'email', 'phoneNumber', 'streetAddress', 'zip', 'city', 'state'];
 const mealinfoRetAttributes = ['id', 'type', 'price'];
 const timeslotRetAttributes = ['id', 'date', 'restaurantId', 'hospitalId'];
-const hospRetAttributes = ['name', 'phoneNumber', 'email'];
+const hospRetAttributes = ['id', 'name', 'phoneNumber', 'email'];
 /**
  * Create a menu
  */
