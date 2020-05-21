@@ -72,12 +72,12 @@ module.exports = {
   cron: {
     twilio: {
       weeklyUpdate: '0 13 * * 0',
-      dailyUpdate: '0,15 7-22 * * *',
-      dailyPrenotify: '0,15 7-22 * * *',
+      dailyUpdate: '*/15 7-22 * * *',
+      dailyPrenotify: '*/15 7-22 * * *',
       timezone: 'America/New_York'
     },
     restaurant: {
-      dailyUpdate: "0,15 8,9,16,17 * * *",
+      dailyUpdate: "*/15 8,9,16,17 * * *",
       timezone: "America/New_York",
     }
   },
