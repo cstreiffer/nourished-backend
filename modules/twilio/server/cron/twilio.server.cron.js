@@ -54,9 +54,9 @@ module.exports = function() {
     cronDailyUpdate();
   }, {timezone: config.cron.twilio.timezone});
 
-  cron.schedule(config.cron.twilio.weeklyUpdate, () => {
-    cronWeeklyUpdate();
-  }, {timezone: config.cron.twilio.timezone});
+  // cron.schedule(config.cron.twilio.weeklyUpdate, () => {
+  //   cronWeeklyUpdate();
+  // }, {timezone: config.cron.twilio.timezone});
 
   cron.schedule(config.cron.twilio.dailyPrenotify, () => {
     cronDailyPrenotify();
@@ -71,8 +71,8 @@ var cronDailyPrenotify = function() {
         deleted: false,
         payStatus: 'COMPLETE',
         deliveryDate: {
-          [Op.gte] : getStartDate(15, config.orderTimeCutoff),
-          [Op.lte] : getEndDate(15, config.orderTimeCutoff)
+          [Op.gte] : getStartDate(10, config.orderTimeCutoff),
+          [Op.lte] : getEndDate(10, config.orderTimeCutoff)
         }
       };
       var userQuery = {phoneNumber: {[Op.ne]: ''}};
@@ -157,8 +157,8 @@ var cronDailyUpdate = function() {
         deleted: false,
         payStatus: 'COMPLETE',
         deliveryDate: {
-          [Op.gte] : getStartDate(15, 0),
-          [Op.lte] : getEndDate(15, 0)
+          [Op.gte] : getStartDate(10, 0),
+          [Op.lte] : getEndDate(10, 0)
         }
       };
       var userQuery = {phoneNumber: {[Op.ne]: ''}};

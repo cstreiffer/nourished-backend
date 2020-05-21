@@ -362,7 +362,7 @@ const updateOrderStatus = (paymentIntentId, statusUpdate, res, messageType) => {
                       var message = respMap[messageType];
                       sendMessage(stripeorder.user, message)
                         .then(function(err) {
-                          console.log(err);
+                          // console.log(err);
                           return res.status(200).json({received: true, message: "Orders updated"});
                         })
                         .catch(function(err) {

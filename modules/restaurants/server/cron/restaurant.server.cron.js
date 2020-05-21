@@ -32,7 +32,15 @@ const TIMESLOT_HOURRANGE = 4
  */
 
 
+var getStartDate = function(minutes, offset) {
+  var ret = Date.now() - minutes*60*1000 + offset - 5000 ;
+  return ret;
+}
 
+var getEndDate = function(minutes, offset) {
+  var ret = Date.now() + minutes*60*1000 + offset + 5000;
+  return ret;
+}
 
 const queryOrders = async (timeslotRange, done) => {      
 
@@ -59,11 +67,8 @@ const queryOrders = async (timeslotRange, done) => {
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
-            [Op.gte]: new Date(now),
-            [Op.lte]: new Date(
-              now.getTime() +
-                TIMESLOT_DAYRANGE * TIMESLOT_HOURRANGE * 60 * 60 * 1000
-            ),
+            [Op.gte] : getStartDate(10, config.orderTimeCutoff),
+            [Op.lte] : getEndDate(10, config.orderTimeCutoff)
           },
           restaurantId: r.id,
         },
@@ -232,7 +237,7 @@ var sendMessage = function (data) {
         deliveryDate.toLocaleString("en-US", {
           timeZone: "America/New_York",
         }) +
-        "\n\nRegards,\nTeam Nourshed",
+        "\n\nRegards,\nTeam Nourished",
       attachments: [
         {
           filename:
@@ -261,17 +266,14 @@ var sendMessage = function (data) {
   console.log("</sendMessage>");
 };
 
-
-
-
 const cronDailyUpdate = () => {
   async.waterfall([
     function (done) {
       //first pull all order
       var timeslotRange = {
         date: {
-          [Op.gte]: new Date(Date.now()),
-          [Op.lte]: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+          [Op.gte] : getStartDate(10, config.orderTimeCutoff),
+          [Op.lte] : getEndDate(10, config.orderTimeCutoff)
         },
       };
       queryOrders(timeslotRange, done);
