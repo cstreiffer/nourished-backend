@@ -40,6 +40,7 @@
     "generate-random-data": "0.0.3",
     "glob": "^7.1.6",
     "helmet": "^3.22.0",
+    "html-pdf": "^2.2.0",
     "jasmine-core": "^3.5.0",
     "json2csv": "^5.0.0",
     "jsonwebtoken": "^8.5.1",
