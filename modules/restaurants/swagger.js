@@ -181,7 +181,7 @@
  *              schema:
  *                $ref: '#/components/schemas/Restaurant'
  *  /rest/restaurants/{restaurantId}/export:
- *    post:
+ *    get:
  *      summary: Updates a restaurant attached to user by id
  *      tags: [Restaurants]
  *      security:

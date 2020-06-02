@@ -61,7 +61,7 @@ module.exports = function(app) {
     .all(passport.authenticate('jwt', {session: false}))
     .all(restAlias.findAlias)
     .all(restaurantsPolicy.isAllowed)
-    .post(restaurants.export) // Good
+    .get(restaurants.export) // Good
 
   // Finish by binding the restaurant middleware
   app.param('restaurantId', restaurants.restaurantByID);
