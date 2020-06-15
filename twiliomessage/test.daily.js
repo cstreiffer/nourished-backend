@@ -33,6 +33,10 @@ var getEndDate = function(minutes, offset) {
   return ret;
 }
 
+function msleep(n) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, n);
+}
+
 var cronDailyNotify = async function() {
   
   try {
@@ -62,18 +66,27 @@ var cronDailyNotify = async function() {
 
     let userSettings = await TwilioUser.findAll({
       where: {
-        // userId: userIds,
+        userId: userIds,
         settings: {
-          [Op.contains] : ["ALL"]
+          [Op.contains] : ["NONE"]
         }
       }
     });
     let userSettingsIds = new Set(userSettings.map(setting => setting.userId));
 
-    // Filter them out
+    // Filterf them out
     let usersFiltered = users.filter(user => {
-      (! userOrderIds.has(user.id) && ! userSettingsIds.has(user.id))
+      var userOrder = (! userOrderIds.has(user.id))
+      var userSetting = (! userSettingsIds.has(user.id))
+      return userOrder && userSetting
     });
+
+    users.forEach(user => {
+      console.log("Testing user: %s", user.id)
+      console.log("User Orders: %s", (!userOrderIds.has(user.id)))
+      console.log("User Settings: %s", (!userSettingsIds.has(user.id)))
+      console.log("All together: %s\n", ((!userOrderIds.has(user.id)) && (!userSettingsIds.has(user.id))))
+    })
 
     // Get the message for today
     let day = new Date().getDay()
@@ -98,7 +111,7 @@ var cronDailyNotify = async function() {
     });
 
     // Put it all together
-    let restNames = rests.map(rest => rest.restaurant.name);
+    let restNames = Array.from(new Set(rests.map(rest => rest.restaurant.name)));
     let restMessagePortion = "";
     for(const [i, v] of restNames.entries()) {
       if (i === restNames.length - 2) {
@@ -113,17 +126,17 @@ var cronDailyNotify = async function() {
     var messageBody = util.format(message, restMessagePortion || "Philly's best") + url
 
     // Blast it out there 
-    console.log(messageBody)
-    // for (const user of usersFiltered) {
-    //   let msg;
-    //   try {
-    //     msg = await sendMessageAsync(user, message);
-    //     console.log(msg);
-    //   } catch (err) {
-    //     console.log("Error sending to user: %j", user);
-    //   }
-    //   msleep(300); 
-    // };
+    for (const user of usersFiltered) {
+      let msg;
+      try {
+        console.log(user.email, messageBody)
+        // msg = await sendMessageAsync(user, message);
+        // console.log(msg);
+      } catch (err) {
+        console.log("Error sending to user: %j", user);
+      }
+      msleep(300); 
+    };
 
   } catch (err) {
     console.log("Error sending to message");
