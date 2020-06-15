@@ -19,6 +19,7 @@ var
   db = require(path.resolve('./config/lib/sequelize')).models,
   User = db.user,
   TwilioMessage = db.twiliomessage,
+  TwilioUser = db.twiliouser,
   owasp = require('owasp-password-strength-test');
 
 owasp.config(config.shared.owasp);
@@ -88,7 +89,21 @@ exports.signup = function(req, res) {
               .catch(function(err) {
                 done(err);
               });
-          }, 
+          },
+          function(users, done) {
+            TwilioUser.create({
+              id: uuid(),
+              userId: user.id,
+              status: 'ACTIVE'
+            })
+            .then(function(tu) {
+              done(null, user)
+            })
+            .catch(function(err) {
+              console.log(err)
+              done(null, user)
+            })
+          },
           // Send the user a text
           function(user, done) {
             var queryText = 'SIGNUP_NOTIFY_USER';

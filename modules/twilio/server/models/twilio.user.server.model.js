@@ -22,6 +22,11 @@ module.exports = function(sequelize, DataTypes) {
       type: DataTypes.STRING,
       default: "ACTIVE"
     },
+    settings: {
+      type: DataTypes.JSONB,
+      defaultValue: ["ALL"],
+      isArray: true
+    },
   }, {
     associate: function(models) {
       TwilioUser.belongsTo(models.user, { foreignKey: { allowNull: true }, onDelete: 'SET NULL' });

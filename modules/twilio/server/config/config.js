@@ -28,6 +28,7 @@ var
     {id: uuid(), type: 'OUTGOING', subtype: 'DAILY_ORDER', messageBody: 'Your meal from %s has been delivered! You can pick-up your order now at the %s. If you have any issues, please contact us at %s. Enjoy! 🍴'},
     {id: uuid(), type: 'OUTGOING', subtype: 'SIGNUP_NOTIFY_USER', messageBody: 'You\'re all signed up and ready to get Nourished! Nourished is a quick and easy way to safely order delicious, affordable food from local restaurants. The weekly menu is constantly updated so that you can see a week at a time and you can order anytime by texting \'ORDER\' or visiting https://nourished.uphs.upenn.edu. All meals that you order will be delivered to your work place throughout the week, which you specify on every order. You can order all your meals for the week at once or order as you go throughout the week. Enjoy!'},
     {id: uuid(), type: 'OUTGOING', subtype: 'DAILY_PRENOTIFY', messageBody: 'Your meal from %s will be delivered to the %s at %s! You will be able to pick-up your order at the %s. Enjoy!🍴'},
+    {id: uuid(), type: 'DAILY_NOTIFY', subtype: 'DEFAULT', messageBody: 'Don\'t forget to place your Nourished order today! Featuring meals from %s. Enjoy!🍴'},
   ];
 
 module.exports = function(app, db){
