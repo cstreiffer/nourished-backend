@@ -74,6 +74,8 @@ module.exports = {
       weeklyUpdate: '0 13 * * 0',
       dailyUpdate: '*/15 7-22 * * *',
       dailyPrenotify: '*/15 7-22 * * *',
+      dailyNotifyLunch: '30 7 * * 1-6',
+      dailyNotifyDinner: '30 12 * * 1-6',
       timezone: 'America/New_York'
     },
     restaurant: {
