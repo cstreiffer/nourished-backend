@@ -28,7 +28,53 @@ var
     {id: uuid(), type: 'OUTGOING', subtype: 'DAILY_ORDER', messageBody: 'Your meal from %s has been delivered! You can pick-up your order now at the %s. If you have any issues, please contact us at %s. Enjoy! 🍴'},
     {id: uuid(), type: 'OUTGOING', subtype: 'SIGNUP_NOTIFY_USER', messageBody: 'You\'re all signed up and ready to get Nourished! Nourished is a quick and easy way to safely order delicious, affordable food from local restaurants. The weekly menu is constantly updated so that you can see a week at a time and you can order anytime by texting \'ORDER\' or visiting https://nourished.uphs.upenn.edu. All meals that you order will be delivered to your work place throughout the week, which you specify on every order. You can order all your meals for the week at once or order as you go throughout the week. Enjoy!'},
     {id: uuid(), type: 'OUTGOING', subtype: 'DAILY_PRENOTIFY', messageBody: 'Your meal from %s will be delivered to the %s at %s! You will be able to pick-up your order at the %s. Enjoy!🍴'},
-    {id: uuid(), type: 'DAILY_NOTIFY', subtype: 'DEFAULT', messageBody: 'Don\'t forget to place your Nourished order today! Featuring meals from %s. Enjoy!🍴'},
+
+    // Dinner Default
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: 'Don\'t forget to place your Nourished order today! Featuring meals from %s. Enjoy!🍴'},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Don't feel like cooking tonight? Make sure to order by 3pm so that you get a Nourished meal to eat at work or take home! We are serving your favorites from %s!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Nourished dinner delivery is in about 3 hours, which means you can order to eat at work or take home tonight! Make sure to order by 3pm from %s! "},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Don't forget that last call for dinner orders is 3pm! We will be delivering at 5pm so that you can order to eat on shift or to take home with you for you and others! We are serving your favorites from %s."},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Last call for Nourished dinner orders! We are serving your favorites from %s. Order by 3pm!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "For dinner, we have some of our favorite dishes and delicious dinners to share from %s! Don't forget to place your dinner orders by 3pm!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Hungry? We're ready for dinner already. We have favorites from %s. Make sure to order by 3pm to get Nourished!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Lookout for dinner! We have some delicious menus from %s for tonight! So make sure to order by 3pm to get Nourished!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT', messageBody: "Nourished dinner is approaching! Serving your favorites from %s. Don't forget to order by 3pm! "},
+    // Monday
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_1', messageBody: "Happy Monday! Nourished has your favorites from %s for dinner today at 5/5:15pm. Make sure to get your order in by 3pm!"},
+    // Tuesday
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_2', messageBody: "Happy Tuesday! Nourished has your favorites from %s for dinner today at 5/5:15pm. Make sure to get your order in by 3pm!"},
+    // Wednesday
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_3', messageBody: "Happy Wednesday! Nourished has your favorites from %s for dinner today at 5/5:15pm. Make sure to get your order in by 3pm!"},
+    // Thursday
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_4', messageBody: "Happy Thursday! Nourished has your favorites from %s for dinner today at 5/5:15pm. Make sure to get your order in by 3pm!"},
+    // Friday
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_5', messageBody: "Happy Friday! Nourished has your favorites from %s for dinner today at 5/5:15pm. Make sure to get your order in by 3pm!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_DINNER', subtype: 'DEFAULT_5', messageBody: "Friday, Friday, gotta get fed on Friday! If you need food at work or to take home because it's been a long week, Nourished has you covered with your favorites from %s! Make sure to order by 3pm."},
+    // Lunch Default
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT', messageBody: "Last call for lunch is 10am! We have some of our favorites from %s! Don't miss out on delicious lunch options! "},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT', messageBody: "Guess what? You have another hour or so to order Nourished lunches, so get your order in! Last call for lunch is 10am! 🎉 We have some delicious options from %s, so make sure to get your order in!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT', messageBody: "Meals from %s are on the menu for lunch today! Make sure to order by 10am!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT', messageBody: "Last call for Nourished lunch orders is 10am! We have a bunch of our favorites from %s, so don't miss out! "},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT', messageBody: "Hungry? We're dreaming about lunch already! We have favorites from %s. Make sure to order by 10am to get Nourished!"},
+    // Monday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_1', messageBody: "We're back for lunch and dinner today and can't wait to deliver deliciousness straight to you! Make sure to order by 10am for favorites from %s!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_1', messageBody: "Happy Monday! Nourished has your favorites from %s for lunch today at 12/12:15pm. Make sure to get your order in by 10am!"},
+    // Tuesday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_2', messageBody: "Happy Tuesday! Nourished has your favorites from %s for lunch today at 12/12:15pm. Make sure to get your order in by 10am!"},
+    // Wednesday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_3', messageBody: "Happy Wednesday! Nourished has your favorites from %s for lunch today at 12/12:15pm. Make sure to get your order in by 10am!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_3', messageBody: "Happy hump day! We think it's a perfect day to get delicious, local delivered for lunch and dinner. We have delicious options from %s. Don't forget to order by 10am!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_3', messageBody: "Happy Hump Day! We might be halfway through the week but we're just getting started with the delicious Nourished meals this week. Serving our favorites from %s. Make sure to get your lunch order in by 10am!"},
+    // Thursday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_4', messageBody: "Happy Thursday! Nourished has your favorites from %s for lunch today at 12/12:15pm. Make sure to get your order in by 10am! "},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_4', messageBody: "You know what day it is - it's Treat Yourself Thursday! Make sure that you place your Nourished lunch orders by 10am to not miss out on some of our favorites from %s!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_4', messageBody: "It's that time of the week again...Treat Yourself Thursday! Serving lunches from %s that are 100% delicious. Make sure to get your lunch order in by 10am!"},
+    // Friday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_5', messageBody: "Happy Friday! We have some of your favorites from %s so make sure to order by 10am!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_5', messageBody: "It's Friday! 🎉 To celebrate our favorite day we're serving your favorites from %s! Make sure to get yours by 10am!"},
+    // Saturday
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_6', messageBody: "Happy Saturday! Nourished has your favorites from %s for lunch today at 12/12:15pm. Make sure to get your order in by 10am!"},
+    {id: uuid(), type: 'DAILY_NOTIFY_LUNCH', subtype: 'DEFAULT_6', messageBody: "It's the weekend and we have delicious food from %s! Order by 10am to make sure you get Nourished!"}
   ];
 
 module.exports = function(app, db){

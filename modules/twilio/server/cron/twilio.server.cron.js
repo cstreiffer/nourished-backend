@@ -22,6 +22,9 @@ var
 
 const {Op} = require('sequelize');
 const util = require('util');
+const { Parser } = require('json2csv');
+const parser = new Parser();
+var fs = require('fs');
 
 var sendMessage = function(message, user) {
   console.log(user.username, message);
@@ -52,17 +55,21 @@ const getTime = function(date) {
 }
 
 module.exports = function() {
-  cron.schedule(config.cron.twilio.dailyUpdate, () => {
-    cronDailyUpdate();
-  }, {timezone: config.cron.twilio.timezone});
-
-  // cron.schedule(config.cron.twilio.dailyNotify, () => {
-  //   cronDailyNotify();
+  // cron.schedule(config.cron.twilio.dailyUpdate, () => {
+  //   cronDailyUpdate();
   // }, {timezone: config.cron.twilio.timezone});
 
-  cron.schedule(config.cron.twilio.dailyPrenotify, () => {
-    cronDailyPrenotify();
+  cron.schedule(config.cron.twilio.dailyNotifyLunch, () => {
+    cronDailyNotify("LUNCH");
   }, {timezone: config.cron.twilio.timezone});
+
+  cron.schedule(config.cron.twilio.dailyNotifyDinner, () => {
+    cronDailyNotify("DINNER");
+  }, {timezone: config.cron.twilio.timezone});
+
+  // cron.schedule(config.cron.twilio.dailyPrenotify, () => {
+  //   cronDailyPrenotify();
+  // }, {timezone: config.cron.twilio.timezone});
 }
 
 var cronDailyPrenotify = function() {
@@ -239,8 +246,8 @@ var cronDailyUpdate = function() {
 }
 
 var sendMessageAsync = async function(user, textBody) {
-  console.log(user.cell_phone, textBody);
-  var to = '+1' + user.cell_phone;
+  // console.log(user.phoneNumber, textBody);
+  var to = '+1' + user.phoneNumber;
   var from = config.twilio.phoneNumber;
   var message = textBody;
 
@@ -311,7 +318,7 @@ var cronWeeklyUpdate = async function() {
   }
 }
 
-var cronDailyNotify = async function() {
+var cronDailyNotify = async function(timeslot) {
   
   try {
 
@@ -359,8 +366,8 @@ var cronDailyNotify = async function() {
     let day = new Date().getDay()
     let tm = await TwilioMessage.findAll({
       where: {
-        type: 'DAILY_NOTIFY',
-        subtype: ['NOTIFY_' + day, 'DEFAULT']
+        type: 'DAILY_NOTIFY_' + timeslot,
+        subtype: ['DEFAULT_' + day, 'DEFAULT']
       }
     });
     var index = Math.floor(Math.random() * tm.length)
@@ -390,20 +397,35 @@ var cronDailyNotify = async function() {
       }
     }
     var url = config.app.webURL + 'my-menu';
-    var messageBody = util.format(message, restMessagePortion || "Philly's best") + url
+    var messageBody = util.format(message, restMessagePortion || "Philly's finest") + " " + url
 
     // Blast it out there 
-    for (const user of usersFiltered) {
-      let msg;
-      try {
-        console.log(user.email, messageBody)
-        // msg = await sendMessageAsync(user, message);
-        // console.log(msg);
-      } catch (err) {
-        console.log("Error sending to user: %j", user);
-      }
-      msleep(300); 
-    };
+    try {
+      let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
+      // console.log(msg);
+    } catch (err) {
+      console.log(err)
+    }
+
+    let ret = usersFiltered.map(user => user.toJSON())
+    var data = parser.parse(ret);
+    var outFile = path.resolve('private/users_out_' + new Date().toISOString() + '.csv');
+    let out = await fs.writeFile(outFile, data, function(err, data) {
+      console.log(err)
+    })
+    // console.log(out)
+    // console.log(messageBody)
+    // for (const user of usersFiltered) {
+    //   let msg;
+    //   try {
+    //     console.log(user.email, messageBody)
+    //     // msg = await sendMessageAsync(user, message);
+    //     // console.log(msg);
+    //   } catch (err) {
+    //     console.log("Error sending to user: %j", user);
+    //   }
+    //   msleep(300); 
+    // };
 
   } catch (err) {
     console.log("Error sending to message");
