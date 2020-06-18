@@ -55,9 +55,9 @@ const getTime = function(date) {
 }
 
 module.exports = function() {
-  // cron.schedule(config.cron.twilio.dailyUpdate, () => {
-  //   cronDailyUpdate();
-  // }, {timezone: config.cron.twilio.timezone});
+  cron.schedule(config.cron.twilio.dailyUpdate, () => {
+    cronDailyUpdate();
+  }, {timezone: config.cron.twilio.timezone});
 
   cron.schedule(config.cron.twilio.dailyNotifyLunch, () => {
     cronDailyNotify("LUNCH");
@@ -67,9 +67,9 @@ module.exports = function() {
     cronDailyNotify("DINNER");
   }, {timezone: config.cron.twilio.timezone});
 
-  // cron.schedule(config.cron.twilio.dailyPrenotify, () => {
-  //   cronDailyPrenotify();
-  // }, {timezone: config.cron.twilio.timezone});
+  cron.schedule(config.cron.twilio.dailyPrenotify, () => {
+    cronDailyPrenotify();
+  }, {timezone: config.cron.twilio.timezone});
 }
 
 var cronDailyPrenotify = function() {
