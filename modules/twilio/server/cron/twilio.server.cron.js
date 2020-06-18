@@ -246,7 +246,7 @@ var cronDailyUpdate = function() {
 }
 
 var sendMessageAsync = async function(user, textBody) {
-  // console.log(user.phoneNumber, textBody);
+  console.log(user.phoneNumber, textBody);
   var to = '+1' + user.phoneNumber;
   var from = config.twilio.phoneNumber;
   var message = textBody;
@@ -407,25 +407,30 @@ var cronDailyNotify = async function(timeslot) {
       console.log(err)
     }
 
-    let ret = usersFiltered.map(user => user.toJSON())
-    var data = parser.parse(ret);
-    var outFile = path.resolve('private/users_out_' + new Date().toISOString() + '.csv');
-    let out = await fs.writeFile(outFile, data, function(err, data) {
+    // let ret = usersFiltered.map(user => user.toJSON())
+    // var data = parser.parse(ret);
+    // var outFile = path.resolve('private/users_out_' + new Date().toISOString() + '.csv');
+    // let out = await fs.writeFile(outFile, data, function(err, data) {
+    //   console.log(err)
+    // })
+    for (const user of usersFiltered) {
+      let msg;
+      try {
+        // console.log(user.email, messageBody)
+        msg = await sendMessageAsync(user, messageBody);
+        // console.log(msg);
+      } catch (err) {
+        console.log("Error sending to user: %j", user);
+      }
+      msleep(300); 
+    };
+
+    try {
+      let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
+      // console.log(msg);
+    } catch (err) {
       console.log(err)
-    })
-    // console.log(out)
-    // console.log(messageBody)
-    // for (const user of usersFiltered) {
-    //   let msg;
-    //   try {
-    //     console.log(user.email, messageBody)
-    //     // msg = await sendMessageAsync(user, message);
-    //     // console.log(msg);
-    //   } catch (err) {
-    //     console.log("Error sending to user: %j", user);
-    //   }
-    //   msleep(300); 
-    // };
+    }
 
   } catch (err) {
     console.log("Error sending to message");
