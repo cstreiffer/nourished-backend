@@ -51,8 +51,8 @@ var
   menu2 = {date: "2020-04-02T18:00:00Z", id: uuid()},
   menu3 = {date: "2020-04-03T18:00:00Z", id: uuid()},
   menu4 = {date: "2020-04-04T18:00:00Z", id: uuid()},
-  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", mealinfoId: mealInfo1.id, finalized: false},
-  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan",mealinfoId: mealInfo2.id, finalized: true};
+  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", mealinfoId: mealInfo1.id, finalized: false, price: 6.00},
+  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan",mealinfoId: mealInfo2.id, finalized: true, price: 7.00};
 
 describe('Meal CRUD tests', function() {
 before(function(done) {

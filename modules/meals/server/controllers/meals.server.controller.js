@@ -33,7 +33,7 @@ exports.create = function(req, res) {
   req.body.id = uuid();
   req.body.userId = req.user.id;
 
-  if(!req.body.restaurantId) {
+  if(!req.body.restaurantId || !req.body.price || Number(req.body.price) <= 0) {
       return res.status(400).send({
         message: "Please include restaurant id"
       });

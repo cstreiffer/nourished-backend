@@ -54,7 +54,7 @@ var cronDailyPrenotify = function() {
         deleted: false,
         payStatus: 'COMPLETE',
         deliveryDate: {
-          [Op.gte] : getStartDate(30, 0),
+          [Op.gte] : getStartDate(180, 0),
           [Op.lte] : getEndDate(30, 0)
         }
       };
@@ -102,13 +102,15 @@ var cronDailyPrenotify = function() {
     },
     function(users, done) {
       var tm = {
-        messageBody: "Nourished here! We're so sorry but delicious takes some prep time and we're running a little late! Your lunch will be delivered at the following times: PPMC - 12:15pm, HUP - 12:30pm, PAH - 12:45pm"
+        messageBody: "Hi! We're sorry that we didn't send a text to you when your lunch was delivered. It has been delivered and is ready for you to pick up from %s. We are sorry for the glitch in our system and for the delay in letting you know!"
       }
       done(null, users, tm);
     },
     function(users, tm, done) {
       Promise.all(users.map((user) => {
-        sendMessage(tm.messageBody, user.user);
+        var msgToSend = util.format(tm.messageBody, user.location)
+        // console.log(user.user.email, msgToSend)
+        sendMessage(msgToSend, user.user);
       }))
         .then(function(messageIds) {
           done(null);

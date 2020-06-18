@@ -49,7 +49,7 @@ exports.create = function(req, res) {
       mealDescription : meal.description,
       allergens : meal.allergens,
       dietaryRestrictions : meal.dietaryRestrictions,
-      price : meal.price || meal.mealinfo.price,
+      price : meal.price,
       timeslotId: timeslot.id,
       finalized: req.body.finalized,
     });
