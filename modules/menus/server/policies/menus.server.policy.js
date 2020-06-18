@@ -75,8 +75,7 @@ exports.isValidMeal = function(req, res, next) {
       where: {
         id: mealIds,
         userId: req.user.id
-      },
-      include: db.mealinfo
+      }
     }).then((meals) => {
       var validMealIds = new Set(meals.map(meal => meal.id));
       if(mealIds.every(id => validMealIds.has(id))) {

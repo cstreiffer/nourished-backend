@@ -40,8 +40,8 @@ var
   timeslot2 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: "2021-04-05T18:00:00Z", hospitalId: hospital2.id},
   timeslot3 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date().toISOString()},
   timeslot4 = {id: uuid(), userId: restaurantCredentials2.id, restaurantId: restaurant2.id, date: new Date(Date.now() + config.orderTimeCutoff + 60*1000).toISOString()},
-  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false},
-  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true},
+  meal1 = {name: "Not Chicken 1", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: false, price: 10.00},
+  meal2 = {name: "Not Chicken 2", description: "Its Not Chicken", allergens: "Pine nuts", dietaryRestrictions: "Vegan", finalized: true, price: 10.00},
   m1 = {...meal1, userId: restaurantCredentials1.id, id: uuid()},
   m2 = {...meal1, userId: restaurantCredentials2.id, id: uuid()},
   m3 = {...meal2, userId: restaurantCredentials1.id, id: uuid()},
@@ -321,6 +321,7 @@ describe('/POST /api/rest/menus endpoint', () => {
       .set('Authorization', restaurantJWT1)
       .send({menus: [{timeslotId: timeslot1.id, mealId: m3.id}], finalized: true})
       .end((err, res) => {
+        console.log("%j", res.body.menus)
         res.body.should.be.a('object');
         res.body.menus.should.be.a('array');
         res.body.menus[0].should.have.property('mealName');
