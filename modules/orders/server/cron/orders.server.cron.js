@@ -21,8 +21,8 @@ const smtpTransport = nodemailer.createTransport(config.mailer.options)
 
 // const PPMC_HOSPITAL_ID = '7d2cee64-3e99-565d-b27a-462947dbd144';
 const PPMC_HOSPITAL_ID = 'c8e20bfc-f2ad-51a3-8f73-56488d3a1cc5';
-// const USER_EMAILS = ['zene.colt@pennmedicine.upenn.edu', 'ingrid.doralice@pennmedicine.upenn.edu', 'michelle.langston-smith@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com'];
-const USER_EMAILS = ['ccstreiffer@gmail.com']
+const USER_EMAILS = ['zene.colt@pennmedicine.upenn.edu', 'ingrid.doralice@pennmedicine.upenn.edu', 'michelle.langston-smith@pennmedicine.upenn.edu', 'ccstreiffer@gmail.com'];
+// const USER_EMAILS = ['ccstreiffer@gmail.com']
 
 var getStartDate = function(minutes, offset) {
   var ret = Date.now() - minutes*60*1000 + offset - 5000 ;
@@ -48,8 +48,8 @@ var cronPPMCLunchUpdate = function() {
         deleted: false,
         payStatus: 'COMPLETE',
         deliveryDate: {
-          [Op.gte] : getStartDate(60*3, 0),
-          [Op.lte] : getEndDate(60, 0)
+          [Op.gte] : getStartDate(0, 0),
+          [Op.lte] : getEndDate(60*4, 30)
         },
         hospitalId: PPMC_HOSPITAL_ID
       };

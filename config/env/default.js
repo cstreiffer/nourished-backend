@@ -75,7 +75,7 @@ module.exports = {
       dailyUpdate: '*/15 7-22 * * *',
       dailyPrenotify: '*/15 7-22 * * *',
       dailyNotifyLunch: '30 7 * * 1-6',
-      dailyNotifyDinner: '30 12 * * 1-6',
+      dailyNotifyDinner: '30 12 * * 1-5',
       timezone: 'America/New_York'
     },
     restaurant: {
@@ -83,7 +83,7 @@ module.exports = {
       timezone: "America/New_York",
     },
     order: {
-      PPMCLunchUpdate: "30 12 * * 1-6",
+      PPMCLunchUpdate: "15 9 * * 1-6",
       timezone: "America/New_York",
     }
   },
