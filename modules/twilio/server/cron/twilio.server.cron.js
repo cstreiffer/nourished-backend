@@ -400,12 +400,12 @@ var cronDailyNotify = async function(timeslot) {
     var messageBody = util.format(message, restMessagePortion || "Philly's finest") + " " + url
 
     // Blast it out there 
-    try {
-      let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
-      // console.log(msg);
-    } catch (err) {
-      console.log(err)
-    }
+    // try {
+    //   let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
+    //   // console.log(msg);
+    // } catch (err) {
+    //   console.log(err)
+    // }
 
     // let ret = usersFiltered.map(user => user.toJSON())
     // var data = parser.parse(ret);
@@ -425,12 +425,12 @@ var cronDailyNotify = async function(timeslot) {
       msleep(300); 
     };
 
-    try {
-      let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
-      // console.log(msg);
-    } catch (err) {
-      console.log(err)
-    }
+    // try {
+    //   let msg = await sendMessageAsync({phoneNumber: "5046137325"}, messageBody);
+    //   // console.log(msg);
+    // } catch (err) {
+    //   console.log(err)
+    // }
 
   } catch (err) {
     console.log("Error sending to message");
