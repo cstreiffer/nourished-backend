@@ -81,6 +81,10 @@ module.exports = {
     restaurant: {
       dailyUpdate: "*/15 8,9,16,17 * * *",
       timezone: "America/New_York",
+    },
+    order: {
+      PPMCLunchUpdate: "30 12 * * 1-6",
+      timezone: "America/New_York",
     }
   },
   twilio: {
