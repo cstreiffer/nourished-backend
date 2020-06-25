@@ -192,24 +192,24 @@ var sendMessage = function (data) {
   // flatten for csv
   var ret = orders.flat(1).map((order) => {
     return {
-      deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {
-        timeZone: "America/New_York",
-      }),
-      hospital: order.hospital.name,
+      // deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {
+      //   timeZone: "America/New_York",
+      // }),
+      // hospital: order.hospital.name,
       firstName: order.user.firstName,
       lastName: order.user.lastName,
       phoneNumber: order.user.phoneNumber,
-      email: order.user.email,
+      // email: order.user.email,
       order: order.mealName,
-      quantity: order.quantity,
-      price: order.price,
-      total: order.price,
-      orderDate: new Date(order.orderDate).toLocaleString("en-US", {
-        timeZone: "America/New_York",
-      }),
-      payStatus: order.payStatus,
-      dietaryRestrictions: order.dietaryRestrictions,
-      allergies: order.information,
+      // quantity: order.quantity,
+      // price: order.price,
+      // total: order.price,
+      // orderDate: new Date(order.orderDate).toLocaleString("en-US", {
+      //   timeZone: "America/New_York",
+      // }),
+      // payStatus: order.payStatus,
+      // dietaryRestrictions: order.dietaryRestrictions,
+      // allergies: order.information,
     };
   });
 
