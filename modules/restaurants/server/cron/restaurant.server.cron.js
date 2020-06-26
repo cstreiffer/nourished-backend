@@ -201,7 +201,7 @@ var sendMessage = function (data) {
       phoneNumber: order.user.phoneNumber,
       // email: order.user.email,
       order: order.mealName,
-      // quantity: order.quantity,
+      quantity: order.quantity,
       // price: order.price,
       // total: order.price,
       // orderDate: new Date(order.orderDate).toLocaleString("en-US", {
