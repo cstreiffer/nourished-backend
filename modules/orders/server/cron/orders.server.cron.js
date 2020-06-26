@@ -69,25 +69,25 @@ var cronPPMCLunchUpdate = function() {
       })
     }, 
     function(orders, done) {
-      var ret = orders.map((order) => {
+      var ret = orders.flat(1).map((order) => {
         return {
-          deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {
-            timeZone: "America/New_York",
-          }),
+          // deliveryDate: new Date(order.deliveryDate).toLocaleString("en-US", {
+          //   timeZone: "America/New_York",
+          // }),
           firstName: order.user.firstName,
           lastName: order.user.lastName,
           phoneNumber: order.user.phoneNumber,
-          email: order.user.email,
+          // email: order.user.email,
           order: order.mealName,
           quantity: order.quantity,
-          mealPrice: order.price,
-          total: order.total,
-          orderDate: new Date(order.orderDate).toLocaleString("en-US", {
-            timeZone: "America/New_York",
-          }),
-          payStatus: order.payStatus,
-          dietaryRestrictions: order.dietaryRestrictions,
-          allergies: order.information,
+          // mealPrice: order.price,
+          // total: order.total,
+          // orderDate: new Date(order.orderDate).toLocaleString("en-US", {
+          //   timeZone: "America/New_York",
+          // }),
+          // payStatus: order.payStatus,
+          // dietaryRestrictions: order.dietaryRestrictions,
+          // allergies: order.information,
         };
       });
 
