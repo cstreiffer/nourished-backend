@@ -196,7 +196,7 @@ exports.signin = function(req, res, next) {
       user.hashedPassword = undefined;
       user.salt = undefined;
       var ret = _.pick(user || {}, retAttributes);
-      if ret.roles.includes('alias') {
+      if (ret.roles.includes('alias')) {
         ret.roles = ret.roles.filter(r => r !== 'alias');
       }
       var token = jwt.sign(user.toJSON(), jwtSecret, config.jwt.signOptions);
