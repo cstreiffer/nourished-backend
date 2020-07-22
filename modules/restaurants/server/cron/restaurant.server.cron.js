@@ -124,10 +124,23 @@ const queryOrders = async (timeslotRange, done) => {
             ],
           });
 
+          // User Aliases
+          let userAliases = await UserAlias.findAll({
+            where: {
+              userId: t.user.id
+            },
+            include: db.user
+          });
+
+          let emails = [t.user.email];
+          let aliasEmails = userAliases.map(u => u.user.email);
+          emails.push(...aliasEmails)
+
           //Push into map
           orderMap[t.restaurantId+t.hospitalId] = {
             orders: orders,
             emailRecipient: t.user.email,
+            emailRecipients: emails,
             timeslot: t.date,            
             restaurantName: r.name,   
             restaurantId: t.restaurantId,
@@ -167,10 +180,15 @@ var sendMessage = function (data) {
   console.group();
 
   
+  // var receipient =
+  //   process.env.NODE_ENV === "development"
+  //     ? [DEFAULT_EMAIL]
+  //     : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
+
   var receipient =
     process.env.NODE_ENV === "development"
-      ? [DEFAULT_EMAIL]
-      : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
+      ? [DEFAULT_EMAIL, ...data.emails]
+      : [DEFAULT_EMAIL, 'nourished@pennmedicine.upenn.edu', ...data.emails];
   
   
   
