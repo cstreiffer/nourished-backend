@@ -68,8 +68,8 @@ const queryOrders = async (timeslotRange, done) => {
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
-            [Op.gte] : getStartDate(60*5, config.orderTimeCutoff),
-            [Op.lte] : getEndDate(60*5, config.orderTimeCutoff)
+            [Op.gte] : getStartDate(10, config.orderTimeCutoff),
+            [Op.lte] : getEndDate(10, config.orderTimeCutoff)
           },
           restaurantId: r.id,
         },
