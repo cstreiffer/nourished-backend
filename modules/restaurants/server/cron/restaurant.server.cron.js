@@ -8,6 +8,7 @@ var db = require(path.resolve("./config/lib/sequelize")).models,
   TimeSlot = db.timeslot,
   Order = db.order,
   UserAlias = db.useralias,
+  RestaurantEmail = db.restaurantemail,
   uuid = require("uuid/v4");
 const async = require("async")
 const { Parser } = require("json2csv")
@@ -126,19 +127,30 @@ const queryOrders = async (timeslotRange, done) => {
           });
 
           // User Aliases
-          let userAliases = await UserAlias.findAll({
+          // let userAliases = await UserAlias.findAll({
+          //   where: {
+          //     aliasId: t.user.id
+          //   },
+          //   include: {
+          //     model: db.user,
+          //     as: 'user'
+          //   }
+          // });
+          let userEmails = await RestaurantEmail.findAll({
             where: {
-              aliasId: t.user.id
-            },
-            include: {
-              model: db.user,
-              as: 'user'
+              restaurantId: t.restaurantId,
+              notify: true
             }
           });
 
           let emails = [t.user.email];
-          let aliasEmails = userAliases.map(u => u.user.email);
-          emails.push(...aliasEmails)
+          let aliasEmails = userEmails.map(u => u.email);
+          emails.push(...aliasEmails);
+          emails = [...(new Set(emails))];
+
+          console.log("--Emails--------------------------------------");
+          console.log(emails);
+          console.log("----------------------------------------------");
 
           //Push into map
           orderMap[t.restaurantId+t.hospitalId] = {
