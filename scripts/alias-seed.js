@@ -12,9 +12,6 @@ var
   UserAlias = db.useralias;
 
 
-console.log(UserAlias);
-
-
 // The necessary functions
 var genUser = function(username, email, phoneNumber, first, last, password) {
   return {
@@ -46,7 +43,6 @@ var buildUser = async function(creds) {
   user.phoneNumber = user.phoneNumber.replace(/-|\(|\)| /g, '');
   try{
     var userSaved = await user.save();
-    console.log("Here is the saved user: %j", userSaved);
     return userSaved;
   } catch(e) {
     console.log(e)
@@ -55,10 +51,8 @@ var buildUser = async function(creds) {
 
 var buildAliasUser = async function(creds) {
   var user = UserAlias.build(creds);
-  console.log("User: %j", user);
   try{
     var userSaved = await user.save();
-    console.log("Here is the saved user: %j", userSaved);
     return userSaved;
   } catch(e) {
     console.log(e);

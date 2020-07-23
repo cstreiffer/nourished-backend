@@ -21,8 +21,8 @@ module.exports = function(sequelize, DataTypes) {
     },
   }, {
     associate: function(models) {
-      UserAlias.belongsTo(models.user, { foreignKey: 'userId'});
-      UserAlias.belongsTo(models.user, { foreignKey: 'aliasId'});
+      UserAlias.belongsTo(models.user, { foreignKey: 'userId', as: 'user'});
+      UserAlias.belongsTo(models.user, { foreignKey: 'aliasId', as: 'alias'});
     }
   });
 

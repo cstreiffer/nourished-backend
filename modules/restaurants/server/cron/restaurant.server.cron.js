@@ -7,6 +7,7 @@ var db = require(path.resolve("./config/lib/sequelize")).models,
   Restaurant = db.restaurant,
   TimeSlot = db.timeslot,
   Order = db.order,
+  UserAlias = db.useralias,
   uuid = require("uuid/v4");
 const async = require("async")
 const { Parser } = require("json2csv")
@@ -67,8 +68,8 @@ const queryOrders = async (timeslotRange, done) => {
       let timeslots = await TimeSlot.findAll({
         where: {
           date: {
-            [Op.gte] : getStartDate(10, config.orderTimeCutoff),
-            [Op.lte] : getEndDate(10, config.orderTimeCutoff)
+            [Op.gte] : getStartDate(60*5, config.orderTimeCutoff),
+            [Op.lte] : getEndDate(60*5, config.orderTimeCutoff)
           },
           restaurantId: r.id,
         },
@@ -127,9 +128,12 @@ const queryOrders = async (timeslotRange, done) => {
           // User Aliases
           let userAliases = await UserAlias.findAll({
             where: {
-              userId: t.user.id
+              aliasId: t.user.id
             },
-            include: db.user
+            include: {
+              model: db.user,
+              as: 'user'
+            }
           });
 
           let emails = [t.user.email];
@@ -187,8 +191,8 @@ var sendMessage = function (data) {
 
   var receipient =
     process.env.NODE_ENV === "development"
-      ? [DEFAULT_EMAIL, ...data.emails]
-      : [DEFAULT_EMAIL, 'nourished@pennmedicine.upenn.edu', ...data.emails];
+      ? [DEFAULT_EMAIL, ...data.emailRecipients]
+      : [DEFAULT_EMAIL, 'nourished@pennmedicine.upenn.edu', ...data.emailRecipients];
   
   
   
@@ -318,6 +322,7 @@ const cronDailyUpdate = () => {
     },
   ]);
 };
+
 
 
 

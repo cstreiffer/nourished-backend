@@ -362,7 +362,7 @@ function pad(num, size) {
     return s.substr(s.length-size);
 }
 
-var vals = generateData([[22, 31, '2020-07-%sT00:00:00Z'], [22, 31, '2020-07-%sT00:30:00Z']]);
+var vals = generateData([[21, 31, '2020-07-%sT00:00:00Z'], [21, 31, '2020-07-%sT00:30:00Z']]);
 
 // var vals = generateData([[28, 31, '2020-04-%sT19:00:00Z']])
 
@@ -383,51 +383,51 @@ var buildUser = function(creds) {
 }
 
 async.waterfall([
-  // function(done) {
-  //   Hospital.destroy({where: {}})
-  //     .then(function() {
-  //       Hospital.bulkCreate(hospitals)
-  //         .then(() => {
-  //           done();
-  //         }).catch((err) => {console.log("Hospital error"); done()});
-  //     })
-  // },
-  // function(done) {
-  //   User.destroy({where: {}})
-  //     .then(() => {
-  //       Promise.all(users.map((user) => buildUser(user)))
-  //         .then(function(users) {
-  //           done();
-  //         }).catch((err) => {console.log("User error"); done()});
-  //     });
-  // },
-  // function(done) {
-  //   Restaurant.destroy({where: {}})
-  //     .then(function() {
-  //       Restaurant.bulkCreate(restaurants, {validate: true})
-  //         .then(() => {
-  //           done();
-  //         }).catch((err) => {console.log("Restaurant error"); done()});
-  //     }).catch((err) => {
-  //       console.log(err);
-  //     });
-  // },
-  // function(done) {
-  //   MealInfo.destroy({where: {}})
-  //     .then(function(){
-  //       MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
-  //         done()
-  //       }).catch((err) => {console.log("Meal info error"); done()});
-  //     })
-  // }, 
-  // function(done) {
-  //   Meal.destroy({where: {}})
-  //     .then(function(){
-  //       Meal.bulkCreate(meals, {validate: true}).then(()=> {
-  //         done()
-  //       }).catch((err) => {console.log("Meal error"); done()});
-  //     })
-  // },
+  function(done) {
+    Hospital.destroy({where: {}})
+      .then(function() {
+        Hospital.bulkCreate(hospitals)
+          .then(() => {
+            done();
+          }).catch((err) => {console.log("Hospital error"); done()});
+      })
+  },
+  function(done) {
+    User.destroy({where: {}})
+      .then(() => {
+        Promise.all(users.map((user) => buildUser(user)))
+          .then(function(users) {
+            done();
+          }).catch((err) => {console.log("User error"); done()});
+      });
+  },
+  function(done) {
+    Restaurant.destroy({where: {}})
+      .then(function() {
+        Restaurant.bulkCreate(restaurants, {validate: true})
+          .then(() => {
+            done();
+          }).catch((err) => {console.log("Restaurant error"); done()});
+      }).catch((err) => {
+        console.log(err);
+      });
+  },
+  function(done) {
+    MealInfo.destroy({where: {}})
+      .then(function(){
+        MealInfo.bulkCreate(mealinfo, {validate: true}).then(()=> {
+          done()
+        }).catch((err) => {console.log("Meal info error"); done()});
+      })
+  }, 
+  function(done) {
+    Meal.destroy({where: {}})
+      .then(function(){
+        Meal.bulkCreate(meals, {validate: true}).then(()=> {
+          done()
+        }).catch((err) => {console.log("Meal error"); done()});
+      })
+  },
   function(done) {
     // TimeSlot.destroy({where: {}})
     //   .then(function(){
