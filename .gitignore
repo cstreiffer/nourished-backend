@@ -21,6 +21,7 @@ app/tests/coverage/
 coverage/
 npm-debug.log
 scripts/alias-users.json
+scripts/email-users.json
 
 # SEAN.JS app and assets
 # ======================
