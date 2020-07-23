@@ -7,6 +7,7 @@ var db = require(path.resolve("./config/lib/sequelize")).models,
   Restaurant = db.restaurant,
   TimeSlot = db.timeslot,
   Order = db.order,
+  UserAlias = db.useralias,
   uuid = require("uuid/v4");
 const async = require("async")
 const { Parser } = require("json2csv")
@@ -124,10 +125,26 @@ const queryOrders = async (timeslotRange, done) => {
             ],
           });
 
+          // User Aliases
+          let userAliases = await UserAlias.findAll({
+            where: {
+              aliasId: t.user.id
+            },
+            include: {
+              model: db.user,
+              as: 'user'
+            }
+          });
+
+          let emails = [t.user.email];
+          let aliasEmails = userAliases.map(u => u.user.email);
+          emails.push(...aliasEmails)
+
           //Push into map
           orderMap[t.restaurantId+t.hospitalId] = {
             orders: orders,
             emailRecipient: t.user.email,
+            emailRecipients: emails,
             timeslot: t.date,            
             restaurantName: r.name,   
             restaurantId: t.restaurantId,
@@ -167,10 +184,15 @@ var sendMessage = function (data) {
   console.group();
 
   
+  // var receipient =
+  //   process.env.NODE_ENV === "development"
+  //     ? [DEFAULT_EMAIL]
+  //     : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
+
   var receipient =
     process.env.NODE_ENV === "development"
-      ? [DEFAULT_EMAIL]
-      : [DEFAULT_EMAIL, data.emailRecipient, 'nourished@pennmedicine.upenn.edu'];
+      ? [DEFAULT_EMAIL, ...data.emailRecipients]
+      : [DEFAULT_EMAIL, 'nourished@pennmedicine.upenn.edu', ...data.emailRecipients];
   
   
   
@@ -300,6 +322,7 @@ const cronDailyUpdate = () => {
     },
   ]);
 };
+
 
 
 

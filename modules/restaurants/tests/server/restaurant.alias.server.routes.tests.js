@@ -78,7 +78,8 @@ before(function(done) {
     UserAlias.create({
       id: uuid(),
       userId: rest1aliasId,
-      aliasId: restaurantId1
+      aliasId: restaurantId1,
+      aliasRoles: ['restaurant']
     }).then(function(user) {
       console.log(user);
       done();

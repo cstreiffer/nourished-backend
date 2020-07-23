@@ -20,6 +20,7 @@ app/tests/coverage/
 .idea/
 coverage/
 npm-debug.log
+scripts/alias-users.json
 
 # SEAN.JS app and assets
 # ======================

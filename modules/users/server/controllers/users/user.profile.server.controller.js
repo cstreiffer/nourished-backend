@@ -175,6 +175,9 @@ exports.getProfile = function(req, res) {
         message: 'Could not find the user'
       });
     } else {
+      if (user.roles.includes('alias')) {
+        user.roles = ret.roles.filter(r => r !== 'alias');
+      }
       res.json({user: user, message: "User successfully found"});
     }
   }).catch(function(err) {
@@ -182,11 +185,13 @@ exports.getProfile = function(req, res) {
   });
 };
 
-
 /**
  * Send User
  */
 exports.me = function(req, res) {
   var ret = _.pick(req.user || {}, retAttributes)
+  if (ret.roles.includes('alias')) {
+    ret.roles = ret.roles.filter(r => r !== 'alias');
+  }
   res.json({user: ret});
 };

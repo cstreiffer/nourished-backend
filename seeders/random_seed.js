@@ -262,53 +262,6 @@ var mealLookup = meals.reduce(function(acc, cur) {
 
 var userIds = [fromString('cstreiffer'), fromString('jazz')];
 
-// var userIds = 
-// ["76bd12c8-4be3-4fef-9782-f69db274a872",
-// "49d6ebbb-f794-49ea-93f9-7e68d3b889ef",
-// "1cf6934a-9b56-490a-a0fe-9eb228d8a895",
-// "f86124d8-ec15-4445-a17f-a91fb16244e6",
-// "4e0f7a18-f4ab-4126-a10c-bd7ce6e161f9",
-// "08bb6ed7-7653-4046-adea-9112bc7e8374",
-// "7f31693b-34ba-418a-983d-19e293cca883",
-// "9d2bb2fe-ec08-499c-8f2d-f0e9683a1f32",
-// "42158f4b-1847-4e56-9f2f-ccdbc6941403",
-// "83ca9f6a-da39-4975-83ac-0625fb55a849",
-// "a8406450-8ea1-4707-9663-a3fa4c48d354",
-// "013a2ee5-7ee0-43a6-96ad-2696cfb11748",
-// "dd15854e-e9a5-474b-980f-660950fa3859",
-// "0e41604f-e1e2-4e2e-ae93-5d49b6040fc7",
-// "a7aa4e6f-b4bc-42c0-a575-69123a8fec45",
-// "a3de2bac-e353-4bfe-845f-8ee32eeaf427",
-// "5b1bfb9e-c541-448a-bcf2-0b493813314b",
-// "2e4e8193-d266-4328-a4ba-5033f07ccf91",
-// "3a19cb94-067c-4822-aa66-ba77dc12aa3d",
-// "2fb12548-12dd-454f-ad65-46b2bb85afbe",
-// "5a01943e-0636-4159-96e0-411e7c800958",
-// "04ed2442-9f1c-4705-b39f-d1fa1a63e728",
-// "13d88653-09f6-5e4e-a34b-617f1ebbb3ba",
-// "949356c0-c4e8-5133-ba84-45b3fd262d19",
-// "cefb8c90-366c-5e8b-9152-cc87f33cc833",
-// "e71d159f-95e4-5ae4-84d2-2277a65a03d5",
-// "bb0cf964-bea4-5ac6-b50b-045f3384ffed",
-// "4a2d67f6-fdf9-54b0-bd94-e4961f481b9b",
-// "1d2dd2c7-04c3-4751-ac49-bc0d444df7e1",
-// "c8ac6fd2-7ee7-5c16-8fc2-e23194bf54d9",
-// "60c38856-7143-4be7-a8e7-1de171906ef1",
-// "60ef1cfe-9c6b-4b50-81ba-60c980454f2f",
-// "56e664e0-6a58-4a05-ada9-1789df1dceec",
-// "3c425d93-f104-4678-8ead-6d863a30b10c",
-// "eafcff6a-ab48-4322-8a83-ed663561b605",
-// "8fb34ece-37aa-4968-86d4-2cc49430593e",
-// "35e781cd-4e03-4232-adfc-7fd8bf6a4edc",
-// "8b17a28d-ace3-43a2-9ef0-b0f6f6ec643e",
-// "12ba9b7f-8a3c-4161-a07a-3deba9ee7282",
-// "8bfcac6a-4571-487b-b1be-430f90e46cef",
-// "e67b1d28-0f90-4248-8080-0ce786f93010",
-// "99591fdc-64a1-4f4a-a5a5-b939dd069842",
-// "90d48cd6-1de3-4e22-89cf-92a21e55b368",
-// "2483e5d1-e7aa-4394-b52a-3f08f7da60b7",
-// "1bff954b-0efe-44ba-b413-0d0374390502"]
-
 var generateData = function(vals) {
   var timeslots = [];
   var menus = [];
@@ -366,6 +319,7 @@ var generateData = function(vals) {
               price: 5.00,
               total: quantity*5.00,
               quantity: quantity,
+              payStatus: "COMPLETE",
               id: uuid(),
               deliveryDate: menuId,
               userId: groupUser,
@@ -408,7 +362,7 @@ function pad(num, size) {
     return s.substr(s.length-size);
 }
 
-var vals = generateData([[1, 14, '2020-05-%sT16:00:00Z'], [1, 14, '2020-05-%sT00:00:00Z'], [1, 14, '2020-05-%sT00:30:00Z']]);
+var vals = generateData([[21, 31, '2020-07-%sT00:00:00Z'], [21, 31, '2020-07-%sT00:30:00Z']]);
 
 // var vals = generateData([[28, 31, '2020-04-%sT19:00:00Z']])
 
@@ -475,21 +429,21 @@ async.waterfall([
       })
   },
   function(done) {
-    TimeSlot.destroy({where: {}})
-      .then(function(){
+    // TimeSlot.destroy({where: {}})
+    //   .then(function(){
         TimeSlot.bulkCreate(timeslots, {validate: true}).then(()=> {
           done()
-        })
-      })
+        }).catch((err) => console.log(err));
+      // })
   },
   function(done) {
-    Menu.destroy({where: {}})
-      .then(function() {
+    // Menu.destroy({where: {}})
+    //   .then(function() {
         Menu.bulkCreate(menus, {validate: true})
           .then(() => {
             done();
-          }).catch((err) => console.log(err))
-        });
+          }).catch((err) => console.log(err));
+        // });
   },
   function(done) {
     Order.destroy({where: {}})

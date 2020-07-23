@@ -20,7 +20,7 @@ module.exports.findAlias = function(req, res, next) {
         user.originalId = req.user.id;
         user.originalRoles = req.user.roles;
         user.id = useralias.aliasId;
-        user.roles = _.concat(req.user.roles, useralias.aliasRoles);;
+        user.roles = useralias.aliasRoles;
         req.user = user;
         return next();
       }
